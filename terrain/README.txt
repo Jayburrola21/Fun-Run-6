@@ -1,9 +1,11 @@
-Candy terrain replacement for Roblox Studio
+USE CandyTerrain.glb — this replaces the ZIP workflow.
 
-Import the terrain_*.obj files through Studio's 3D Importer, keeping candy_terrain.mtl alongside them. Each tile has at most 8,192 triangles. Keep all tiles at their original shared coordinates; do not individually center them. Use the importer preview to check scale and alignment against the existing trail before confirming. The OBJ uses the same coordinates and units as your exported candy.obj.
+In Roblox Studio choose File > Import (Ctrl+M), select CandyTerrain.glb, then import the entire scene as one model. All 24 mesh sections are already positioned relative to each other. Do not import the old individual OBJ tiles.
 
-Replace only the large flat ground block named Part1. Keep Floor1, Dirt1 through Dirt55, Part2, and Part3. Keep a backup of Part1 until alignment is verified. Anchor imported ground meshes. Set their material/color to your preferred mint ground if the importer does not apply the MTL.
+Keep the original imported positions and scale, and disable any option that inserts at the current camera or selection location if shown. Check the assembled model against the existing trail before removing old ground. Anchor the whole imported model. Replace only the large flat ground block Part1; keep all trail pieces. Save a backup first.
 
-This is a surface mesh, not Roblox voxel Terrain. It follows the exported trail elevation, sits approximately 0.6 units below the trail top, and blends to the original flat ground over 36 units beyond a 10-unit centerline shoulder. Tile boundaries share exact coordinates. Ends use the nearest endpoint height. The missing original candy.mtl does not affect geometry extraction.
+This is one self-contained GLB scene with embedded geometry and mint material; no external assets or MTL files are needed. It imports through the 3D importer, not Import Roblox Model. Geometry uses the original candy.obj coordinates, Y up. If Studio changes the unit conversion, match the assembled model to the original base footprint (880 by 1410.803 original units) as a whole.
 
-Geometry checks passed; Studio import, exact collision behavior, and playtesting have not been performed. Set appropriate collision fidelity and test the slopes in Studio. Original source OBJ was not edited.
+The terrain follows the trail elevation and blends back into flat surrounding ground. Geometry and GLB structure were checked here; Roblox Studio import and playtesting have not been performed. This is mesh ground, not editable voxel Terrain.
+
+source/candy.obj is the untouched source export. The ZIP is retained as an older alternative.
