@@ -1,0 +1,789 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4">
+  <Item class="Workspace" referent="RBXWorkspace">
+    <Properties>
+      <string name="Name">Workspace</string>
+    </Properties>
+    <Item class="Part" referent="RBXKartTestGround">
+      <Properties>
+        <string name="Name">KartTestGround</string>
+        <Vector3 name="Size">
+          <X>600</X>
+          <Y>1</Y>
+          <Z>600</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>-0.5</Y>
+          <Z>0</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+      </Properties>
+    </Item>
+    <Item class="SpawnLocation" referent="RBXPlayerSpawn">
+      <Properties>
+        <string name="Name">PlayerSpawn</string>
+        <Vector3 name="Size">
+          <X>6</X>
+          <Y>1</Y>
+          <Z>6</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>9</X>
+          <Y>0.5</Y>
+          <Z>6</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="ReplicatedStorage" referent="RBXReplicatedStorage">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="Folder" referent="RBXKartSystem">
+      <Properties>
+        <string name="Name">KartSystem</string>
+      </Properties>
+      <Item class="ModuleScript" referent="RBXKartConfig">
+        <Properties>
+          <string name="Name">KartConfig</string>
+          <ProtectedString name="Source">-- Distances in studs, speeds in studs/second. Local forward is -Z.
+return table.freeze({
+	MaxSpeed = 82,
+	ReverseSpeed = 24,
+	Acceleration = 39,
+	BrakeAcceleration = 75,
+	CoastDrag = 0.55,
+	Grip = 8.5,
+	DriftGrip = 2.1,
+	MaxSteer = math.rad(29),
+	MaxCornerAcceleration = 85,
+	Wheelbase = 4.8,
+	WheelRadius = 1.05,
+	SuspensionRest = 0.65,
+	SuspensionTravel = 0.65,
+	SpringFrequency = 3.2,
+	SpringDamping = 0.82,
+	DriftMinSpeed = 27,
+	DriftStages = {0.65, 1.5, 2.7},
+	DriftBoostDuration = {0.55, 1.0, 1.6},
+	DriftBoostPower = {20, 29, 38},
+	TurboDuration = 1.15,
+	TurboPower = 32,
+	TurboCooldown = 6,
+	InputTimeout = 0.5,
+	InputRate = 30,
+	SpawnCFrame = CFrame.new(0, 5, 0),
+	-- Place anchored Parts in Workspace.KartSpawns to override this default.
+	Palette = {
+		Red = Color3.fromRGB(220, 26, 46),
+		Blue = Color3.fromRGB(25, 119, 235),
+		Green = Color3.fromRGB(79, 195, 42),
+		Yellow = Color3.fromRGB(255, 190, 21),
+		Purple = Color3.fromRGB(154, 48, 232),
+		Black = Color3.fromRGB(30, 33, 40),
+	},
+})
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="RBXKartDynamics">
+        <Properties>
+          <string name="Name">KartDynamics</string>
+          <ProtectedString name="Source">-- Pure calculations shared by the server and the standalone Luau tests.
+local Dynamics = {}
+
+function Dynamics.stage(seconds, thresholds)
+	local result = 0
+	for index, threshold in ipairs(thresholds) do
+		if seconds &gt;= threshold then result = index end
+	end
+	return result
+end
+
+function Dynamics.longitudinal(speed, throttle, boost, config)
+	local limit = config.MaxSpeed + boost
+	local accel = 0
+	if throttle &gt; 0 then
+		accel = speed &lt; -1 and config.BrakeAcceleration or config.Acceleration
+	elseif throttle &lt; 0 then
+		accel = speed &gt; 1 and -config.BrakeAcceleration or -config.Acceleration * 0.65
+	end
+	accel *= math.abs(throttle)
+	if boost &gt; 0 and throttle &gt;= 0 then accel += boost * 1.6 end
+	if speed &gt; limit then accel = math.min(accel, -(speed - limit) * 7) end
+	if speed &lt; -config.ReverseSpeed then accel = math.max(accel, (-config.ReverseSpeed - speed) * 7) end
+	return accel - speed * config.CoastDrag * (throttle == 0 and 1 or 0.15)
+end
+
+function Dynamics.finite(value)
+	return type(value) == "number" and value == value and math.abs(value) &lt; math.huge
+end
+
+function Dynamics.updateBoost(state, now, dt, grounded, speed, config)
+	local drifting=state.player~=nil and state.drift and math.abs(state.steer)&gt;0.15 and speed&gt;config.DriftMinSpeed and grounded
+	if drifting then
+		state.charge=math.min(state.charge+dt,config.DriftStages[3]+0.1)
+	elseif state.wasDrift and not state.drift and grounded and state.player then
+		local tier=Dynamics.stage(state.charge,config.DriftStages)
+		if tier&gt;0 then
+			state.boostEnd=math.max(state.boostEnd,now+config.DriftBoostDuration[tier])
+			state.boostPower=config.DriftBoostPower[tier]
+		end
+		state.charge=0
+	else state.charge=0 end
+	state.wasDrift=drifting
+	if state.player and state.turbo and now&gt;=state.cooldown and grounded and speed&gt;=0 then
+		state.cooldown=now+config.TurboCooldown
+		state.boostEnd=math.max(state.boostEnd,now+config.TurboDuration)
+		state.boostPower=math.max(state.boostPower,config.TurboPower)
+	end
+	local power=now&lt;state.boostEnd and state.boostPower or 0
+	if power==0 then state.boostPower=0 end
+	return drifting,power
+end
+
+return table.freeze(Dynamics)
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="RBXKartBuilder">
+        <Properties>
+          <string name="Name">KartBuilder</string>
+          <ProtectedString name="Source">local Config = require(script.Parent.KartConfig)
+local Builder = {}
+local WHITE = Color3.fromRGB(235, 239, 245)
+local BLACK = Color3.fromRGB(20, 23, 30)
+local RUBBER = Color3.fromRGB(13, 14, 19)
+local METAL = Color3.fromRGB(90, 101, 119)
+local BLUE = Color3.fromRGB(70, 177, 255)
+
+function Builder.build(name, spawn, color)
+	color = color or Config.Palette.Red
+	local model = Instance.new("Model")
+	model.Name = name
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
+	local function folder(label)
+		local f = Instance.new("Folder")
+		f.Name = label; f.Parent = model
+		return f
+	end
+	local body = folder("Body")
+	local wheels = folder("Wheels")
+	local suspension = folder("Suspension")
+	local effects = folder("Effects")
+	local headlights = folder("Headlights")
+	local exhaust = folder("Exhaust")
+	local attachments = folder("Attachments")
+	local chassis
+	local function part(label, size, cf, tint, material, parent, shape, loose, class)
+		local p = Instance.new(class or "Part")
+		p.Name = label; p.Size = size; p.CFrame = spawn * cf
+		p.Color = tint; p.Material = material or Enum.Material.SmoothPlastic
+		p.TopSurface = Enum.SurfaceType.Smooth; p.BottomSurface = Enum.SurfaceType.Smooth
+		p.CanCollide = false; p.CanTouch = false; p.CanQuery = false
+		p.Massless = true
+		if shape then p.Shape = shape end
+		p.Parent = parent or body
+		if chassis and not loose then
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = chassis; weld.Part1 = p; weld.Parent = p
+		end
+		return p
+	end
+	local function bar(label, a, b, width, tint, parent)
+		return part(label, Vector3.new(width, width, (b-a).Magnitude), CFrame.lookAt((a+b)/2,b), tint, Enum.Material.Metal, parent)
+	end
+	local function ring(parent, base, radius, thickness, tint, material, count, target)
+		for i = 1, count do
+			local angle = (i-0.5)*math.pi*2/count
+			local cf = base * CFrame.Angles(0,0,angle) * CFrame.new(radius,0,0) * CFrame.Angles(0,0,math.pi/2)
+			local segment = part("RingSegment", Vector3.new(2*radius*math.tan(math.pi/count), thickness, thickness), cf, tint, material, parent, nil, target ~= nil)
+			if target then
+				local w = Instance.new("WeldConstraint"); w.Part0 = target; w.Part1 = segment; w.Parent = segment
+			end
+		end
+	end
+	chassis = part("Chassis", Vector3.new(4.25,0.65,7.3), CFrame.new(), BLACK, Enum.Material.Metal, model, nil, true)
+	chassis.Massless = false; chassis.CanCollide = true; chassis.CanQuery = true
+	chassis.CustomPhysicalProperties = PhysicalProperties.new(2.8,0.2,0,100,100)
+	model.PrimaryPart = chassis
+	part("FloorPan",Vector3.new(3.9,0.15,4.3),CFrame.new(0,0.48,0.1),METAL,Enum.Material.DiamondPlate)
+	-- A layered, tapering nose; wedges slope down towards the front (-Z).
+	part("Nose",Vector3.new(2.9,1.05,2.8),CFrame.new(0,0.85,-2.35),color,nil,body,nil,false,"WedgePart")
+	part("NoseStripe",Vector3.new(0.52,1.065,2.82),CFrame.new(0.98,0.86,-2.35),WHITE,nil,body,nil,false,"WedgePart")
+	local badge=CFrame.new(-0.25,0.88,-2.3)*CFrame.Angles(-math.atan(1.05/2.8),0,0)*CFrame.Angles(0,0.2,0)
+	part("NoseBadge",Vector3.new(0.92,0.035,0.92),badge,WHITE)
+	part("NoseBadgeInset",Vector3.new(0.32,0.04,0.32),badge*CFrame.new(0,0.025,0),color)
+	for _, side in ipairs({-1,1}) do
+		part("NoseShoulder",Vector3.new(0.55,0.7,2.3),CFrame.new(side*1.6,0.66,-2.3)*CFrame.Angles(0,0,side*0.12),WHITE,nil,body,nil,false,"WedgePart")
+		part("SidePod",Vector3.new(0.65,0.85,2.8),CFrame.new(side*1.82,0.75,0.55),color,nil,body,nil,false,"WedgePart")
+		part("SideStripe",Vector3.new(0.68,0.13,2.3),CFrame.new(side*1.83,0.82,0.55),WHITE)
+		for n=1,3 do part("CoolingVent",Vector3.new(0.7,0.10,0.38),CFrame.new(side*1.82,0.55,0.45+n*0.46),BLACK) end
+		bar("FrameRail",Vector3.new(side*1.45,0.55,1.8),Vector3.new(side*1.32,1.45,-0.8),0.19,color)
+		bar("SideGuard",Vector3.new(side*2.08,0.1,-0.4),Vector3.new(side*2.08,0.1,1.9),0.22,METAL)
+	end
+	local bumper = folder("FrontBumper")
+	part("Bumper",Vector3.new(4.9,0.5,0.52),CFrame.new(0,0.05,-3.8),BLACK,Enum.Material.SmoothPlastic,bumper)
+	part("Splitter",Vector3.new(4.8,0.09,0.75),CFrame.new(0,-0.22,-3.7),METAL,Enum.Material.Metal,bumper)
+	for _, side in ipairs({-1,1}) do
+		part("BumperWing",Vector3.new(1.55,0.28,0.85),CFrame.new(side*1.65,0.38,-3.53)*CFrame.Angles(0,side*0.12,0),color,nil,bumper)
+		part("LightHousing",Vector3.new(1.3,0.30,0.15),CFrame.new(side*1.65,0.16,-4.08),WHITE,Enum.Material.Metal,headlights)
+		local light=part("LED",Vector3.new(1.08,0.13,0.04),CFrame.new(side*1.65,0.17,-4.17),BLUE,Enum.Material.Neon,headlights)
+		local beam=Instance.new("SpotLight"); beam.Face=Enum.NormalId.Front; beam.Brightness=1.8; beam.Range=28; beam.Angle=75; beam.Color=BLUE; beam.Parent=light
+		part("BrakeLight",Vector3.new(0.6,0.2,0.06),CFrame.new(side*1.6,0.6,3.7),Color3.fromRGB(110,5,10),Enum.Material.SmoothPlastic,effects)
+	end
+	local seat=part("DriverSeat",Vector3.new(1.9,0.35,1.8),CFrame.new(0,0.95,0.65),BLACK,Enum.Material.Fabric,model,nil,false,"VehicleSeat")
+	seat.HeadsUpDisplay=false; seat.MaxSpeed=0; seat.Torque=0; seat.TurnSpeed=0
+	part("SeatBack",Vector3.new(1.95,2.15,0.43),CFrame.new(0,2.03,1.5)*CFrame.Angles(-0.14,0,0),BLACK,Enum.Material.Fabric)
+	for _,side in ipairs({-1,1}) do
+		part("SeatBolster",Vector3.new(0.3,1.2,0.7),CFrame.new(side*0.98,1.65,1.15)*CFrame.Angles(0,0,side*0.12),WHITE,Enum.Material.Fabric)
+	end
+	part("HeadrestBadge",Vector3.new(0.55,0.55,0.05),CFrame.new(0,2.7,1.21)*CFrame.Angles(0,0,0.2),WHITE)
+	part("BadgeInset",Vector3.new(0.23,0.23,0.06),CFrame.new(0,2.7,1.17)*CFrame.Angles(0,0,0.2),BLACK)
+	local spoiler=folder("RearSpoiler")
+	for _,side in ipairs({-1,1}) do
+		bar("SpoilerStrut",Vector3.new(side*1.3,0.65,2.7),Vector3.new(side*1.3,2.6,3.25),0.22,METAL,spoiler)
+		part("EndPlate",Vector3.new(0.13,0.85,1.5),CFrame.new(side*2.6,2.7,3.2)*CFrame.Angles(-0.12,0,0),color,nil,spoiler,nil,false,"WedgePart")
+		part("WingStripe",Vector3.new(0.5,0.19,1.18),CFrame.new(side*1.7,2.76,3.2)*CFrame.Angles(-0.08,0,0),WHITE,nil,spoiler)
+	end
+	part("Wing",Vector3.new(5.2,0.18,1.15),CFrame.new(0,2.75,3.2)*CFrame.Angles(-0.08,0,0),color,nil,spoiler)
+	-- Wheel and steering assemblies use Motor6D C0 (server replicated), not Transform.
+	local wheelData={}
+	for _,desc in ipairs({{"FrontLeft",-1,-2.4,true},{"FrontRight",1,-2.4,true},{"RearLeft",-1,2.4,false},{"RearRight",1,2.4,false}}) do
+		local label,side,z,front=table.unpack(desc)
+		local group=Instance.new("Model"); group.Name=label; group.Parent=wheels
+		local origin=Vector3.new(side*2.68,Config.SuspensionRest,z)
+		-- Smaller chassis-mounted collision shells catch walls/curbs without
+		-- competing with the raycast tires during normal spring compression.
+		local guard=part(label.."Collision",Vector3.new(0.85,1.35,1.35),CFrame.new(origin-Vector3.new(0,0.35,0)),BLACK,Enum.Material.SmoothPlastic,suspension,Enum.PartType.Ball)
+		guard.Transparency=1; guard.CanCollide=true; guard.CanQuery=true
+		guard.CustomPhysicalProperties=PhysicalProperties.new(0.1,0.1,0,100,100)
+		local cf=CFrame.new(origin-Vector3.new(0,Config.SuspensionRest,0))
+		local tire=part("Tire",Vector3.new(0.95,2.1,2.1),cf,RUBBER,Enum.Material.SmoothPlastic,group,Enum.PartType.Cylinder,true)
+		local motor=Instance.new("Motor6D"); motor.Name="WheelMotor"; motor.Part0=chassis; motor.Part1=tire; motor.C0=cf; motor.Parent=tire
+		local function detail(label,size,offset,tint,material,shape)
+			local p=part(label,size,cf*offset,tint,material,group,shape,true)
+			local w=Instance.new("WeldConstraint"); w.Part0=tire; w.Part1=p; w.Parent=p
+			return p
+		end
+		detail("Rim",Vector3.new(0.1,1.4,1.4),CFrame.new(side*0.49,0,0),METAL,Enum.Material.Metal,Enum.PartType.Cylinder)
+		detail("Hub",Vector3.new(0.13,0.45,0.45),CFrame.new(side*0.57,0,0),BLACK,Enum.Material.Metal,Enum.PartType.Cylinder)
+		for n=1,6 do
+			detail("Spoke",Vector3.new(0.12,0.65,0.12),CFrame.new(side*0.55,0,0)*CFrame.Angles(n*math.pi/3,0,0)*CFrame.new(0,0.37,0),WHITE,Enum.Material.Metal)
+		end
+		ring(group,cf*CFrame.new(side*0.56,0,0)*CFrame.Angles(0,math.pi/2,0),0.79,0.065,BLUE,Enum.Material.Neon,20,tire)
+		for n=1,20 do
+			for _,offset in ipairs({-0.26,0.26}) do
+				detail("Tread",Vector3.new(0.025,0.025,0.20),CFrame.Angles(n*math.pi/10,0,0)*CFrame.new(offset,1.049,0),Color3.fromRGB(28,29,33),Enum.Material.SmoothPlastic)
+			end
+		end
+		local mount=Instance.new("Attachment"); mount.Name=label.."Mount"; mount.Position=origin; mount.Parent=chassis
+		local force=Instance.new("VectorForce"); force.Name=label.."Contact"; force.Attachment0=mount; force.RelativeTo=Enum.ActuatorRelativeTo.World; force.ApplyAtCenterOfMass=false; force.Force=Vector3.zero; force.Parent=suspension
+		local emitterAt=Instance.new("Attachment"); emitterAt.Name=label.."ContactEffects"; emitterAt.Position=origin-Vector3.new(0,Config.SuspensionRest+Config.WheelRadius,0); emitterAt.Parent=chassis
+		local smoke=Instance.new("ParticleEmitter"); smoke.Name="TireSmoke"; smoke.Texture="rbxasset://textures/particles/smoke_main.dds"; smoke.Color=ColorSequence.new(Color3.fromRGB(180,187,200)); smoke.Lifetime=NumberRange.new(0.3,0.6); smoke.Speed=NumberRange.new(1,3); smoke.Rate=0; smoke.SpreadAngle=Vector2.new(30,30); smoke.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,0.3),NumberSequenceKeypoint.new(1,1.8)}); smoke.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.65),NumberSequenceKeypoint.new(1,1)}); smoke.Parent=emitterAt
+		local sparks=Instance.new("ParticleEmitter"); sparks.Name="DriftSparks"; sparks.Texture="rbxasset://textures/particles/sparkles_main.dds"; sparks.Lifetime=NumberRange.new(0.12,0.28); sparks.Speed=NumberRange.new(3,7); sparks.SpreadAngle=Vector2.new(45,45); sparks.LightEmission=1; sparks.Size=NumberSequence.new(0.18); sparks.Rate=0; sparks.Parent=emitterAt
+		local glow={}
+		for _,p in ipairs(group:GetChildren()) do if p:IsA("BasePart") and p.Material==Enum.Material.Neon then table.insert(glow,p) end end
+		table.insert(wheelData,{motor=motor,origin=origin,front=front,force=force,smoke=smoke,sparks=sparks,emitterAt=emitterAt,glow=glow,spin=0})
+		bar("Wishbone",Vector3.new(side*1.4,0.05,z),origin,0.13,METAL,suspension)
+	end
+	local steering=Instance.new("Model"); steering.Name="SteeringWheel"; steering.Parent=model
+	local steeringBase=CFrame.new(0,1.95,-1.05)*CFrame.Angles(math.rad(-24),0,0)
+	local hub=part("Hub",Vector3.new(0.24,0.24,0.18),steeringBase,BLACK,Enum.Material.Metal,steering,nil,true)
+	local steeringMotor=Instance.new("Motor6D"); steeringMotor.Name="SteeringMotor"; steeringMotor.Part0=chassis; steeringMotor.Part1=hub; steeringMotor.C0=steeringBase; steeringMotor.Parent=hub
+	ring(steering,steeringBase,0.63,0.12,color,Enum.Material.Fabric,20,hub)
+	for n=1,3 do
+		local cf=steeringBase*CFrame.Angles(0,0,n*2*math.pi/3)*CFrame.new(0,-0.3,0)
+		local p=part("Spoke",Vector3.new(0.12,0.6,0.10),cf,METAL,Enum.Material.Metal,steering,nil,true)
+		local w=Instance.new("WeldConstraint"); w.Part0=hub; w.Part1=p; w.Parent=p
+	end
+	for _,side in ipairs({-1,1}) do
+		local a=Instance.new("Attachment"); a.Name=side&lt;0 and "LeftGrip" or "RightGrip"; a.Position=Vector3.new(side*0.59,0.13,0); a.Parent=hub
+	end
+	bar("SteeringColumn",Vector3.new(0,0.65,-0.65),Vector3.new(0,1.95,-1.05),0.16,METAL)
+	local flames={}
+	for _,side in ipairs({-1,1}) do
+		local cf=CFrame.new(side*0.98,1.25,2.6)*CFrame.Angles(0,math.pi/2,0)
+		part("TurboCanister",Vector3.new(1.65,0.86,0.86),cf,METAL,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
+		part("ExhaustTip",Vector3.new(0.2,0.72,0.72),CFrame.new(side*0.98,1.25,3.48)*CFrame.Angles(0,math.pi/2,0),BLACK,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
+		local at=Instance.new("Attachment"); at.Name="ExhaustOutlet"; at.Position=Vector3.new(side*0.98,1.25,3.65); at.Orientation=Vector3.new(0,180,0); at.Parent=chassis
+		local flame=Instance.new("ParticleEmitter"); flame.Name="TurboFlame"; flame.Texture="rbxasset://textures/particles/fire_main.dds"; flame.EmissionDirection=Enum.NormalId.Front; flame.Rate=0; flame.Speed=NumberRange.new(12,19); flame.Lifetime=NumberRange.new(0.12,0.22); flame.SpreadAngle=Vector2.new(8,8); flame.LightEmission=1; flame.Color=ColorSequence.new(Color3.fromRGB(255,230,90),Color3.fromRGB(255,70,20)); flame.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,0.65),NumberSequenceKeypoint.new(1,0)}); flame.Parent=at
+		local light=Instance.new("PointLight"); light.Color=Color3.fromRGB(255,143,30); light.Range=9; light.Brightness=0; light.Parent=at
+		table.insert(flames,{emitter=flame,light=light})
+	end
+	local rootAt=Instance.new("Attachment"); rootAt.Name="StabilityAttachment"; rootAt.Parent=chassis
+	local torque=Instance.new("Torque"); torque.Name="ArcadeStability"; torque.Attachment0=rootAt; torque.RelativeTo=Enum.ActuatorRelativeTo.World; torque.Parent=attachments
+	local prompt=Instance.new("ProximityPrompt"); prompt.Name="EnterKart"; prompt.ActionText="Drive"; prompt.ObjectText="Racing Kart"; prompt.KeyboardKeyCode=Enum.KeyCode.E; prompt.MaxActivationDistance=9; prompt.RequiresLineOfSight=false; prompt.Parent=seat
+	model:SetAttribute("IsRacingKart",true)
+	model:SetAttribute("ColorName","Red")
+	return {model=model,chassis=chassis,seat=seat,prompt=prompt,wheels=wheelData,torque=torque,steering=steeringMotor,steeringBase=steeringBase,hub=hub,flames=flames}
+end
+
+return Builder
+</ProtectedString>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="RBXServerScriptService">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="Script" referent="RBXKartServer">
+      <Properties>
+        <string name="Name">KartServer</string>
+        <ProtectedString name="Source">local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CollectionService = game:GetService("CollectionService")
+local System = ReplicatedStorage:WaitForChild("KartSystem")
+local Config = require(System.KartConfig)
+local Dynamics = require(System.KartDynamics)
+local Builder = require(System.KartBuilder)
+
+local remotes = Instance.new("Folder"); remotes.Name="Remotes"; remotes.Parent=System
+local input = Instance.new("RemoteEvent"); input.Name="Input"; input.Parent=remotes
+local states = {}
+local playerStates = {}
+local rates = {}
+local sparkColors = {Color3.fromRGB(60,165,255),Color3.fromRGB(255,141,30),Color3.fromRGB(194,65,255)}
+local world = workspace:FindFirstChild("RacingKarts") or Instance.new("Folder")
+world.Name="RacingKarts"; world.Parent=workspace
+
+local function restoreDriver(s)
+	for _,ik in ipairs(s.iks or {}) do ik:Destroy() end
+	s.iks={}
+	if s.waist and s.waist.Parent then s.waist.C0=s.waistBase end
+	s.waist=nil
+	if s.humanoid and s.humanoid.Parent then
+		s.humanoid.JumpPower=s.jumpPower
+		s.humanoid.JumpHeight=s.jumpHeight
+	end
+	s.humanoid=nil
+	if s.player then playerStates[s.player]=nil end
+	s.player=nil; s.throttle=0; s.steer=0; s.drift=false; s.turbo=false
+	s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0; s.wasDrift=false
+	s.model:SetAttribute("DriverUserId",0)
+	s.prompt.Enabled=true
+end
+
+local function attachDriver(s)
+	restoreDriver(s)
+	local humanoid=s.seat.Occupant
+	if not humanoid then return end
+	local player=Players:GetPlayerFromCharacter(humanoid.Parent)
+	if not player or playerStates[player] then humanoid.Sit=false; return end
+	s.player=player; playerStates[player]=s; s.humanoid=humanoid
+	s.jumpPower=humanoid.JumpPower; s.jumpHeight=humanoid.JumpHeight
+	-- Space is drift while seated. E/F or gamepad B exits explicitly.
+	humanoid.JumpPower=0; humanoid.JumpHeight=0
+	s.prompt.Enabled=false; s.lastInput=os.clock()
+	s.chassis.Anchored=false
+	s.chassis:SetNetworkOwner(nil) -- authoritative forces, boosts and speed caps
+	s.model:SetAttribute("DriverUserId",player.UserId)
+	if humanoid.RigType==Enum.HumanoidRigType.R15 then
+		for _,side in ipairs({"Left","Right"}) do
+			local upper=humanoid.Parent:FindFirstChild(side.."UpperArm")
+			local hand=humanoid.Parent:FindFirstChild(side.."Hand")
+			if upper and hand then
+				local ik=Instance.new("IKControl"); ik.Name="Kart"..side.."Grip"
+				ik.Type=Enum.IKControlType.Position; ik.ChainRoot=upper; ik.EndEffector=hand
+				ik.Target=s.hub:FindFirstChild(side.."Grip"); ik.Weight=1; ik.SmoothTime=0.08; ik.Priority=10; ik.Parent=humanoid
+				table.insert(s.iks,ik)
+			end
+		end
+		local upperTorso=humanoid.Parent:FindFirstChild("UpperTorso")
+		local waist=upperTorso and upperTorso:FindFirstChild("Waist")
+		if waist and waist:IsA("Motor6D") then s.waist=waist; s.waistBase=waist.C0 end
+	end
+end
+
+local function spawnKart(cf, colorName)
+	local s=Builder.build("RacingKart",cf,Config.Palette[colorName] or Config.Palette.Red)
+	s.model:SetAttribute("ColorName",colorName)
+	s.model.Parent=world
+	CollectionService:AddTag(s.model,"RacingKart")
+	s.spawn=cf; s.throttle=0; s.steer=0; s.visualSteer=0; s.drift=false; s.turbo=false
+	s.lastInput=0; s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0; s.wasDrift=false
+	s.visualClock=0; s.iks={}; s.emptyTime=0
+	s.params=RaycastParams.new(); s.params.FilterType=Enum.RaycastFilterType.Exclude
+	s.params.RespectCanCollide=true
+	s.chassis:SetNetworkOwner(nil)
+	s.prompt.Triggered:Connect(function(player)
+		local humanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if not humanoid or humanoid.Health&lt;=0 or not root or playerStates[player] or s.seat.Occupant or s.reserved then return end
+		if (root.Position-s.seat.Position).Magnitude&gt;11 then return end
+		s.reserved=true; s.prompt.Enabled=false
+		s.seat:Sit(humanoid)
+		task.delay(1,function()
+			s.reserved=false
+			if s.model.Parent and not s.seat.Occupant then s.prompt.Enabled=true end
+		end)
+	end)
+	s.seat:GetPropertyChangedSignal("Occupant"):Connect(function() attachDriver(s) end)
+	table.insert(states,s)
+end
+
+local markers=workspace:FindFirstChild("KartSpawns")
+if markers then
+	for _,marker in ipairs(markers:GetChildren()) do
+		if marker:IsA("BasePart") then
+			marker.CanCollide=false; marker.CanTouch=false; marker.CanQuery=false; marker.Transparency=1
+			spawnKart(marker.CFrame,marker:GetAttribute("ColorName") or "Red")
+		end
+	end
+end
+if #states==0 then spawnKart(Config.SpawnCFrame,"Red") end
+
+input.OnServerEvent:Connect(function(player, throttle, steer, drift, turbo, exit)
+	local now=os.clock()
+	local rate=rates[player]
+	if not rate or now-rate.time&gt;=1 then rate={time=now,count=0}; rates[player]=rate end
+	rate.count+=1
+	if rate.count&gt;Config.InputRate+15 then return end
+	local s=playerStates[player]
+	if not s or s.seat.Occupant~=s.humanoid or s.humanoid.Health&lt;=0 then return end
+	if not Dynamics.finite(throttle) or not Dynamics.finite(steer) or type(drift)~="boolean" or type(turbo)~="boolean" or type(exit)~="boolean" then return end
+	s.lastInput=now
+	if exit then s.humanoid.Sit=false; return end
+	s.throttle=math.clamp(throttle,-1,1); s.steer=math.clamp(steer,-1,1)
+	s.drift=drift; s.turbo=turbo
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	local s=playerStates[player]
+	if s then
+		if s.humanoid then s.humanoid.Sit=false end
+		restoreDriver(s)
+	end
+	rates[player]=nil
+end)
+
+RunService.Heartbeat:Connect(function(delta)
+	local dt=math.min(delta,1/20)
+	local now=os.clock()
+	for index=#states,1,-1 do
+		local s=states[index]
+		if not s.model:IsDescendantOf(workspace) then
+			restoreDriver(s); table.remove(states,index); continue
+		end
+		local root=s.chassis
+		if root.Position.Y&lt;workspace.FallenPartsDestroyHeight+30 then
+			if s.humanoid then s.humanoid.Sit=false end
+			restoreDriver(s); root.Anchored=false; s.model:PivotTo(s.spawn)
+			root.AssemblyLinearVelocity=Vector3.zero; root.AssemblyAngularVelocity=Vector3.zero
+		end
+		if s.player and now-s.lastInput&gt;Config.InputTimeout then
+			s.throttle=0; s.steer=0; s.drift=false; s.turbo=false; s.charge=0; s.wasDrift=false
+		end
+		local exclusions={s.model}
+		for _,player in ipairs(Players:GetPlayers()) do
+			if player.Character then table.insert(exclusions,player.Character) end
+		end
+		s.params.FilterDescendantsInstances=exclusions
+		local mass=root.AssemblyMass
+		if root.Anchored then mass=root:GetMass() end
+		local cf=root.CFrame
+		local velocity=root.AssemblyLinearVelocity
+		local speed=velocity:Dot(cf.LookVector)
+		local contacts={}; local groundNormal=Vector3.zero
+		for _,wheel in ipairs(s.wheels) do
+			local mount=cf:PointToWorldSpace(wheel.origin)
+			local ray=workspace:Raycast(mount,-cf.UpVector*(Config.WheelRadius+Config.SuspensionRest+Config.SuspensionTravel),s.params)
+			wheel.distance=Config.SuspensionRest+Config.SuspensionTravel
+			wheel.force.Force=Vector3.zero
+			if ray and ray.Normal.Y&gt;0.15 then
+				wheel.distance=math.max(-0.2,ray.Distance-Config.WheelRadius)
+				local pv=root:GetVelocityAtPosition(mount)
+				local omega=Config.SpringFrequency*2*math.pi
+				local load=mass/4
+				local compression=Config.SuspensionRest-wheel.distance
+				local support=load*workspace.Gravity+compression*load*omega*omega-pv:Dot(cf.UpVector)*2*Config.SpringDamping*omega*load
+				wheel.force.Force=cf.UpVector*math.clamp(support,0,mass*workspace.Gravity*1.3)
+				table.insert(contacts,wheel); groundNormal+=ray.Normal
+			end
+		end
+		local grounded=#contacts&gt;=2
+		local drifting,boost=Dynamics.updateBoost(s,now,dt,grounded,speed,Config)
+		local steerAngle=-s.steer*Config.MaxSteer/(1+(math.abs(speed)/36)^2)
+		local desiredYaw=math.tan(steerAngle)*speed/Config.Wheelbase*(drifting and 1.3 or 1)
+		local yawLimit=Config.MaxCornerAcceleration/math.max(math.abs(speed),12)
+		desiredYaw=math.clamp(desiredYaw,-yawLimit,yawLimit)
+		local normal=grounded and groundNormal.Unit or Vector3.yAxis
+		local forward=cf.LookVector-normal*cf.LookVector:Dot(normal)
+		if forward.Magnitude&gt;0.01 then forward=forward.Unit else forward=cf.LookVector end
+		local right=forward:Cross(normal).Unit
+		for _,wheel in ipairs(contacts) do
+			local mount=cf:PointToWorldSpace(wheel.origin)
+			local pv=root:GetVelocityAtPosition(mount)
+			-- Preserve the commanded yaw while damping excess sideways slip.
+			local localZ=wheel.origin.Z
+			local targetSide=desiredYaw*localZ
+			local lateral=pv:Dot(right)-targetSide
+			local grip=drifting and not wheel.front and Config.DriftGrip or Config.Grip
+			local sideAccel=math.clamp(-lateral*grip,-100,100)
+			local drive=Dynamics.longitudinal(speed,s.player and s.throttle or 0,boost,Config)
+			if not s.player then drive=math.clamp(-speed*10,-80,80) end
+			wheel.force.Force+=(forward*drive+right*sideAccel)*(mass/4)
+		end
+		if grounded then
+			local angular=root.AssemblyAngularVelocity
+			local tilt=cf.UpVector:Cross(normal)
+			local flatAngular=angular-normal*angular:Dot(normal)
+			s.torque.Torque=(tilt*95-flatAngular*16+normal*(desiredYaw-angular:Dot(normal))*12)*mass
+		else s.torque.Torque=-root.AssemblyAngularVelocity*mass*0.8 end
+		-- Empty vehicles settle before anchoring, then remain parked even on slopes.
+		if not s.player then
+			s.emptyTime+=dt
+			if grounded and (velocity.Magnitude&lt;1 or s.emptyTime&gt;2) then
+				root.AssemblyLinearVelocity=Vector3.zero; root.AssemblyAngularVelocity=Vector3.zero; root.Anchored=true
+			end
+		else
+			s.emptyTime=0
+			local hardLimit=Config.MaxSpeed+Config.DriftBoostPower[3]+15
+			local horizontal=Vector3.new(velocity.X,0,velocity.Z)
+			if horizontal.Magnitude&gt;hardLimit then
+				local capped=horizontal.Unit*hardLimit
+				root.AssemblyLinearVelocity=Vector3.new(capped.X,velocity.Y,capped.Z)
+			end
+		end
+		s.visualSteer+=(steerAngle-s.visualSteer)*(1-math.exp(-dt*13))
+		for _,wheel in ipairs(s.wheels) do wheel.spin=(wheel.spin-speed/Config.WheelRadius*dt)%(math.pi*2) end
+		s.visualClock+=delta
+		if s.visualClock&gt;=1/24 then
+			s.visualClock=0
+			local stage=drifting and Dynamics.stage(s.charge,Config.DriftStages) or 0
+			for _,wheel in ipairs(s.wheels) do
+				wheel.motor.C0=CFrame.new(wheel.origin-Vector3.new(0,wheel.distance,0))*CFrame.Angles(0,wheel.front and s.visualSteer or 0,0)*CFrame.Angles(wheel.spin,0,0)
+				wheel.emitterAt.Position=wheel.origin-Vector3.new(0,wheel.distance+Config.WheelRadius,0)
+				for _,p in ipairs(wheel.glow) do p.Transparency=math.abs(speed)&gt;55 and 0.05 or 0.4 end
+				wheel.smoke.Rate=drifting and not wheel.front and 12 or 0
+				wheel.sparks.Rate=stage&gt;0 and not wheel.front and 14 or 0
+				if stage&gt;0 then wheel.sparks.Color=ColorSequence.new(sparkColors[stage]) end
+			end
+			s.steering.C0=s.steeringBase*CFrame.Angles(0,0,s.visualSteer*1.8)
+			if s.waist then s.waist.C0=s.waistBase*CFrame.Angles(0,0,-s.visualSteer*0.16) end
+			for _,flame in ipairs(s.flames) do flame.emitter.Rate=boost&gt;0 and 35 or 0; flame.light.Brightness=boost&gt;0 and 2 or 0 end
+			for _,light in ipairs(s.model.Effects:GetChildren()) do
+				if light.Name=="BrakeLight" and light:IsA("BasePart") then
+					local braking=s.throttle&lt;0 and speed&gt;2
+					light.Material=braking and Enum.Material.Neon or Enum.Material.SmoothPlastic
+					light.Color=braking and Color3.fromRGB(255,30,35) or Color3.fromRGB(110,5,10)
+				end
+			end
+			s.model:SetAttribute("Speed",math.abs(speed)); s.model:SetAttribute("Boosting",boost&gt;0)
+			s.model:SetAttribute("DriftStage",stage); s.model:SetAttribute("TurboReady",now&gt;=s.cooldown)
+		end
+	end
+end)
+</ProtectedString>
+        <bool name="Disabled">false</bool>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="StarterPlayer" referent="RBXStarterPlayer">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterPlayerScripts" referent="RBXStarterPlayerScripts">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="LocalScript" referent="RBXKartController">
+        <Properties>
+          <string name="Name">KartController</string>
+          <ProtectedString name="Source">local Players=game:GetService("Players")
+local ReplicatedStorage=game:GetService("ReplicatedStorage")
+local RunService=game:GetService("RunService")
+local ContextActionService=game:GetService("ContextActionService")
+local UserInputService=game:GetService("UserInputService")
+local CollectionService=game:GetService("CollectionService")
+local player=Players.LocalPlayer
+local input=ReplicatedStorage:WaitForChild("KartSystem"):WaitForChild("Remotes"):WaitForChild("Input")
+local active,seat,root
+local throttle,steer=0,0
+local drift,turbo=false,false
+local held={}
+local analog=Vector2.zero
+local clock=0
+local cameraCF
+local previousCamera
+local previousJump
+local previousZoom
+local gui=Instance.new("ScreenGui"); gui.Name="KartHUD"; gui.ResetOnSpawn=false; gui.Enabled=false; gui.Parent=player:WaitForChild("PlayerGui")
+local label=Instance.new("TextLabel"); label.Name="Telemetry"; label.AnchorPoint=Vector2.new(0.5,1); label.Position=UDim2.fromScale(0.5,0.96); label.Size=UDim2.fromOffset(490,76); label.BackgroundColor3=Color3.fromRGB(15,19,28); label.BackgroundTransparency=0.2; label.TextColor3=Color3.new(1,1,1); label.TextSize=19; label.Font=Enum.Font.GothamBold; label.TextWrapped=true; label.Parent=gui
+local corner=Instance.new("UICorner"); corner.CornerRadius=UDim.new(0,14); corner.Parent=label
+local lines={}
+local random=Random.new(17)
+for n=1,18 do
+	local line=Instance.new("Frame"); line.Name="SpeedLine"; line.BorderSizePixel=0; line.BackgroundColor3=Color3.fromRGB(180,225,255); line.AnchorPoint=Vector2.new(0.5,0.5); line.Visible=false; line.Parent=gui
+	lines[n]={frame=line,angle=n*2*math.pi/18,phase=random:NextNumber()}
+end
+
+local function send(exit)
+	if active then input:FireServer(throttle,steer,drift,turbo,exit or false) end
+end
+
+local function action(name,state,obj)
+	if UserInputService:GetFocusedTextBox() then
+		held={}; analog=Vector2.zero; throttle=0; steer=0; drift=false; turbo=false; send(false)
+		return Enum.ContextActionResult.Pass
+	end
+	local down=state==Enum.UserInputState.Begin or state==Enum.UserInputState.Change
+	if state==Enum.UserInputState.Cancel then down=false end
+	if name=="KartThumbstick" then
+		analog=down and Vector2.new(obj.Position.X,obj.Position.Y) or Vector2.zero
+	elseif name=="KartExit" then
+		if state==Enum.UserInputState.Begin then send(true) end
+	else held[name..":"..obj.KeyCode.Name]=down end
+	local function pressed(actionName)
+		for key,value in pairs(held) do if value and key:sub(1,#actionName+1)==actionName..":" then return true end end
+		return false
+	end
+	throttle=(pressed("KartForward") and 1 or 0)-(pressed("KartReverse") and 1 or 0)
+	steer=(pressed("KartRight") and 1 or 0)-(pressed("KartLeft") and 1 or 0)
+	if math.abs(analog.Y)&gt;0.15 then throttle=analog.Y end
+	if math.abs(analog.X)&gt;0.15 then steer=analog.X end
+	drift=pressed("KartDrift"); turbo=pressed("KartTurbo")
+	return Enum.ContextActionResult.Sink
+end
+
+local bindings={
+	{"KartForward","Gas",Enum.KeyCode.W,Enum.KeyCode.Up,Enum.KeyCode.ButtonR2},
+	{"KartReverse","Brake",Enum.KeyCode.S,Enum.KeyCode.Down,Enum.KeyCode.ButtonL2},
+	{"KartLeft","Left",Enum.KeyCode.A,Enum.KeyCode.Left},
+	{"KartRight","Right",Enum.KeyCode.D,Enum.KeyCode.Right},
+	{"KartDrift","Drift",Enum.KeyCode.Space,Enum.KeyCode.ButtonA},
+	{"KartTurbo","Turbo",Enum.KeyCode.LeftShift,Enum.KeyCode.RightShift,Enum.KeyCode.ButtonX},
+	{"KartExit","Exit",Enum.KeyCode.E,Enum.KeyCode.F,Enum.KeyCode.ButtonB},
+}
+
+local function stop()
+	if not active then return end
+	throttle=0; steer=0; drift=false; turbo=false; send(false)
+	for _,binding in ipairs(bindings) do ContextActionService:UnbindAction(binding[1]) end
+	ContextActionService:UnbindAction("KartThumbstick")
+	if previousJump~=nil then player.AutoJumpEnabled=previousJump end
+	if previousZoom then player.CameraMinZoomDistance=previousZoom[1]; player.CameraMaxZoomDistance=previousZoom[2] end
+	local camera=workspace.CurrentCamera
+	if camera and previousCamera then
+		camera.CameraType=previousCamera.kind
+		camera.CameraSubject=previousCamera.subject
+		camera.FieldOfView=previousCamera.fov
+	end
+	active=nil; seat=nil; root=nil; cameraCF=nil; gui.Enabled=false
+	held={}; analog=Vector2.zero
+end
+
+local function start(model)
+	if active==model then return end
+	stop()
+	local driverSeat=model:FindFirstChild("DriverSeat")
+	local chassis=model:FindFirstChild("Chassis")
+	if not driverSeat or not chassis then return end
+	active=model; seat=driverSeat; root=chassis
+	local camera=workspace.CurrentCamera
+	if not camera then stop(); return end
+	previousCamera={kind=camera.CameraType,subject=camera.CameraSubject,fov=camera.FieldOfView}
+	previousJump=player.AutoJumpEnabled; player.AutoJumpEnabled=false
+	previousZoom={player.CameraMinZoomDistance,player.CameraMaxZoomDistance}
+	camera.CameraType=Enum.CameraType.Scriptable
+	for index,binding in ipairs(bindings) do
+		local keys={table.unpack(binding,3)}
+		ContextActionService:BindActionAtPriority(binding[1],action,true,3000,table.unpack(keys))
+		ContextActionService:SetTitle(binding[1],binding[2])
+		ContextActionService:SetPosition(binding[1],UDim2.new(1,-80-((index-1)%3)*82,1,-150-math.floor((index-1)/3)*78))
+	end
+	ContextActionService:BindActionAtPriority("KartThumbstick",action,false,3000,Enum.KeyCode.Thumbstick1)
+	gui.Enabled=true; clock=1
+end
+
+local function watch(model)
+	local function changed()
+		if model:GetAttribute("DriverUserId")==player.UserId then start(model)
+		elseif active==model then stop() end
+	end
+	model:GetAttributeChangedSignal("DriverUserId"):Connect(changed)
+	model.AncestryChanged:Connect(function() if active==model and not model:IsDescendantOf(workspace) then stop() end end)
+	changed()
+end
+for _,model in ipairs(CollectionService:GetTagged("RacingKart")) do watch(model) end
+CollectionService:GetInstanceAddedSignal("RacingKart"):Connect(watch)
+player.CharacterRemoving:Connect(stop)
+UserInputService.WindowFocusReleased:Connect(function()
+	held={}; analog=Vector2.zero; throttle=0; steer=0; drift=false; turbo=false; send(false)
+end)
+UserInputService.TextBoxFocused:Connect(function()
+	held={}; analog=Vector2.zero; throttle=0; steer=0; drift=false; turbo=false; send(false)
+end)
+
+local rayParams=RaycastParams.new(); rayParams.FilterType=Enum.RaycastFilterType.Exclude; rayParams.RespectCanCollide=true
+RunService:BindToRenderStep("KartCamera",Enum.RenderPriority.Camera.Value+1,function(dt)
+	if not active or not root then return end
+	if not root:IsDescendantOf(workspace) then stop(); return end
+	clock+=dt
+	if clock&gt;=1/30 then clock=0; send(false) end
+	local camera=workspace.CurrentCamera
+	if not camera then return end
+	local cf=root.CFrame
+	local speed=active:GetAttribute("Speed") or 0
+	local boosting=active:GetAttribute("Boosting") or false
+	local stage=active:GetAttribute("DriftStage") or 0
+	local ready=active:GetAttribute("TurboReady")
+	local focus=root.Position+Vector3.new(0,2,0)+cf.LookVector*2
+	local flat=Vector3.new(cf.LookVector.X,0,cf.LookVector.Z)
+	if flat.Magnitude&lt;0.01 then flat=Vector3.new(0,0,-1) else flat=flat.Unit end
+	local desired=focus-flat*(12+math.min(speed/30,3))+Vector3.new(0,5.0,0)
+	rayParams.FilterDescendantsInstances={active,player.Character}
+	local hit=workspace:Raycast(focus,desired-focus,rayParams)
+	if hit then desired=hit.Position+hit.Normal*0.6 end
+	local desiredCF=CFrame.lookAt(desired,focus)
+	cameraCF=cameraCF and cameraCF:Lerp(desiredCF,1-math.exp(-dt*8)) or desiredCF
+	-- Clamp again after smoothing so a new obstruction cannot be crossed by lag.
+	local obstruction=workspace:Raycast(focus,cameraCF.Position-focus,rayParams)
+	if obstruction then cameraCF=CFrame.lookAt(obstruction.Position+obstruction.Normal*0.6,focus) end
+	local shake=boosting and Vector3.new(math.noise(os.clock()*35,0)*0.09,math.noise(0,os.clock()*39)*0.06,0) or Vector3.zero
+	camera.CFrame=cameraCF*CFrame.new(shake)
+	local targetFov=70+math.clamp(speed/100,0,1)*12+(boosting and 5 or 0)
+	camera.FieldOfView+=(targetFov-camera.FieldOfView)*(1-math.exp(-dt*5))
+	label.Text=string.format("%03d studs/s   •   %s   •   Drift %d/3\nWASD / arrows   Space: drift   Shift: turbo   E/F: exit",math.floor(speed),boosting and "BOOST" or (ready and "TURBO READY" or "RECHARGING"),stage)
+	for _,line in ipairs(lines) do
+		local frame=line.frame
+		frame.Visible=boosting and speed&gt;85
+		if frame.Visible then
+			line.phase=(line.phase+dt*1.5)%1
+			local radius=0.36+line.phase*0.25
+			frame.Position=UDim2.fromScale(0.5+math.cos(line.angle)*radius,0.5+math.sin(line.angle)*radius)
+			frame.Size=UDim2.fromOffset(18+line.phase*65,2)
+			frame.Rotation=math.deg(line.angle); frame.BackgroundTransparency=0.65+line.phase*0.3
+		end
+	end
+end)
+</ProtectedString>
+          <bool name="Disabled">false</bool>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+</roblox>

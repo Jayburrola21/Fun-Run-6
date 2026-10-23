@@ -1,0 +1,9 @@
+{
+  "name": "Fun Run Racing Kart",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {"KartSystem": {"$path": "src/ReplicatedStorage/KartSystem"}},
+    "ServerScriptService": {"KartServer": {"$path": "src/ServerScriptService/KartServer.server.luau"}},
+    "StarterPlayer": {"StarterPlayerScripts": {"KartController": {"$path": "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau"}}}
+  }
+}
