@@ -1,0 +1,79 @@
+{
+  "source": "Roblox public API-Dump.json, inherited properties restricted to names used by KartHUD",
+  "classes": {
+    "ScreenGui": [
+      "DisplayOrder",
+      "Enabled",
+      "IgnoreGuiInset",
+      "Name",
+      "Parent",
+      "ResetOnSpawn",
+      "ZIndexBehavior"
+    ],
+    "Frame": [
+      "AnchorPoint",
+      "BackgroundColor3",
+      "BackgroundTransparency",
+      "BorderSizePixel",
+      "ClipsDescendants",
+      "Name",
+      "Parent",
+      "Position",
+      "Rotation",
+      "Size",
+      "Transparency",
+      "Visible"
+    ],
+    "TextLabel": [
+      "AnchorPoint",
+      "BackgroundColor3",
+      "BackgroundTransparency",
+      "BorderSizePixel",
+      "ClipsDescendants",
+      "Font",
+      "Name",
+      "Parent",
+      "Position",
+      "Rotation",
+      "Size",
+      "Text",
+      "TextColor3",
+      "TextSize",
+      "TextXAlignment",
+      "TextYAlignment",
+      "Transparency",
+      "Visible"
+    ],
+    "UICorner": [
+      "CornerRadius",
+      "Name",
+      "Parent"
+    ],
+    "UIStroke": [
+      "Color",
+      "Enabled",
+      "Name",
+      "Parent",
+      "Thickness",
+      "Transparency"
+    ],
+    "UIGradient": [
+      "Color",
+      "Enabled",
+      "Name",
+      "Parent",
+      "Rotation",
+      "Scale",
+      "Transparency"
+    ],
+    "UIScale": [
+      "Name",
+      "Parent",
+      "Scale"
+    ],
+    "Folder": [
+      "Name",
+      "Parent"
+    ]
+  }
+}

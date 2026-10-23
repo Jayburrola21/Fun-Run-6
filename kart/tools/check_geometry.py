@@ -12,6 +12,15 @@ code+='local Builder=(function()\n'+builder+'\nend)()\n'
 code+='''
 local kart=Builder.build("GeometryTest",CFrame.new(),Config.Palette.Red)
 assert(#kart.wheels==4 and kart.driveForce.ApplyAtCenterOfMass)
+local scale=Config.ModelScale or 0.84
+assert(math.abs(kart.chassis.Size.X-3.7*scale)<1e-8,"Chassis must be uniformly scaled once")
+assert(math.abs(kart.chassis.Size.Z-6.5*scale)<1e-8,"Chassis length scale mismatch")
+assert(math.abs(kart.seat.Size.X-1.95*scale)<1e-8,"Cockpit width mismatch")
+for _,wheel in ipairs(kart.wheels) do
+ assert(math.abs(wheel.motor.Part1.Size.Y/2-Config.WheelRadius)<1e-8,"Physical tire radius/config mismatch")
+ assert((wheel.origin-wheel.motor.C0.Position-Vector3.new(0,Config.SuspensionRest,0)).Magnitude<1e-8,"Scaled wheel metadata mismatch")
+end
+assert((kart.steeringBase.Position-kart.steering.C0.Position).Magnitude<1e-8,"Scaled steering metadata mismatch")
 local connected={[kart.chassis]=true}
 for _=1,#instances do
  local changed=false
@@ -37,7 +46,7 @@ for _,o in ipairs(instances) do
 end
 assert(partCount<400,"Geometry budget exceeded")
 for _,wheel in ipairs(kart.wheels) do assert(wheel.motor.Part1.CanCollide==false,"Visual tire must not collide") end
-print("PASS: builder executed; "..partCount.." connected parts, positive dimensions, finite frames, massless visual assemblies, four non-colliding visual wheels, COM traction")
+print("PASS: builder executed; "..partCount.." connected parts, positive dimensions, finite frames, massless visual assemblies, four non-colliding visual wheels, COM traction; uniform scale and tire/config metadata match")
 '''
 with tempfile.TemporaryDirectory(prefix='kart-geometry-') as folder:
  path=Path(folder)/'geometry.luau'; path.write_text(code)

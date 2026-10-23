@@ -27,7 +27,8 @@ for part in parts:
   obj=bpy.data.objects.new(part['name'],mesh); bpy.context.collection.objects.link(obj)
   for polygon in obj.data.polygons:polygon.use_smooth=len(polygon.vertices)==4
  elif part['shape']=='Ball':
-  bpy.ops.mesh.primitive_uv_sphere_add(segments=24,ring_count=12,radius=.5); obj=bpy.context.object
+  bpy.ops.mesh.primitive_uv_sphere_add(segments=40,ring_count=24,radius=.5); obj=bpy.context.object
+  for polygon in obj.data.polygons:polygon.use_smooth=True
  else:
   bpy.ops.mesh.primitive_cube_add(size=1); obj=bpy.context.object
  obj.name=part['name']; r=part['rotation']; p=part['position']
@@ -36,7 +37,8 @@ for part in parts:
  obj.data.materials.append(materials[key])
  if part['shape']=='Block' and min(part['size'])>.06:
   bevel=obj.modifiers.new('Soft edges','BEVEL'); bevel.width=.035; bevel.segments=2
-bpy.ops.mesh.primitive_plane_add(size=200,location=(0,0,-1.06))
+ground=min(p['position'][1]-p['size'][1]/2 for p in parts if p['name']=='Tire')-0.01
+bpy.ops.mesh.primitive_plane_add(size=200,location=(0,0,ground))
 mat=bpy.data.materials.new('Studio floor'); mat.diffuse_color=(.13,.15,.19,1); bpy.context.object.data.materials.append(mat)
 world=bpy.data.worlds.new('Studio'); world.use_nodes=True; world.node_tree.nodes['Background'].inputs[0].default_value=(.25,.29,.36,1); world.node_tree.nodes['Background'].inputs[1].default_value=.4; bpy.context.scene.world=world
 for location,power,size in [((2,6,10),1800,7),((-6,1,5),1200,6),((2,-6,7),1600,5)]:

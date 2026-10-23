@@ -67,3 +67,30 @@ function Instance.new(class)
  local o=setmetatable({props={ClassName=class,Name=class,Transparency=0},children={},attributes={}},Object)
  table.insert(instances,o); return o
 end
+-- Match the geometric subset of Model:ScaleTo used by the real builder.
+function Object:ScaleTo(scale)
+ assert(self.ClassName=="Model" and self.PrimaryPart,"Scale requires a model pivot")
+ local pivot=self.PrimaryPart.CFrame.p
+ local previous=self.props.Scale or 1
+ local factor=scale/previous
+ local function beneath(o)
+  local cursor=o.Parent
+  while cursor do if cursor==self then return true end; cursor=cursor.Parent end
+  return false
+ end
+ for _,o in ipairs(instances) do
+  if beneath(o) then
+   if o:IsA("BasePart") then
+    o.Size=o.Size*factor
+    o.CFrame=frame(pivot+(o.CFrame.p-pivot)*factor,o.CFrame.m)
+   elseif o:IsA("Attachment") then
+    if o.CFrame then o.CFrame=frame(o.CFrame.p*factor,o.CFrame.m) end
+    if o.Position then o.Position=o.Position*factor end
+   elseif o:IsA("Motor6D") then
+    if o.C0 then o.C0=frame(o.C0.p*factor,o.C0.m) end
+    if o.C1 then o.C1=frame(o.C1.p*factor,o.C1.m) end
+   end
+  end
+ end
+ self.props.Scale=scale
+end

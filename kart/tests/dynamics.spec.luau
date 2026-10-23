@@ -3,12 +3,6 @@ local count=0
 local function check(value,message)
 	assert(value,message); count+=1
 end
-check(Dynamics.stage(0,Config.DriftStages)==0,"no free drift boost")
-check(Dynamics.stage(0.64,Config.DriftStages)==0,"blue threshold lower bound")
-check(Dynamics.stage(0.65,Config.DriftStages)==1,"blue threshold")
-check(Dynamics.stage(1.5,Config.DriftStages)==2,"orange threshold")
-check(Dynamics.stage(2.7,Config.DriftStages)==3,"purple threshold")
-check(Dynamics.stage(10000,Config.DriftStages)==3,"drift tier capped")
 check(not Dynamics.finite(0/0),"reject NaN remote inputs")
 check(not Dynamics.finite(math.huge),"reject positive infinity")
 check(not Dynamics.finite(-math.huge),"reject negative infinity")
@@ -26,8 +20,8 @@ for _,hz in ipairs({30,60,120}) do
 	local brake=integrate(60,-1,0,1,hz)
 	check(brake<5,"brakes stop before reverse at "..hz)
 	check(integrate(50,0,0,2,hz)<20,"coast drag at "..hz)
-	local boosted=integrate(70,1,Config.DriftBoostPower[3],6,hz)
-	check(boosted<Config.MaxSpeed+Config.DriftBoostPower[3]+4,"boost speed bounded at "..hz)
+	local boosted=integrate(70,1,Config.TurboPower,6,hz)
+	check(boosted<Config.MaxSpeed+Config.TurboPower+4,"boost speed bounded at "..hz)
 	check(boosted>speed+25,"boost accelerates at "..hz)
 	check(integrate(boosted,1,0,3,hz)<Config.MaxSpeed+2,"boost expiry decelerates at "..hz)
 end
@@ -35,51 +29,99 @@ check(Dynamics.longitudinal(-10,1,0,Config)>0,"forward brakes reverse motion")
 check(Dynamics.longitudinal(10,-1,0,Config)<0,"reverse brakes forward motion")
 check(Dynamics.longitudinal(0,0,0,Config)==0,"idle does not propel")
 local function state()
-	return {player=true,drift=false,steer=1,turbo=false,charge=0,wasDrift=false,boostEnd=0,boostPower=0,cooldown=0}
+	return {player=true,drift=false,steer=1,charge=0,wasDrift=false,boostEnd=0,boostPower=0,cooldown=0}
 end
-for tier,seconds in ipairs({0.8,1.7,2.9}) do
+
+for _,hz in ipairs({30,60,120}) do
 	local s=state(); s.drift=true
-	for n=1,math.floor(seconds*60) do Dynamics.updateBoost(s,n/60,1/60,true,40,Config) end
-	check(s.boostPower==0,"charging does not boost")
+	local frames=math.floor(Config.DriftChargeTime*hz+0.5)
+	for n=1,frames-1 do Dynamics.updateBoost(s,n/hz,1/hz,true,60,Config) end
+	check(s.boostPower==0 and s.charge<Config.DriftChargeTime,"no early turbo at "..hz)
+	local drifting,power=Dynamics.updateBoost(s,frames/hz,1/hz,true,60,Config)
+	check(drifting and power==Config.TurboPower and s.drift,"automatic turbo at 1.5 seconds while still held "..hz)
+	check(s.charge==0,"activation consumes charge "..hz)
+	local deadline,boostEnd=s.cooldown,s.boostEnd
+	check(math.abs(deadline-Config.DriftChargeTime-Config.TurboCooldown)<1e-9,"cooldown starts at activation "..hz)
 	s.drift=false
-	local _,power=Dynamics.updateBoost(s,seconds+0.02,1/60,true,40,Config)
-	check(power==Config.DriftBoostPower[tier],"release earns tier "..tier)
-	local deadline=s.boostEnd
-	Dynamics.updateBoost(s,seconds+0.1,1/60,true,40,Config)
-	check(s.boostEnd==deadline,"release cannot redeem charge twice")
-	local _,expired=Dynamics.updateBoost(s,deadline+0.01,1/60,true,40,Config)
-	check(expired==0,"tier "..tier.." expires")
+	local _,stillBoosted=Dynamics.updateBoost(s,frames/hz+1/hz,1/hz,true,60,Config)
+	check(stillBoosted==Config.TurboPower,"release does not cancel earned turbo "..hz)
+	for n=frames+2,math.floor(deadline*hz)-1 do
+		s.drift=n%2==0
+		Dynamics.updateBoost(s,n/hz,1/hz,true,60,Config)
+	end
+	check(s.cooldown==deadline and s.boostEnd==boostEnd and s.charge==0,"spam cannot extend boost or precharge during cooldown "..hz)
+	check(s.boostPower==0,"turbo expires during cooldown "..hz)
+	s.drift=true
+	Dynamics.updateBoost(s,deadline,1/hz,true,60,Config)
+	check(s.charge==0 and s.boostPower==0,"cooldown completion alone does not trigger turbo "..hz)
+	for n=1,frames-1 do Dynamics.updateBoost(s,deadline+n/hz,1/hz,true,60,Config) end
+	check(s.boostPower==0,"held drift requires a fresh full charge "..hz)
+	local _,again=Dynamics.updateBoost(s,deadline+frames/hz,1/hz,true,60,Config)
+	check(again==Config.TurboPower,"held drift can recharge after cooldown "..hz)
+
+	s=state(); s.drift=true
+	for n=1,frames-1 do Dynamics.updateBoost(s,n/hz,1/hz,true,60,Config) end
+	s.drift=false
+	local _,released=Dynamics.updateBoost(s,frames/hz,1/hz,true,60,Config)
+	check(released==0 and s.charge==0 and s.cooldown==0,"partial release awards nothing "..hz)
 end
-local s=state(); s.drift=true
-for n=1,300 do Dynamics.updateBoost(s,n/60,1/60,false,60,Config) end
-check(s.charge==0,"airborne drifting cannot charge")
-for n=1,300 do Dynamics.updateBoost(s,n/60,1/60,true,0,Config) end
-check(s.charge==0,"stationary drifting cannot charge")
-s.steer=0
-for n=1,300 do Dynamics.updateBoost(s,n/60,1/60,true,60,Config) end
-check(s.charge==0,"straight driving cannot charge")
-s.steer=1
-for n=1,600 do Dynamics.updateBoost(s,n/60,1/60,true,60,Config) end
-check(s.charge<=Config.DriftStages[3]+0.1,"charge accumulation is bounded")
-Dynamics.updateBoost(s,11,1/60,false,60,Config)
-check(s.charge==0,"leaving ground clears charge")
+
+for _,condition in ipairs({{false,60,1},{true,0,1},{true,-40,1},{true,60,0}}) do
+	local s=state(); s.drift=true; s.charge=0.8; s.steer=condition[3]
+	local drifting,power=Dynamics.updateBoost(s,1,1/60,condition[1],condition[2],Config)
+	check(not drifting and power==0 and s.charge==0,"air/slow/reverse/straight clears partial charge")
+	for n=1,300 do Dynamics.updateBoost(s,1+n/60,1/60,condition[1],condition[2],Config) end
+	check(s.charge==0 and s.boostPower==0,"ineligible driving cannot charge")
+end
+local s=state(); s.player=nil; s.drift=true; s.charge=1; s.boostEnd=5; s.boostPower=32; s.cooldown=9
+local _,emptyPower=Dynamics.updateBoost(s,1,1/60,true,60,Config)
+check(emptyPower==0 and s.charge==0 and s.boostEnd==0 and s.boostPower==0,"no driver clears active boost and charge")
+check(s.cooldown==9,"driver departure preserves cooldown")
+s=state(); s.drift=true
+Dynamics.updateBoost(s,10,10,true,60,Config)
+check(s.charge<=1/15+1e-10 and s.boostPower==0,"long stall cannot award instant turbo")
+for _,invalid in ipairs({-1,math.huge,0/0}) do
+	s=state(); s.drift=true
+	Dynamics.updateBoost(s,1,invalid,true,60,Config)
+	check(s.charge==0,"negative or non-finite elapsed time cannot charge")
+end
+s=state(); s.drift=true; s.cooldown=10.01
+Dynamics.updateBoost(s,10.02,1/30,true,60,Config)
+check(math.abs(s.charge-0.01)<1e-9,"boundary frame only counts time after cooldown")
+s=state(); s.drift=true; s.boostEnd=10.01; s.boostPower=Config.TurboPower; s.cooldown=9
+Dynamics.updateBoost(s,10,1/30,true,60,Config)
+check(s.charge==0,"active turbo blocks charge even with a shorter custom cooldown")
 s=state(); s.turbo=true
-local _,power=Dynamics.updateBoost(s,0,1/60,true,0,Config)
-check(power==Config.TurboPower,"turbo available initially")
-local deadline=s.boostEnd
-for n=1,300 do Dynamics.updateBoost(s,n/60,1/60,true,60,Config) end
-check(s.boostEnd==deadline and s.boostPower==0,"held/spammed turbo cannot extend boost during cooldown")
-local _,nextPower=Dynamics.updateBoost(s,Config.TurboCooldown,1/60,true,60,Config)
-check(nextPower==Config.TurboPower,"turbo recharges at cooldown")
-s=state(); s.turbo=true
-Dynamics.updateBoost(s,0,1/60,false,60,Config)
-check(s.boostPower==0 and s.cooldown==0,"airborne turbo is rejected without consuming recharge")
-s=state(); s.player=nil; s.drift=true; s.turbo=true
-Dynamics.updateBoost(s,0,1/60,true,60,Config)
-check(s.charge==0 and s.boostPower==0,"empty kart cannot charge or activate boost")
+Dynamics.updateBoost(s,5,1/60,true,60,Config)
+check(s.boostPower==0 and s.charge==0,"legacy manual turbo input cannot activate")
+local custom=table.clone(Config); custom.DriftChargeTime=0.2
+s=state(); s.drift=true
+for n=1,12 do Dynamics.updateBoost(s,n/60,1/60,true,60,custom) end
+check(s.boostPower==custom.TurboPower,"configured drift charge time is honored")
+
+-- The live server uses GetServerTimeNow epoch timestamps, not a small local
+-- counter. Check representable deadline precision without assuming exact decimals.
+for _,hz in ipairs({30,60,120}) do
+	local epoch=1800000000
+	local s=state(); s.drift=true
+	local frames=math.floor(Config.DriftChargeTime*hz+0.5)
+	for n=1,frames-1 do Dynamics.updateBoost(s,epoch+n/hz,1/hz,true,60,Config) end
+	check(s.boostPower==0,"epoch clock does not trigger early "..hz)
+	local _,power=Dynamics.updateBoost(s,epoch+frames/hz,1/hz,true,60,Config)
+	check(power==Config.TurboPower,"epoch clock threshold activates "..hz)
+	check(math.abs(s.boostEnd-(epoch+Config.DriftChargeTime+Config.TurboDuration))<1e-6,"epoch boost deadline "..hz)
+	check(math.abs(s.cooldown-(epoch+Config.DriftChargeTime+Config.TurboCooldown))<1e-6,"epoch cooldown deadline "..hz)
+	local cooldown=s.cooldown
+	Dynamics.updateBoost(s,cooldown,1/hz,true,60,Config)
+	check(s.charge==0 and s.boostPower==0,"epoch cooldown boundary has no free charge "..hz)
+	for n=1,frames do Dynamics.updateBoost(s,cooldown+n/hz,1/hz,true,60,Config) end
+	check(s.boostPower==Config.TurboPower,"epoch clock fresh recharge "..hz)
+end
+s=state(); s.drift=true; s.cooldown=1800000010.017
+Dynamics.updateBoost(s,1800000010.02,1/30,true,60,Config)
+check(s.charge>0.002 and s.charge<0.004,"epoch fractional boundary only credits eligible tail")
 
 -- Interpolation must have the same elapsed-time result at different frame rates.
-local reference
 for _,hz in ipairs({30,60,120}) do
 	local blend,steer=0,0
 	for _=1,hz do
@@ -101,8 +143,10 @@ for _,hz in ipairs({30,60,120}) do
 	check(math.abs(height)<0.001 and math.abs(vertical)<0.001,"heave settles "..hz)
 	-- Small-angle four-corner spring model with the same inertia-scaled damping
 	-- used by the server. This is a numeric regression, not an engine physics test.
-	local yawInertia=(3.7^2+6.5^2)/12
-	for _,axis in ipairs({{2.68,(3.7^2+0.5^2)/12},{2.4,(6.5^2+0.5^2)/12}}) do
+	local scale=Config.ModelScale
+	local width,length,height=3.7*scale,6.5*scale,0.5*scale
+	local yawInertia=(width^2+length^2)/12
+	for _,axis in ipairs({{2.68*scale,(width^2+height^2)/12},{Config.Wheelbase/2,(length^2+height^2)/12}}) do
 		local angle,angular=0.08,0
 		local stiffness=(Config.SpringFrequency*2*math.pi)^2*axis[1]^2+10*yawInertia
 		for _=1,hz*3 do

@@ -33,4 +33,11 @@ if seat.Occupant and seat.Occupant.RigType==Enum.HumanoidRigType.R15 then
 	assert(seat.Occupant:FindFirstChild("KartLeftGrip"),"Missing left IK")
 	assert(seat.Occupant:FindFirstChild("KartRightGrip"),"Missing right IK")
 end
+if seat.Occupant then
+	assert(kart:GetAttribute("DriverLocked"),"Driver must be seat-locked")
+	assert(not seat.Occupant:GetStateEnabled(Enum.HumanoidStateType.Jumping),"Jump must remain disabled")
+	assert(not seat.Occupant:GetStateEnabled(Enum.HumanoidStateType.GettingUp),"Get-up must remain disabled")
+end
+assert(type(kart:GetAttribute("DriftCharge"))=="number","Missing authoritative charge meter")
+assert(type(kart:GetAttribute("TurboCooldownEnd"))=="number","Missing authoritative cooldown deadline")
 print("PASS: Studio assembly/constraint smoke check. Driving and multiplayer checklist still required.")

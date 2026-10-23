@@ -24,14 +24,6 @@ function Dynamics.lateral(speed, sideSpeed, steer, blend, config)
 	return math.clamp((target-sideSpeed)*grip,-config.MaxCornerAcceleration,config.MaxCornerAcceleration)
 end
 
-function Dynamics.stage(seconds, thresholds)
-	local result = 0
-	for index, threshold in ipairs(thresholds) do
-		if seconds >= threshold then result = index end
-	end
-	return result
-end
-
 function Dynamics.longitudinal(speed, throttle, boost, config)
 	local limit = config.MaxSpeed + boost
 	local accel = 0
@@ -52,23 +44,33 @@ function Dynamics.finite(value)
 end
 
 function Dynamics.updateBoost(state, now, dt, grounded, speed, config)
-	local drifting=state.player~=nil and state.drift and math.abs(state.steer)>0.15 and speed>config.DriftMinSpeed and grounded
-	if drifting then
-		state.charge=math.min(state.charge+dt,config.DriftStages[3]+0.1)
-	elseif state.wasDrift and not state.drift and grounded and state.player then
-		local tier=Dynamics.stage(state.charge,config.DriftStages)
-		if tier>0 then
-			state.boostEnd=math.max(state.boostEnd,now+config.DriftBoostDuration[tier])
-			state.boostPower=config.DriftBoostPower[tier]
-		end
-		state.charge=0
-	else state.charge=0 end
-	state.wasDrift=drifting
-	if state.player and state.turbo and now>=state.cooldown and grounded and speed>=0 then
-		state.cooldown=now+config.TurboCooldown
-		state.boostEnd=math.max(state.boostEnd,now+config.TurboDuration)
-		state.boostPower=math.max(state.boostPower,config.TurboPower)
+	if state.player==nil then
+		state.charge=0; state.wasDrift=false; state.boostEnd=0; state.boostPower=0
+		-- The kart retains its recharge deadline when a driver leaves or respawns.
+		return false,0
 	end
+	local drifting=state.drift and math.abs(state.steer)>0.15 and speed>config.DriftMinSpeed and grounded
+	local readyAt=math.max(state.cooldown,state.boostEnd)
+	if drifting and now>=readyAt then
+		-- A long simulation stall cannot instantly award a drift boost, and a
+		-- frame straddling recharge completion only credits its eligible tail.
+		local elapsed=Dynamics.finite(dt) and math.clamp(dt,0,1/15) or 0
+		elapsed=math.min(elapsed,math.max(now-readyAt,0))
+		state.charge=math.min(state.charge+elapsed,config.DriftChargeTime)
+		-- Epoch deadlines have sub-microsecond double precision; allow that
+		-- rounding error without adding a simulation frame to the charge.
+		if state.charge+1e-6>=config.DriftChargeTime then
+			state.charge=0
+			state.boostEnd=now+config.TurboDuration
+			state.boostPower=config.TurboPower
+			state.cooldown=now+config.TurboCooldown
+		end
+	else
+		-- Releasing the drift or losing speed/contact cancels partial charge.
+		-- Turbo and recharge also require a fresh charge after they finish.
+		state.charge=0
+	end
+	state.wasDrift=drifting
 	local power=now<state.boostEnd and state.boostPower or 0
 	if power==0 then state.boostPower=0 end
 	return drifting,power

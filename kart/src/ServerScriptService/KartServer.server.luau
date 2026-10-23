@@ -6,34 +6,44 @@ local System = ReplicatedStorage:WaitForChild("KartSystem")
 local Config = require(System.KartConfig)
 local Dynamics = require(System.KartDynamics)
 local Builder = require(System.KartBuilder)
+local SeatLock = require(System.KartSeatLock)
 
 local remotes = Instance.new("Folder"); remotes.Name="Remotes"; remotes.Parent=System
 local input = Instance.new("RemoteEvent"); input.Name="Input"; input.Parent=remotes
 local states = {}
 local playerStates = {}
 local rates = {}
-local sparkColors = {Color3.fromRGB(60,165,255),Color3.fromRGB(255,141,30),Color3.fromRGB(194,65,255)}
+local chargeColors = {Color3.fromRGB(70,190,255),Color3.fromRGB(255,165,45)}
 local world = workspace:FindFirstChild("RacingKarts") or Instance.new("Folder")
 world.Name="RacingKarts"; world.Parent=workspace
 
 local function restoreDriver(s)
+	if s.restoring then return end
+	s.restoring=true
+	local previousHumanoid=s.humanoid
+	if s.seatLock then s.seatLock:Release(); s.seatLock=nil end
 	for part,original in pairs(s.driverMass or {}) do if part.Parent then part.Massless=original end end
 	s.driverMass={}
+	if s.driverStateConnection then s.driverStateConnection:Disconnect(); s.driverStateConnection=nil end
+	for part,original in pairs(s.driverCollisions or {}) do if part.Parent then part.CanCollide=original end end
+	s.driverCollisions={}
 	if s.driverCollision then s.driverCollision:Destroy(); s.driverCollision=nil end
 	for _,ik in ipairs(s.iks or {}) do ik:Destroy() end
 	s.iks={}
 	if s.waist and s.waist.Parent then s.waist.C0=s.waistBase end
 	s.waist=nil
-	if s.humanoid and s.humanoid.Parent then
-		s.humanoid.JumpPower=s.jumpPower
-		s.humanoid.JumpHeight=s.jumpHeight
-	end
 	s.humanoid=nil
 	if s.player then playerStates[s.player]=nil end
-	s.player=nil; s.throttle=0; s.steer=0; s.drift=false; s.turbo=false
-	s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0; s.wasDrift=false
+	s.player=nil; s.throttle=0; s.steer=0; s.drift=false
+	s.charge=0; s.boostEnd=0; s.boostPower=0
+	-- Cooldown is retained across character replacement/cleanup.
 	s.model:SetAttribute("DriverUserId",0)
+	s.model:SetAttribute("DriverLocked",false)
 	s.prompt.Enabled=true
+	-- Legitimate cleanup must detach living replaced/removed characters too.
+	-- The Occupant listener is suppressed until this assignment is fully clear.
+	if previousHumanoid and previousHumanoid.Parent then previousHumanoid.Sit=false end
+	s.restoring=false
 end
 
 local function attachDriver(s)
@@ -41,17 +51,21 @@ local function attachDriver(s)
 	local humanoid=s.seat.Occupant
 	if not humanoid then return end
 	local player=Players:GetPlayerFromCharacter(humanoid.Parent)
-	if not player or playerStates[player] then humanoid.Sit=false; return end
+	if not player or humanoid.Health<=0 or playerStates[player] then humanoid.Sit=false; return end
 	s.player=player; playerStates[player]=s; s.humanoid=humanoid
-	s.jumpPower=humanoid.JumpPower; s.jumpHeight=humanoid.JumpHeight
-	-- Space is drift while seated. E/F or gamepad B exits explicitly.
-	humanoid.JumpPower=0; humanoid.JumpHeight=0
-	s.prompt.Enabled=false; s.lastInput=os.clock()
+	s.seatLock=SeatLock.new(s.seat,humanoid,function()
+		return s.player==player and player.Parent==Players and player.Character==humanoid.Parent
+			and humanoid:IsDescendantOf(workspace) and s.model:IsDescendantOf(workspace)
+	end,function() if s.humanoid==humanoid then restoreDriver(s) end end)
+	s.model:SetAttribute("DriverJumpingBeforeLock",s.seatLock.original.jumping)
+	s.model:SetAttribute("DriverGettingUpBeforeLock",s.seatLock.original.gettingUp)
+	s.prompt.Enabled=false; s.lastInput=workspace:GetServerTimeNow()
 	s.chassis.Anchored=false
 	s.chassis:SetNetworkOwner(nil) -- authoritative forces, boosts and speed caps
 	-- An animated driver's limbs must not shift the physics assembly's COM or
 	-- collide with its hull. Restore every original Massless flag on departure.
 	s.driverMass={}
+	s.driverCollisions={}
 	s.driverCollision=Instance.new("Folder"); s.driverCollision.Name="DriverCollisionOverrides"; s.driverCollision.Parent=s.model
 	local hulls={s.chassis}
 	for _,part in ipairs(s.model.Suspension:GetChildren()) do
@@ -60,11 +74,19 @@ local function attachDriver(s)
 	for _,part in ipairs(humanoid.Parent:GetDescendants()) do
 		if part:IsA("BasePart") then
 			s.driverMass[part]=part.Massless; part.Massless=true
+			s.driverCollisions[part]=part.CanCollide; part.CanCollide=false
 			for _,hull in ipairs(hulls) do
 				local constraint=Instance.new("NoCollisionConstraint"); constraint.Part0=part; constraint.Part1=hull; constraint.Parent=s.driverCollision
 			end
 		end
 	end
+	s.driverStateConnection=humanoid.StateChanged:Connect(function()
+		-- Shorter body clearance must not let seated feet push against the road.
+		-- Vehicle collision hulls remain enabled; avatar settings restore on cleanup.
+		if s.humanoid==humanoid then
+			for part in pairs(s.driverCollisions) do if part.Parent then part.CanCollide=false end end
+		end
+	end)
 	s.model:SetAttribute("DriverUserId",player.UserId)
 	if humanoid.RigType==Enum.HumanoidRigType.R15 then
 		for _,side in ipairs({"Left","Right"}) do
@@ -88,8 +110,8 @@ local function spawnKart(cf, colorName)
 	s.model:SetAttribute("ColorName",colorName)
 	s.model.Parent=world
 	CollectionService:AddTag(s.model,"RacingKart")
-	s.spawn=cf; s.throttle=0; s.steer=0; s.visualSteer=0; s.drift=false; s.turbo=false
-	s.lastInput=0; s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0; s.wasDrift=false
+	s.spawn=cf; s.throttle=0; s.steer=0; s.visualSteer=0; s.drift=false
+	s.lastInput=0; s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0
 	s.visualClock=0; s.iks={}; s.emptyTime=0
 	s.filteredSteer=0; s.filteredThrottle=0; s.driftBlend=0; s.normal=Vector3.yAxis; s.driveAccel=0
 	s.params=RaycastParams.new(); s.params.FilterType=Enum.RaycastFilterType.Exclude
@@ -107,7 +129,11 @@ local function spawnKart(cf, colorName)
 			if s.model.Parent and not s.seat.Occupant then s.prompt.Enabled=true end
 		end)
 	end)
-	s.seat:GetPropertyChangedSignal("Occupant"):Connect(function() attachDriver(s) end)
+	s.seat:GetPropertyChangedSignal("Occupant"):Connect(function()
+		if s.restoring then return end
+		if s.seatLock and s.seatLock:Enforce() then return end
+		attachDriver(s)
+	end)
 	table.insert(states,s)
 end
 
@@ -122,50 +148,54 @@ if markers then
 end
 if #states==0 then spawnKart(Config.SpawnCFrame,"Red") end
 
-input.OnServerEvent:Connect(function(player, throttle, steer, drift, turbo, exit)
-	local now=os.clock()
+input.OnServerEvent:Connect(function(player, throttle, steer, drift, ...)
+	local now=workspace:GetServerTimeNow()
 	local rate=rates[player]
 	if not rate or now-rate.time>=1 then rate={time=now,count=0}; rates[player]=rate end
 	rate.count+=1
 	if rate.count>Config.InputRate+15 then return end
 	local s=playerStates[player]
 	if not s or s.seat.Occupant~=s.humanoid or s.humanoid.Health<=0 then return end
-	if not Dynamics.finite(throttle) or not Dynamics.finite(steer) or type(drift)~="boolean" or type(turbo)~="boolean" or type(exit)~="boolean" then return end
+	if select("#",...)~=0 or not Dynamics.finite(throttle) or not Dynamics.finite(steer) or type(drift)~="boolean" then return end
 	s.lastInput=now
-	if exit then s.humanoid.Sit=false; return end
 	s.throttle=math.clamp(throttle,-1,1); s.steer=math.clamp(steer,-1,1)
-	s.drift=drift; s.turbo=turbo
+	s.drift=drift
 end)
 
 Players.PlayerRemoving:Connect(function(player)
 	local s=playerStates[player]
-	if s then
-		if s.humanoid then s.humanoid.Sit=false end
-		restoreDriver(s)
-	end
+	if s then restoreDriver(s) end
 	rates[player]=nil
 end)
 
 RunService.PreSimulation:Connect(function(delta)
 	local dt=math.min(delta,1/15)
-	local now=os.clock()
+	local now=workspace:GetServerTimeNow()
 	local characters={}
 	for _,player in ipairs(Players:GetPlayers()) do
 		if player.Character then table.insert(characters,player.Character) end
 	end
 	for index=#states,1,-1 do
 		local s=states[index]
-		if not s.model:IsDescendantOf(workspace) then
+		if not s.model:IsDescendantOf(workspace) or not s.chassis:IsDescendantOf(workspace)
+			or not s.seat:IsDescendantOf(workspace) then
 			restoreDriver(s); table.remove(states,index); continue
 		end
 		local root=s.chassis
+		if s.seatLock then
+			if not s.seatLock:Enforce() then restoreDriver(s) end
+		end
 		if root.Position.Y<workspace.FallenPartsDestroyHeight+30 then
-			if s.humanoid then s.humanoid.Sit=false end
-			restoreDriver(s); root.Anchored=false; s.model:PivotTo(s.spawn)
+			-- Recover the seated assembly without unlocking a living driver.
+			local character=s.player and s.player.Character
+			local relative=character and root.CFrame:ToObjectSpace(character:GetPivot())
+			root.Anchored=false; s.model:PivotTo(s.spawn)
+			if character and relative then character:PivotTo(s.spawn*relative) end
 			root.AssemblyLinearVelocity=Vector3.zero; root.AssemblyAngularVelocity=Vector3.zero
+			s.charge=0; s.boostEnd=0; s.boostPower=0
 		end
 		if s.player and now-s.lastInput>Config.InputTimeout then
-			s.throttle=0; s.steer=0; s.drift=false; s.turbo=false; s.charge=0; s.wasDrift=false
+			s.throttle=0; s.steer=0; s.drift=false; s.charge=0
 		end
 		local exclusions={s.model,table.unpack(characters)}
 		s.params.FilterDescendantsInstances=exclusions
@@ -236,7 +266,7 @@ RunService.PreSimulation:Connect(function(delta)
 			end
 		else
 			s.emptyTime=0
-			local hardLimit=Config.MaxSpeed+Config.DriftBoostPower[3]+15
+			local hardLimit=Config.MaxSpeed+Config.TurboPower+15
 			local horizontal=Vector3.new(velocity.X,0,velocity.Z)
 			if horizontal.Magnitude>hardLimit then
 				local capped=horizontal.Unit*hardLimit
@@ -247,13 +277,13 @@ RunService.PreSimulation:Connect(function(delta)
 		s.visualClock+=delta
 		if s.visualClock>=1/20 then
 			s.visualClock=0
-			local stage=drifting and Dynamics.stage(s.charge,Config.DriftStages) or 0
+			local charge=math.clamp(s.charge/Config.DriftChargeTime,0,1)
 			for _,wheel in ipairs(s.wheels) do
 				wheel.motor:SetAttribute("SuspensionDistance",wheel.distance)
 				wheel.emitterAt.Position=wheel.origin-Vector3.new(0,wheel.distance+Config.WheelRadius,0)
 				wheel.smoke.Rate=drifting and not wheel.front and 12 or 0
-				wheel.sparks.Rate=stage>0 and not wheel.front and 14 or 0
-				if stage>0 then wheel.sparks.Color=ColorSequence.new(sparkColors[stage]) end
+				wheel.sparks.Rate=drifting and not wheel.front and (5+charge*15) or 0
+				wheel.sparks.Color=ColorSequence.new(chargeColors[1]:Lerp(chargeColors[2],charge))
 			end
 			s.model:SetAttribute("SteerAngle",s.visualSteer)
 			s.model:SetAttribute("DriftBlend",s.driftBlend)
@@ -267,7 +297,12 @@ RunService.PreSimulation:Connect(function(delta)
 				end
 			end
 			s.model:SetAttribute("Speed",math.abs(speed)); s.model:SetAttribute("Boosting",boost>0)
-			s.model:SetAttribute("DriftStage",stage); s.model:SetAttribute("TurboReady",now>=s.cooldown)
+			s.model:SetAttribute("DriftCharge",charge)
+			s.model:SetAttribute("BoostEnd",s.boostEnd)
+			s.model:SetAttribute("TurboCooldownEnd",s.cooldown)
+			s.model:SetAttribute("TurboCooldownRemaining",math.max(0,s.cooldown-now))
+			s.model:SetAttribute("DriftReady",now>=s.cooldown and boost==0)
+			s.model:SetAttribute("DriverLocked",s.seatLock~=nil)
 		end
 	end
 end)

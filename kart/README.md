@@ -1,105 +1,111 @@
-# Fun Run racing kart
+# Fun Run racing kart — compact auto-turbo update
 
-An upgrade of the existing kart system: compact red nose with rounded edges and a flush white tilted-square emblem, white trim, blue lower body, yellow disc rims, dark blue bucket seat, black tubular bumper/frame, compact exposed engine and twin black/yellow exhausts. The existing seat, controls, R15 grips, four wheel assemblies, multiplayer authority and boost system are retained. Six upper-body paint colors remain available. No uploaded assets or external textures are required.
+This updates the existing kart system. The model is **84% of its former scale**, with a domed red fairing, curved red side pods/fenders, white trim and vented bumper, blue lower panels, yellow rims, a dark bucket seat and compact black/yellow exhausts. The seat was widened before scaling to preserve cockpit space. The avatar itself is never scaled.
 
-![Actual generated geometry rendered in Blender (not a Roblox Studio screenshot)](dist/KartPreview.png)
+![Actual generated Part geometry rendered in Blender](dist/KartPreview.png)
 
-This preview is rendered from the actual Luau builder's exported Parts, with Blender studio lighting and softened rendering edges. It is a geometry preview, not evidence of Roblox physics, avatar fit, or exact Studio shading.
+The preview uses the actual builder's exported Parts, with Blender studio lighting and softened rendering edges. It is not a Roblox Studio screenshot or evidence of avatar fit/physics behavior. No uploaded meshes, external textures, plugins, secrets or HTTP settings are required.
 
-## Try the included place
+## Update the kart already in your game
 
-1. Open **dist/KartDemo.rbxlx** in Roblox Studio using **File → Open from File**. This is a separate flat test place; it does not modify your terrain/game.
-2. In Avatar Settings, select **R15**. Press **Play**, walk to the kart, and press **E**.
-3. Drive with **WASD / arrows**, hold **Space + a turn** to drift, release Space for a charged boost, and hold **Shift** for a rechargeable turbo. **E or F** exits. Space is reserved for drifting while driving, so use the exit key rather than jump.
-4. Gamepad: left stick steers/throttles, R2 accelerates, L2 brakes/reverses, A drifts, X boosts, B exits. Touch buttons are supplied too; verify their layout on your target devices.
+1. Download/extract the latest **dist/KartRelease.zip**. Stop Play and save your place.
+2. Insert **dist/KartPackage.rbxmx** into Workspace using **Insert from File**. Select the newly imported **KartPackage** folder.
+3. Open Studio's **Command Bar**, paste all of **tools/Upgrade.command.luau**, and press Enter.
+4. Wait for **“Kart installed/upgraded.”** Press Play to generate the new kart.
 
-The kart is generated when the server starts. The avatar spawn is near it. No internet/security settings need to be enabled.
+The command now handles first installations, complete upgrades, and partial installations. **Install.command.luau and Upgrade.command.luau are identical**, so neither produces the old “use first installation” dead end. Do not import a second driving system.
 
-## Upgrade the kart you already installed
+Existing installations are cloned and verified under **ServerStorage/KartBackups/BeforeUpgrade_…** before replacement. The installer replaces only the five named kart modules and two driving scripts; other custom modules and **Workspace/KartSpawns** remain. Compatible custom driving/camera tuning, palette and spawn position carry over. New coordinated model scale, wheel radius, wheelbase and suspension dimensions take the release defaults; old custom geometry values remain available in the backup. Retired drift tiers are not migrated. Custom modifications to the replaced script source are backed up, not automatically merged.
 
-1. Download and extract the latest **dist/KartRelease.zip**. Stop Play mode in Studio and save your place.
-2. Insert **dist/KartPackage.rbxmx** into Workspace, then select the newly imported **KartPackage** folder.
-3. Open **View → Command Bar**, paste all of **tools/Upgrade.command.luau**, and press Enter. Use **Upgrade**, not the first-install script.
-4. The command backs up the installed scripts to **ServerStorage/KartBackups/BeforeUpgrade_…**, replaces only the three kart modules and two kart scripts, and keeps **KartSpawns**, custom modules, spawn position, paint palette and customized first-release tuning. Unchanged old settings receive the new smoother defaults. The imported package disappears after a successful upgrade.
-5. Press Play. Existing spawn markers generate the updated kart. Run the Studio checks below before saving the updated game.
+To roll back in Edit mode, replace KartSystem in ReplicatedStorage, KartServer in ServerScriptService, and KartController in StarterPlayer/StarterPlayerScripts using the corresponding backup objects.
 
-Customized suspension/grip settings override the new defaults; compare KartConfig if you previously tuned them. Source modifications to KartBuilder/KartDynamics/KartServer/KartController are retained in the backup, but are not automatically merged into the updated implementation. No track geometry is changed.
+For a standalone test, open **dist/KartDemo.rbxlx** directly in Studio. The place contains a flat floor, player spawn and this same system.
 
-To roll back in Edit mode, replace the installed KartSystem with the backed-up KartSystem in ReplicatedStorage, KartServer in ServerScriptService, and KartController in StarterPlayer/StarterPlayerScripts. Keep your existing KartSpawns.
+## Spawn and controls
 
-## Install into your existing game
+Use **R15** in Avatar Settings. Create **Workspace/KartSpawns** with one anchored Part per kart, about four studs above collidable ground; each marker's front (-Z) is the kart's forward direction. Optional string attribute ColorName accepts Red, Blue, Green, Yellow, Purple or Black. Markers hide at runtime. With no markers, one red kart spawns at KartConfig.SpawnCFrame.
 
-Back up your place first. The installer rejects an existing KartSystem/KartServer/KartController instead of replacing your work.
+- Walk to the kart and use the existing **E** entry prompt.
+- **WASD/arrows** accelerate, brake/reverse and steer.
+- Hold either **Shift** while turning and moving forward to drift.
+- After **1.5 seconds** of continuous eligible drifting, turbo starts automatically while Shift is still held. Releasing early cancels the partial charge.
+- Turbo lasts **1.15 seconds**. Its **six-second cooldown starts at activation**. Charging is blocked during boost/cooldown and needs a fresh full 1.5 seconds afterward.
+- There is **no manual turbo or voluntary exit action**. Space, E/F and gamepad exit/jump actions cannot unseat a living assigned driver. Death/reset, disconnect, character replacement and kart removal release the assignment.
+- Gamepad: stick steers/throttles, R2/L2 accelerate/brake, A/X drift. Touch provides driving and drift buttons; no exit/manual turbo button.
 
-1. Stop Play mode. In Explorer, right-click Workspace and choose **Insert from File**, then select **dist/KartPackage.rbxmx**. Some Studio versions expose this through the Model tab's **Advanced → Insert from File**. This is a script package, not a mesh; do not use the 3D importer.
-2. Select the imported **KartPackage** folder. Open **View → Command Bar** and paste/run the contents of **tools/Install.command.luau**. The scripts are disabled inside the imported folder until installation places and enables them in their proper services.
-3. Add a Folder named **KartSpawns** to Workspace. Inside it, place anchored Parts at the desired chassis spawn positions, about **4 studs above the ground**, oriented so their **front (-Z)** points down the track. The server hides these markers and disables their collisions. Use one marker per kart; optional string attribute **ColorName** accepts `Red`, `Blue`, `Green`, `Yellow`, `Purple`, or `Black`.
-4. With no markers, one red kart spawns at `KartConfig.SpawnCFrame`, initially `(0, 5, 0)`. Change that setting for your map rather than assuming the terrain is at Y=0.
-5. Select R15 in Avatar Settings and press Play. Save the place after successful tests. The terrain files in this repository are left unchanged.
+These controls are documented here only. The in-game HUD has **no instruction lines and no speed-unit text**.
 
-Alternatively use **Rojo** with `default.project.json`, or create the five script instances manually from `src/` using the same names/services. Do not install twice. Rojo is optional and is not bundled.
+## HUD
 
-```text
+KartHUD is an asset-free racing cluster: large speed numerals, cyan speed bars, dark gradient panels, racing slashes and a segmented charge/recovery meter. It switches between **READY**, **CHARGING**, **TURBO** and **RECHARGING**, with smooth fills, an activation pulse, limited speed streaks and server-time countdowns. Desktop positioning is bottom-right; touch positioning is top-center with viewport scaling.
+
+Charge comes from the server's normalized DriftCharge attribute. BoostEnd and TurboCooldownEnd share workspace:GetServerTimeNow() timestamps. The client interpolates display values but cannot award a boost or declare readiness before the server. No local prediction fills an unfinished charge.
+
+## Architecture and behavior
+
+~~~text
 ReplicatedStorage/KartSystem
-  KartConfig       ModuleScript: tuning and palette
-  KartDynamics     ModuleScript: tested speed/braking/tier calculations
-  KartBuilder      ModuleScript: complete geometry and constraint assembly
-  Remotes/Input    RemoteEvent: created at server startup
+  KartConfig      tuning, scale, palette and spawn
+  KartDynamics    pure driving/drift/boost calculations
+  KartBuilder     geometry, seat, motors and physics constraints
+  KartSeatLock    server seat lifecycle and settings restoration
+  KartHUD         client display
+  Remotes/Input   created by server; throttle, steer, drift only
 ServerScriptService/KartServer
 StarterPlayer/StarterPlayerScripts/KartController
-Workspace/RacingKarts/RacingKart  (generated at runtime)
-```
+Workspace/RacingKarts/RacingKart
+~~~
 
-## Implementation and tuning
+- **Scale:** Model:ScaleTo applies once, including attachments/motors; returned wheel origins and steering metadata scale with it. Wheel radius, suspension rest/travel, wheelbase and follow-camera distance use the coordinated smaller values. The generated model has **223 connected Parts**. The body sits lower relative to the wheels.
+- **Driving:** four PreSimulation raycast spring contacts, near-critical heave damping, separate inertia-scaled pitch/roll damping, COM traction and bounded yaw steering. Non-colliding visual wheels never compete with the hull. Normal and drift steering/grip transitions remain frame-rate independent. World velocity assignments are reserved for void recovery and extreme speed limiting.
+- **Animation:** every observer animates wheel spin, steering and suspension at render rate from replicated steering/contact targets. Signed spin uses local wheel-point velocity and configured radius. R15 grip IK follows the steering wheel; torso lean remains replicated. Standard/large avatar reach and foot clearance still need Studio checks.
+- **Seat lock:** the server retains the living driver's assignment and schedules a single bounded reseat attempt after involuntary/voluntary detachment. Engine refusals retry on later simulation updates. An intruder cannot replace the assigned driver. Jump and getting-up states are disabled on server/client. Death, removal or invalid assignment cancels pending work and restores original settings. Animated avatar parts temporarily become massless/non-colliding so they cannot disturb the vehicle or press against the road; original flags restore on legitimate cleanup.
+- **Security:** server-owned physics; strict three-field remote schema; occupant checks, finite-number checks, input clamping/rate limit and a 0.5-second timeout. No client-supplied boost, charge, cooldown, velocity or exit flag. Cooldown survives driver cleanup; reset/reseat does not grant a fresh boost.
+- **Boost rules:** charge requires forward motion above DriftMinSpeed, steering and ground contact. Airborne, stationary, straight, early-release, active-turbo and recharge conditions clear charge. Cooldown-boundary steps only credit their eligible tail; long frame stalls cannot instantly earn turbo. Power and duration never stack.
+- **Lifecycle:** empty karts settle and park. A driver who falls near the destroy plane returns with the kart to its spawn without being unlocked. Markers are read at startup. Server ownership still adds input latency; no client physics prediction is implemented.
+- **Effects/camera:** smooth independent camera position/height/heading filters, scaled distance, limited drift following, collision raycasts, gradual FOV and no shake. Smoke, charging sparks, acceleration exhaust, turbo flames and brake lamps remain bounded.
 
-- **Stability:** spring forces run in PreSimulation at four contact points. Springs use a lower 2 Hz frequency, near-critical heave damping and bounded loads. Angular point velocity is deliberately excluded from corner damping: applying four strong point dampers to a narrow, low-inertia chassis creates excessive roll feedback. A separate inertia-scaled pitch/roll damper handles rotation. Suspension and stability torque do not teleport or anchor a driven kart.
-- **Force separation:** one COM-applied VectorForce handles forward/lateral traction; one bounded yaw torque handles steering. This replaces the old axle-sideways-velocity target that also generated a competing yaw moment. Physical chassis/curb shells remain; visual tires stay massless and non-colliding. Driver body parts are temporarily massless and have NoCollisionConstraints against the kart hull, keeping animated limbs from changing assembly inertia or colliding with the vehicle. Original Massless values are restored on exit.
-- **Drifting:** frame-rate-independent steering/throttle filters; drift blend eases grip and the outward side-slip target in and out. The rear-slide effect follows steering, with bounded lateral acceleration and yaw. Grip remains positive throughout and no sideways velocity is assigned. Charge thresholds, mini-turbo release and cooldown protections are preserved. Tune SteerResponse, DriftEnterResponse/DriftExitResponse, DriftSlipAngle, Grip and DriftGrip in KartConfig.
-- **Suspension/wheels:** four raycast contacts independently position the wheels. Server contact distances and steering targets replicate at 20 Hz; **every client** renders smooth wheel travel, signed spin from each contact's actual local velocity, and steering-wheel rotation at its render rate. Server code no longer also writes visual wheel poses. Observers use the same replicated targets, without relying on driver-only animations. R15 IK targets follow the locally animated wheel, with server-created grip controls. Standard seated legs and server-replicated torso lean are retained. R6 drives without hand IK; nonstandard R15 proportions may need grip adjustment.
-- **Camera:** independent horizontal, vertical and heading filters; horizontal lag compensation, limited drift-direction following, obstacle raycasts, gradual FOV and **no procedural shake**, including turbo. Suspension pitch/roll do not directly rotate the camera. Camera settings restore on exit.
-- **Boosts/effects:** continuous grounded drift earns blue/orange/purple tiers after 0.65 / 1.5 / 2.7 seconds; release while grounded redeems the charge. No airborne or stationary charge, no additive speed stacking, finite durations and six-second turbo cooldown. Bounded tire smoke/sparks, subtle acceleration exhaust, turbo flames, brake lamps and high-speed screen lines remain. Futuristic neon tire rings and the oversized spoiler were replaced to match the new reference.
-- **Multiplayer/lifecycle:** server-owned physics; occupant-validated, finite-checked, clamped/rate-limited inputs; 0.5-second input timeout. No client-supplied physics velocities or boost strength. Empty karts settle and park, entering unanchors them, and falling near the destroy plane returns them to the marker. Camera/input/grips/driver mass flags restore on exit/death. Server ownership still has network latency; no prediction is implemented.
-- **Cost:** 295 connected Parts per kart in the geometry check, four ground raycasts per simulation update, 20 Hz effect/target replication. Visual wheel work runs per render on observers. Profile your intended kart count on mobile. Model streaming is atomic. No separate replacement vehicle system is installed.
+## Checks actually executed
 
-## Validation status
+The cloud checks compile all Luau sources using official Luau 0.726, execute the actual pure Dynamics and SeatLock modules, execute the actual builder in a geometry-only mock, and round-trip all **seven** source scripts through both Studio XML files.
 
-Executed in the cloud: all Luau files compile using official Luau **0.726**; **94 dynamics assertions pass** at 30/60/120 Hz. They cover existing speed/braking/boost protections plus interpolation independence, gradual drift entry/exit, slip direction, yaw limits and simplified heave/pitch/roll settling. The actual KartBuilder executes in a geometry-only mock: all **295 parts** have positive sizes, finite transforms, a connected weld/motor graph, massless visuals and non-colliding animated tires. Both Studio XML artifacts parse, with all five embedded sources matching the originals. Enum references and literal Instance class names were checked against Roblox's public API dump.
+- **136 dynamics assertions:** exact auto-trigger timing at 30/60/120 Hz, epoch-style server clocks, no early release reward, cooldown-boundary accounting, no precharging during boost/recharge, held-key behavior, no-driver cleanup, finite speed/boost, invalid charge conditions, steering and simplified suspension settling.
+- **42 seat-lock assertions:** retained owner, single pending retry, takeover rejection, engine-refusal retry, death, replacement, seat destruction, removed characters, cancellation of stale callbacks, and exact restoration of prior jump/state flags.
+- **Builder:** 223 connected parts, positive sizes, finite transforms, massless/non-colliding animated wheels, COM traction, uniform scale and agreement between tire radius, motors, attachments and configuration.
+- **27 HUD assertions:** actual constructor/state/display code with test doubles validates readiness, charge, turbo, recharge, authoritative timer behavior, responsive scaling and hidden cleanup. A compact offline API-property fixture checks the GUI graph; optional --api-dump verifies it against the full Roblox API.
+- **Nine installer scenarios:** the actual installer executes in offline service/instance mocks for fresh installation, custom-setting upgrade, partial repair, missing incoming modules, backup failure, wrong existing instance types, Play-mode rejection and two non-Archivable incoming-script failures. Source mutations require verified backups first; spawn markers/custom modules remain and no duplicate controllers are created.
+- **Artifacts:** both XML files parse; each embedded source matches its repository source. Release ZIP includes source, installers, documentation, tests, demo and model preview.
 
-The numerical suspension tests use a simplified small-angle model, not the Roblox solver; the builder mock validates geometry construction, not Roblox engine behavior. The new code addresses identifiable feedback and presentation problems; **zero rumble in Studio is not yet verified**.
+**Roblox Studio is unavailable here.** No Studio import, actual driving, seat-lock behavior, R15 grip alignment, collision response, rendered HUD, mobile layout or multiplayer playtest is claimed as passed. Mocks and simplified numerical models do not simulate the Roblox physics solver.
 
-**Roblox Studio is unavailable in this environment.** The generated place has not been opened or run here. Studio physics, import compatibility, avatar grip alignment, visual fidelity, device input and multiplayer behavior remain unverified. The engine-independent tests do not certify those behaviors. Use the following checks before including this in a live game.
+## Studio acceptance checks
 
-## Studio acceptance checklist
-
-Run `tests/StudioSmoke.command.luau` in the **server Command Bar during Play** to inspect the actual generated assembly. While seated, run `tests/StudioMeasurements.command.luau` and drive straight on a flat baseplate for 10 seconds to record RMS/peak vertical and roll/pitch velocity. Compare before/after on the same place, speed, avatar and frame rate; collisions, ramps and entering/exiting invalidate a flat-road comparison. These measurements have not been run here. Then perform these behavioral checks; watch Output for errors throughout.
+Use the demo flat floor first, then the real track. Watch Output throughout.
 
 | Check | Expected result |
 | --- | --- |
-| E enter; E/F exit; enter again; reset character | One driver, normal seated pose, camera/input restored on exit, empty kart parks |
-| W, release, S; hold S after stopping | Accelerates smoothly, coasts, brakes, then reverses; no unbounded speed |
-| Flat road; enter and exit drift repeatedly | No sustained chassis oscillation, smooth grip changes, no heading snaps or camera rumble |
-| A/D at low and high speeds | Correct turning direction, front wheels steer, rear wheels remain aligned; wheel spin matches forward/reverse |
-| R15 driver and observer | Hands stay near wheel grips through both turns; wheel centers smoothly; no detached avatar |
-| Hold W + turn + Space for each threshold | Blue → orange → purple sparks; smoke only during drift; release earns a temporary boost |
-| Tap/release Space, drift in air, stop turn, spam Shift | No free charge, no airborne charge, finite boost, six-second turbo recharge |
-| Boost then release acceleration; brake | Flames/FOV/lines activate and clear; speed returns to normal; brake lamps respond |
-| Add a 10–20° ramp, small bumps, a wall and a ledge | Individual suspension movement, uphill/downhill drive, collisions, no sustained rollover/jitter; verify your actual candy terrain too |
-| Studio Test → Server & Clients, two clients, two markers | Both karts independent; second player cannot steal an occupied kart; observer sees wheels, grips, sparks |
-| Simulated latency, minimize window, disconnect driver | Safe input timeout, no stuck accelerator, no stale IK; assess server-owned input latency |
-| Gamepad and phone emulator | Steering/throttle, drift/boost/exit work; HUD/buttons do not obstruct necessary UI |
+| Enter; try E/F, Space, gamepad/touch jump | Entry works; living driver remains seated; no exit button |
+| Reset/death/disconnect; remove kart in server view | Assignment, IK, camera and input clean up; no stale reseat; original character flags restore |
+| Flat straight drive, brake/reverse, small bumps | Stable motion, correct collisions and wheel spin, no sustained oscillation |
+| Shift + turn for less than 1.5s; release | Partial charge clears; no boost |
+| Hold Shift + turn for 1.5s | Automatic turbo without releasing; activation appears on HUD |
+| Keep holding through cooldown | No charge during cooldown; fresh full charge before another turbo |
+| Straight/slow/airborne drift, repeated key presses | No free charge, stacked boost or extended duration |
+| HUD on desktop/phone emulator | Clear unit-free speed and charge/cooldown; no instructions or overlapping driving buttons |
+| R15 and large avatars, both steering directions | Comfortable seat, hands near grips, feet do not disturb the chassis |
+| Two clients/two markers, simulated latency | Independent karts, visible steering/effects, no takeover or timer disagreement |
+| 10–20 degree ramps, curbs, walls, void fall | Proper contacts/collisions; bounded recovery with driver still assigned |
 
-If contact is unstable, first ensure spawn markers are above collidable ground and no other script moves the kart or assigns it client ownership. Then adjust SpringFrequency / SpringDamping in small increments. Tune MaxSpeed, Grip and MaxSteer on your actual track. Do not use cloud tests as a substitute for the Studio acceptance checks.
+Run **tests/StudioSmoke.command.luau** in the server Command Bar during Play for assembly/lock assertions. Run **tests/StudioMeasurements.command.luau** while driving straight on flat ground to record ten seconds of vertical and roll/pitch velocity. These Studio commands have not been executed here.
 
-## Rebuild artifacts and rerun cloud checks
+## Rebuild
 
-From `kart/`:
+From kart/ with Python and the official Luau CLI installed:
 
-```sh
-python3 tools/package.py
-python3 tools/check_geometry.py --luau /path/to/luau --output /tmp/kart-geometry.json
+~~~sh
 python3 tools/test.py --luau /path/to/luau --compiler /path/to/luau-compile
-```
+~~~
 
-Optional geometry preview: run Blender in background with `--python tools/render_preview.py -- /tmp/kart-geometry.json dist/KartPreview.png`, then regenerate the package. Blender is required only for this optional render.
+This compiles scripts, executes calculation/lifecycle/geometry checks and rebuilds the artifacts. To regenerate only the package, run python3 tools/package.py. Regenerate dist after every source edit.
 
-Python uses only the standard library. The test runner requires the official Luau CLI and compiler; Roblox Studio supplies the actual runtime instead. Regenerate `dist/` whenever source scripts change. `dist/source-hashes.json` records the packaged source hashes. No environment secrets or onboarding configuration changes are needed for the kart itself.
+Optional geometry render: export using tools/check_geometry.py --luau /path/to/luau --output /tmp/kart-geometry.json, then run Blender with --python tools/render_preview.py -- /tmp/kart-geometry.json dist/KartPreview.png before packaging. Blender is needed only for this preview.

@@ -11,6 +11,8 @@ SOURCES = {
     "KartConfig": ROOT / "src/ReplicatedStorage/KartSystem/KartConfig.luau",
     "KartDynamics": ROOT / "src/ReplicatedStorage/KartSystem/KartDynamics.luau",
     "KartBuilder": ROOT / "src/ReplicatedStorage/KartSystem/KartBuilder.luau",
+    "KartSeatLock": ROOT / "src/ReplicatedStorage/KartSystem/KartSeatLock.luau",
+    "KartHUD": ROOT / "src/ReplicatedStorage/KartSystem/KartHUD.luau",
     "KartServer": ROOT / "src/ServerScriptService/KartServer.server.luau",
     "KartController": ROOT / "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau",
 }
@@ -34,7 +36,7 @@ def code(parent, name, disabled=False):
 
 def system(parent):
     folder, _ = item(parent, "Folder", "KartSystem")
-    for name in ("KartConfig", "KartDynamics", "KartBuilder"):
+    for name in ("KartConfig", "KartDynamics", "KartBuilder", "KartSeatLock", "KartHUD"):
         code(folder, name)
 
 
@@ -103,7 +105,7 @@ def main():
         for path in sorted(ROOT.rglob("*")):
             if path.is_file() and path.suffix != ".zip" and "__pycache__" not in path.parts:
                 archive.write(path, Path("kart") / path.relative_to(ROOT))
-    print("Built KartPackage.rbxmx and KartDemo.rbxlx; 5 scripts round-tripped in each.")
+    print(f"Built KartPackage.rbxmx and KartDemo.rbxlx; {len(SOURCES)} scripts round-tripped in each.")
 
 
 if __name__ == "__main__":
