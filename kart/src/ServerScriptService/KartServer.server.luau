@@ -17,6 +17,9 @@ local world = workspace:FindFirstChild("RacingKarts") or Instance.new("Folder")
 world.Name="RacingKarts"; world.Parent=workspace
 
 local function restoreDriver(s)
+	for part,original in pairs(s.driverMass or {}) do if part.Parent then part.Massless=original end end
+	s.driverMass={}
+	if s.driverCollision then s.driverCollision:Destroy(); s.driverCollision=nil end
 	for _,ik in ipairs(s.iks or {}) do ik:Destroy() end
 	s.iks={}
 	if s.waist and s.waist.Parent then s.waist.C0=s.waistBase end
@@ -46,6 +49,22 @@ local function attachDriver(s)
 	s.prompt.Enabled=false; s.lastInput=os.clock()
 	s.chassis.Anchored=false
 	s.chassis:SetNetworkOwner(nil) -- authoritative forces, boosts and speed caps
+	-- An animated driver's limbs must not shift the physics assembly's COM or
+	-- collide with its hull. Restore every original Massless flag on departure.
+	s.driverMass={}
+	s.driverCollision=Instance.new("Folder"); s.driverCollision.Name="DriverCollisionOverrides"; s.driverCollision.Parent=s.model
+	local hulls={s.chassis}
+	for _,part in ipairs(s.model.Suspension:GetChildren()) do
+		if part:IsA("BasePart") and part.CanCollide then table.insert(hulls,part) end
+	end
+	for _,part in ipairs(humanoid.Parent:GetDescendants()) do
+		if part:IsA("BasePart") then
+			s.driverMass[part]=part.Massless; part.Massless=true
+			for _,hull in ipairs(hulls) do
+				local constraint=Instance.new("NoCollisionConstraint"); constraint.Part0=part; constraint.Part1=hull; constraint.Parent=s.driverCollision
+			end
+		end
+	end
 	s.model:SetAttribute("DriverUserId",player.UserId)
 	if humanoid.RigType==Enum.HumanoidRigType.R15 then
 		for _,side in ipairs({"Left","Right"}) do
@@ -72,6 +91,7 @@ local function spawnKart(cf, colorName)
 	s.spawn=cf; s.throttle=0; s.steer=0; s.visualSteer=0; s.drift=false; s.turbo=false
 	s.lastInput=0; s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0; s.wasDrift=false
 	s.visualClock=0; s.iks={}; s.emptyTime=0
+	s.filteredSteer=0; s.filteredThrottle=0; s.driftBlend=0; s.normal=Vector3.yAxis; s.driveAccel=0
 	s.params=RaycastParams.new(); s.params.FilterType=Enum.RaycastFilterType.Exclude
 	s.params.RespectCanCollide=true
 	s.chassis:SetNetworkOwner(nil)
@@ -126,9 +146,13 @@ Players.PlayerRemoving:Connect(function(player)
 	rates[player]=nil
 end)
 
-RunService.Heartbeat:Connect(function(delta)
-	local dt=math.min(delta,1/20)
+RunService.PreSimulation:Connect(function(delta)
+	local dt=math.min(delta,1/15)
 	local now=os.clock()
+	local characters={}
+	for _,player in ipairs(Players:GetPlayers()) do
+		if player.Character then table.insert(characters,player.Character) end
+	end
 	for index=#states,1,-1 do
 		local s=states[index]
 		if not s.model:IsDescendantOf(workspace) then
@@ -143,10 +167,7 @@ RunService.Heartbeat:Connect(function(delta)
 		if s.player and now-s.lastInput>Config.InputTimeout then
 			s.throttle=0; s.steer=0; s.drift=false; s.turbo=false; s.charge=0; s.wasDrift=false
 		end
-		local exclusions={s.model}
-		for _,player in ipairs(Players:GetPlayers()) do
-			if player.Character then table.insert(exclusions,player.Character) end
-		end
+		local exclusions={s.model,table.unpack(characters)}
 		s.params.FilterDescendantsInstances=exclusions
 		local mass=root.AssemblyMass
 		if root.Anchored then mass=root:GetMass() end
@@ -161,43 +182,51 @@ RunService.Heartbeat:Connect(function(delta)
 			wheel.force.Force=Vector3.zero
 			if ray and ray.Normal.Y>0.15 then
 				wheel.distance=math.max(-0.2,ray.Distance-Config.WheelRadius)
-				local pv=root:GetVelocityAtPosition(mount)
-				local omega=Config.SpringFrequency*2*math.pi
-				local load=mass/4
 				local compression=Config.SuspensionRest-wheel.distance
-				local support=load*workspace.Gravity+compression*load*omega*omega-pv:Dot(cf.UpVector)*2*Config.SpringDamping*omega*load
-				wheel.force.Force=cf.UpVector*math.clamp(support,0,mass*workspace.Gravity*1.3)
+				-- Include moving ground velocity so platforms do not kick the springs.
+				local groundVelocity=Vector3.zero
+				if ray.Instance:IsA("BasePart") then groundVelocity=ray.Instance:GetVelocityAtPosition(ray.Position) end
+				-- Damp heave here, not angular point velocity: four full-strength
+				-- corner dampers massively overdamp the low-inertia chassis roll.
+				-- Pitch/roll receive a separate inertia-scaled angular damper below.
+				local vertical=(velocity-groundVelocity):Dot(cf.UpVector)
+				local support=Dynamics.suspension(compression,vertical,workspace.Gravity,Config)*mass/4
+				wheel.force.Force=cf.UpVector*support
 				table.insert(contacts,wheel); groundNormal+=ray.Normal
 			end
 		end
 		local grounded=#contacts>=2
 		local drifting,boost=Dynamics.updateBoost(s,now,dt,grounded,speed,Config)
-		local steerAngle=-s.steer*Config.MaxSteer/(1+(math.abs(speed)/36)^2)
-		local desiredYaw=math.tan(steerAngle)*speed/Config.Wheelbase*(drifting and 1.3 or 1)
-		local yawLimit=Config.MaxCornerAcceleration/math.max(math.abs(speed),12)
-		desiredYaw=math.clamp(desiredYaw,-yawLimit,yawLimit)
-		local normal=grounded and groundNormal.Unit or Vector3.yAxis
+		s.filteredSteer=Dynamics.approach(s.filteredSteer,s.player and s.steer or 0,Config.SteerResponse,dt)
+		s.filteredThrottle=Dynamics.approach(s.filteredThrottle,s.player and s.throttle or 0,Config.ThrottleResponse,dt)
+		if math.abs(s.filteredThrottle)<0.001 then s.filteredThrottle=0 end
+		s.driftBlend=Dynamics.approach(s.driftBlend,drifting and 1 or 0,drifting and Config.DriftEnterResponse or Config.DriftExitResponse,dt)
+		local steerAngle,desiredYaw=Dynamics.steering(speed,s.filteredSteer,s.driftBlend,Config)
+		local targetNormal=grounded and groundNormal.Unit or s.normal
+		s.normal=s.normal:Lerp(targetNormal,1-math.exp(-dt*Config.NormalResponse)).Unit
+		local normal=s.normal
 		local forward=cf.LookVector-normal*cf.LookVector:Dot(normal)
 		if forward.Magnitude>0.01 then forward=forward.Unit else forward=cf.LookVector end
 		local right=forward:Cross(normal).Unit
-		for _,wheel in ipairs(contacts) do
-			local mount=cf:PointToWorldSpace(wheel.origin)
-			local pv=root:GetVelocityAtPosition(mount)
-			-- Preserve the commanded yaw while damping excess sideways slip.
-			local localZ=wheel.origin.Z
-			local targetSide=desiredYaw*localZ
-			local lateral=pv:Dot(right)-targetSide
-			local grip=drifting and not wheel.front and Config.DriftGrip or Config.Grip
-			local sideAccel=math.clamp(-lateral*grip,-100,100)
-			local drive=Dynamics.longitudinal(speed,s.player and s.throttle or 0,boost,Config)
-			if not s.player then drive=math.clamp(-speed*10,-80,80) end
-			wheel.force.Force+=(forward*drive+right*sideAccel)*(mass/4)
-		end
+		-- Tire traction acts once at the COM. It no longer injects a second yaw
+		-- controller at the axles or rolls the chassis by acting above its COM.
+		local sideAccel=Dynamics.lateral(speed,velocity:Dot(right),s.filteredSteer,s.driftBlend,Config)
+		local drive=Dynamics.longitudinal(speed,s.filteredThrottle,boost,Config)
+		if not s.player then drive=math.clamp(-speed*10,-80,80) end
+		s.driveAccel=Dynamics.approach(s.driveAccel,drive,10,dt)
+		s.driveForce.Force=grounded and (forward*s.driveAccel+right*sideAccel)*mass*(#contacts/4) or Vector3.zero
 		if grounded then
 			local angular=root.AssemblyAngularVelocity
 			local tilt=cf.UpVector:Cross(normal)
-			local flatAngular=angular-normal*angular:Dot(normal)
-			s.torque.Torque=(tilt*95-flatAngular*16+normal*(desiredYaw-angular:Dot(normal))*12)*mass
+			local inertia=mass*(root.Size.X^2+root.Size.Z^2)/12
+			local pitchInertia=mass*(root.Size.Y^2+root.Size.Z^2)/12
+			local rollInertia=mass*(root.Size.X^2+root.Size.Y^2)/12
+			local yawAccel=math.clamp((desiredYaw-angular:Dot(normal))*Config.YawResponse,-Config.MaxYawAcceleration,Config.MaxYawAcceleration)
+			-- Springs handle contact roll/pitch; this bounded damper suppresses
+			-- excess tilt instead of repeatedly forcing a new orientation.
+			local angularDamping=cf.RightVector*angular:Dot(cf.RightVector)*pitchInertia*26
+				+cf.LookVector*angular:Dot(cf.LookVector)*rollInertia*26
+			s.torque.Torque=tilt*10*inertia-angularDamping+normal*yawAccel*inertia
 		else s.torque.Torque=-root.AssemblyAngularVelocity*mass*0.8 end
 		-- Empty vehicles settle before anchoring, then remain parked even on slopes.
 		if not s.player then
@@ -214,23 +243,22 @@ RunService.Heartbeat:Connect(function(delta)
 				root.AssemblyLinearVelocity=Vector3.new(capped.X,velocity.Y,capped.Z)
 			end
 		end
-		s.visualSteer+=(steerAngle-s.visualSteer)*(1-math.exp(-dt*13))
-		for _,wheel in ipairs(s.wheels) do wheel.spin=(wheel.spin-speed/Config.WheelRadius*dt)%(math.pi*2) end
+		s.visualSteer=steerAngle
 		s.visualClock+=delta
-		if s.visualClock>=1/24 then
+		if s.visualClock>=1/20 then
 			s.visualClock=0
 			local stage=drifting and Dynamics.stage(s.charge,Config.DriftStages) or 0
 			for _,wheel in ipairs(s.wheels) do
-				wheel.motor.C0=CFrame.new(wheel.origin-Vector3.new(0,wheel.distance,0))*CFrame.Angles(0,wheel.front and s.visualSteer or 0,0)*CFrame.Angles(wheel.spin,0,0)
+				wheel.motor:SetAttribute("SuspensionDistance",wheel.distance)
 				wheel.emitterAt.Position=wheel.origin-Vector3.new(0,wheel.distance+Config.WheelRadius,0)
-				for _,p in ipairs(wheel.glow) do p.Transparency=math.abs(speed)>55 and 0.05 or 0.4 end
 				wheel.smoke.Rate=drifting and not wheel.front and 12 or 0
 				wheel.sparks.Rate=stage>0 and not wheel.front and 14 or 0
 				if stage>0 then wheel.sparks.Color=ColorSequence.new(sparkColors[stage]) end
 			end
-			s.steering.C0=s.steeringBase*CFrame.Angles(0,0,s.visualSteer*1.8)
+			s.model:SetAttribute("SteerAngle",s.visualSteer)
+			s.model:SetAttribute("DriftBlend",s.driftBlend)
 			if s.waist then s.waist.C0=s.waistBase*CFrame.Angles(0,0,-s.visualSteer*0.16) end
-			for _,flame in ipairs(s.flames) do flame.emitter.Rate=boost>0 and 35 or 0; flame.light.Brightness=boost>0 and 2 or 0 end
+			for _,flame in ipairs(s.flames) do flame.emitter.Rate=boost>0 and 35 or 0; flame.light.Brightness=boost>0 and 2 or 0; flame.smoke.Rate=s.player and s.filteredThrottle>0.1 and 3 or 0 end
 			for _,light in ipairs(s.model.Effects:GetChildren()) do
 				if light.Name=="BrakeLight" and light:IsA("BasePart") then
 					local braking=s.throttle<0 and speed>2

@@ -4,7 +4,9 @@ local WHITE = Color3.fromRGB(235, 239, 245)
 local BLACK = Color3.fromRGB(20, 23, 30)
 local RUBBER = Color3.fromRGB(13, 14, 19)
 local METAL = Color3.fromRGB(90, 101, 119)
-local BLUE = Color3.fromRGB(70, 177, 255)
+local BLUE = Color3.fromRGB(20, 85, 220)
+local YELLOW = Color3.fromRGB(255, 205, 35)
+local SEAT = Color3.fromRGB(25, 34, 59)
 
 function Builder.build(name, spawn, color)
 	color = color or Config.Palette.Red
@@ -40,7 +42,7 @@ function Builder.build(name, spawn, color)
 		return p
 	end
 	local function bar(label, a, b, width, tint, parent)
-		return part(label, Vector3.new(width, width, (b-a).Magnitude), CFrame.lookAt((a+b)/2,b), tint, Enum.Material.Metal, parent)
+		return part(label, Vector3.new((b-a).Magnitude, width, width), CFrame.lookAt((a+b)/2,b)*CFrame.Angles(0,math.pi/2,0), tint, Enum.Material.Metal, parent, Enum.PartType.Cylinder)
 	end
 	local function ring(parent, base, radius, thickness, tint, material, count, target)
 		for i = 1, count do
@@ -52,51 +54,70 @@ function Builder.build(name, spawn, color)
 			end
 		end
 	end
-	chassis = part("Chassis", Vector3.new(4.25,0.65,7.3), CFrame.new(), BLACK, Enum.Material.Metal, model, nil, true)
+	local function rounded(label,size,cf,tint,radius,parent)
+		radius=math.min(radius,size.X/2-0.01,size.Z/2-0.01)
+		part(label,Vector3.new(size.X-2*radius,size.Y,size.Z),cf,tint,nil,parent)
+		for _,side in ipairs({-1,1}) do
+			part(label,Vector3.new(radius,size.Y,size.Z-2*radius),cf*CFrame.new(side*(size.X/2-radius/2),0,0),tint,nil,parent)
+		end
+		for _,x in ipairs({-1,1}) do for _,z in ipairs({-1,1}) do
+			-- Flattened ellipsoids curve away from the top surface; flat cylinder
+			-- caps would overlap the panels and create visible z-fighting.
+			part(label.."Corner",Vector3.new(2*radius,size.Y,2*radius),cf*CFrame.new(x*(size.X/2-radius),0,z*(size.Z/2-radius)),tint,nil,parent,Enum.PartType.Ball)
+		end end
+	end
+
+	chassis = part("Chassis", Vector3.new(3.7,0.5,6.5), CFrame.new(), BLACK, Enum.Material.Metal, model, nil, true)
 	chassis.Massless = false; chassis.CanCollide = true; chassis.CanQuery = true
-	chassis.CustomPhysicalProperties = PhysicalProperties.new(2.8,0.2,0,100,100)
+	chassis.CustomPhysicalProperties = PhysicalProperties.new(3.5,0.12,0,100,100)
+	chassis.RootPriority=127
 	model.PrimaryPart = chassis
 	part("FloorPan",Vector3.new(3.9,0.15,4.3),CFrame.new(0,0.48,0.1),METAL,Enum.Material.DiamondPlate)
-	-- A layered, tapering nose; wedges slope down towards the front (-Z).
-	part("Nose",Vector3.new(2.9,1.05,2.8),CFrame.new(0,0.85,-2.35),color,nil,body,nil,false,"WedgePart")
-	part("NoseStripe",Vector3.new(0.52,1.065,2.82),CFrame.new(0.98,0.86,-2.35),WHITE,nil,body,nil,false,"WedgePart")
-	local badge=CFrame.new(-0.25,0.88,-2.3)*CFrame.Angles(-math.atan(1.05/2.8),0,0)*CFrame.Angles(0,0.2,0)
-	part("NoseBadge",Vector3.new(0.92,0.035,0.92),badge,WHITE)
-	part("NoseBadgeInset",Vector3.new(0.32,0.04,0.32),badge*CFrame.new(0,0.025,0),color)
-	for _, side in ipairs({-1,1}) do
-		part("NoseShoulder",Vector3.new(0.55,0.7,2.3),CFrame.new(side*1.6,0.66,-2.3)*CFrame.Angles(0,0,side*0.12),WHITE,nil,body,nil,false,"WedgePart")
-		part("SidePod",Vector3.new(0.65,0.85,2.8),CFrame.new(side*1.82,0.75,0.55),color,nil,body,nil,false,"WedgePart")
-		part("SideStripe",Vector3.new(0.68,0.13,2.3),CFrame.new(side*1.83,0.82,0.55),WHITE)
-		for n=1,3 do part("CoolingVent",Vector3.new(0.7,0.10,0.38),CFrame.new(side*1.82,0.55,0.45+n*0.46),BLACK) end
-		bar("FrameRail",Vector3.new(side*1.45,0.55,1.8),Vector3.new(side*1.32,1.45,-0.8),0.19,color)
-		bar("SideGuard",Vector3.new(side*2.08,0.1,-0.4),Vector3.new(side*2.08,0.1,1.9),0.22,METAL)
+	-- Segmented loft: a rounded, rising red fairing surrounded by white trim.
+	-- The overlapping panels share one chassis weld and never collide.
+	rounded("BlueNoseBase",Vector3.new(3.6,0.48,2.5),CFrame.new(0,0.18,-2.25),BLUE,0.35)
+	rounded("WhiteNoseTrim",Vector3.new(3.7,0.19,2.55),CFrame.new(0,0.49,-2.25),WHITE,0.35)
+	local noseSlope=math.rad(-25)
+	local noseCF=CFrame.new(0,1.00,-2.25)*CFrame.Angles(noseSlope,0,0)
+	rounded("RedNose",Vector3.new(2.35,0.22,2.7),noseCF,color,0.32)
+	for _,side in ipairs({-1,1}) do
+		part("WhiteNoseShoulder",Vector3.new(0.22,0.32,2.45),noseCF*CFrame.new(side*1.24,-0.12,0),WHITE)
+		rounded("SidePodBlue",Vector3.new(0.85,0.55,2.35),CFrame.new(side*1.7,0.3,0.55),BLUE,0.25)
+		rounded("SidePodWhite",Vector3.new(0.9,0.15,2.4),CFrame.new(side*1.7,0.65,0.55),WHITE,0.25)
+		rounded("SidePodRed",Vector3.new(0.82,0.26,2.2),CFrame.new(side*1.7,0.84,0.55),color,0.25)
+		bar("CockpitRail",Vector3.new(side*1.12,1.05,-0.6),Vector3.new(side*1.12,1.65,1.65),0.15,BLACK)
+		bar("SideGuard",Vector3.new(side*2.06,0.15,-0.5),Vector3.new(side*2.06,0.15,1.7),0.16,BLACK)
 	end
-	local bumper = folder("FrontBumper")
-	part("Bumper",Vector3.new(4.9,0.5,0.52),CFrame.new(0,0.05,-3.8),BLACK,Enum.Material.SmoothPlastic,bumper)
-	part("Splitter",Vector3.new(4.8,0.09,0.75),CFrame.new(0,-0.22,-3.7),METAL,Enum.Material.Metal,bumper)
-	for _, side in ipairs({-1,1}) do
-		part("BumperWing",Vector3.new(1.55,0.28,0.85),CFrame.new(side*1.65,0.38,-3.53)*CFrame.Angles(0,side*0.12,0),color,nil,bumper)
-		part("LightHousing",Vector3.new(1.3,0.30,0.15),CFrame.new(side*1.65,0.16,-4.08),WHITE,Enum.Material.Metal,headlights)
-		local light=part("LED",Vector3.new(1.08,0.13,0.04),CFrame.new(side*1.65,0.17,-4.17),BLUE,Enum.Material.Neon,headlights)
-		local beam=Instance.new("SpotLight"); beam.Face=Enum.NormalId.Front; beam.Brightness=1.8; beam.Range=28; beam.Angle=75; beam.Color=BLUE; beam.Parent=light
-		part("BrakeLight",Vector3.new(0.6,0.2,0.06),CFrame.new(side*1.6,0.6,3.7),Color3.fromRGB(110,5,10),Enum.Material.SmoothPlastic,effects)
+	-- Four white bars form a flush tilted square with an actual open center.
+	local badge=noseCF*CFrame.new(0,0.125,-0.15)*CFrame.Angles(0,math.rad(15),0)
+	for _,side in ipairs({-1,1}) do
+		part("RobloxBadge",Vector3.new(0.98,0.018,0.28),badge*CFrame.new(0,0,side*0.35),WHITE)
+		part("RobloxBadge",Vector3.new(0.28,0.018,0.42),badge*CFrame.new(side*0.35,0,0),WHITE)
 	end
-	local seat=part("DriverSeat",Vector3.new(1.9,0.35,1.8),CFrame.new(0,0.95,0.65),BLACK,Enum.Material.Fabric,model,nil,false,"VehicleSeat")
+	local bumper=folder("FrontBumper")
+	bar("BumperLower",Vector3.new(-1.55,-0.22,-3.65),Vector3.new(1.55,-0.22,-3.65),0.2,BLACK,bumper)
+	bar("BumperUpper",Vector3.new(-1.25,0.68,-3.63),Vector3.new(1.25,0.68,-3.63),0.19,BLACK,bumper)
+	for _,side in ipairs({-1,1}) do
+		bar("BumperUpright",Vector3.new(side*1.55,-0.22,-3.65),Vector3.new(side*1.25,0.68,-3.63),0.2,BLACK,bumper)
+		local lamp=part("LED",Vector3.new(0.35,0.08,0.04),CFrame.new(side*1.57,0.51,-3.54),WHITE,Enum.Material.Neon,headlights)
+		local beam=Instance.new("SpotLight"); beam.Face=Enum.NormalId.Front; beam.Brightness=1; beam.Range=24; beam.Angle=70; beam.Parent=lamp
+		part("BrakeLight",Vector3.new(0.38,0.14,0.04),CFrame.new(side*1.35,0.45,3.25),Color3.fromRGB(110,5,10),nil,effects)
+	end
+	local seat=part("DriverSeat",Vector3.new(1.8,0.3,1.65),CFrame.new(0,0.84,0.65),SEAT,Enum.Material.Fabric,model,nil,false,"VehicleSeat")
 	seat.HeadsUpDisplay=false; seat.MaxSpeed=0; seat.Torque=0; seat.TurnSpeed=0
-	part("SeatBack",Vector3.new(1.95,2.15,0.43),CFrame.new(0,2.03,1.5)*CFrame.Angles(-0.14,0,0),BLACK,Enum.Material.Fabric)
+	rounded("SeatBack",Vector3.new(1.8,0.28,1.9),CFrame.new(0,1.73,1.48)*CFrame.Angles(math.rad(80),0,0),SEAT,0.27)
 	for _,side in ipairs({-1,1}) do
-		part("SeatBolster",Vector3.new(0.3,1.2,0.7),CFrame.new(side*0.98,1.65,1.15)*CFrame.Angles(0,0,side*0.12),WHITE,Enum.Material.Fabric)
+		part("SeatBolster",Vector3.new(0.22,0.9,0.6),CFrame.new(side*0.89,1.35,1.12)*CFrame.Angles(0,0,side*0.12),SEAT,Enum.Material.Fabric)
+		bar("RearGuard",Vector3.new(side*2.04,0.15,1.6),Vector3.new(side*2.04,0.15,3.3),0.18,BLACK)
 	end
-	part("HeadrestBadge",Vector3.new(0.55,0.55,0.05),CFrame.new(0,2.7,1.21)*CFrame.Angles(0,0,0.2),WHITE)
-	part("BadgeInset",Vector3.new(0.23,0.23,0.06),CFrame.new(0,2.7,1.17)*CFrame.Angles(0,0,0.2),BLACK)
-	local spoiler=folder("RearSpoiler")
-	for _,side in ipairs({-1,1}) do
-		bar("SpoilerStrut",Vector3.new(side*1.3,0.65,2.7),Vector3.new(side*1.3,2.6,3.25),0.22,METAL,spoiler)
-		part("EndPlate",Vector3.new(0.13,0.85,1.5),CFrame.new(side*2.6,2.7,3.2)*CFrame.Angles(-0.12,0,0),color,nil,spoiler,nil,false,"WedgePart")
-		part("WingStripe",Vector3.new(0.5,0.19,1.18),CFrame.new(side*1.7,2.76,3.2)*CFrame.Angles(-0.08,0,0),WHITE,nil,spoiler)
-	end
-	part("Wing",Vector3.new(5.2,0.18,1.15),CFrame.new(0,2.75,3.2)*CFrame.Angles(-0.08,0,0),color,nil,spoiler)
-	-- Wheel and steering assemblies use Motor6D C0 (server replicated), not Transform.
+	-- Compact exposed engine and axle replace the oversized rear wing.
+	part("EngineBlock",Vector3.new(1.7,0.65,1.1),CFrame.new(0,0.55,2.55),METAL,Enum.Material.Metal)
+	for i=1,6 do part("EngineCoolingFin",Vector3.new(1.85,0.055,0.11),CFrame.new(0,0.84,2.0+i*0.17),BLACK,Enum.Material.Metal) end
+	bar("RearAxle",Vector3.new(-2.4,0,2.4),Vector3.new(2.4,0,2.4),0.22,METAL)
+	bar("RearBumper",Vector3.new(-1.7,0.05,3.35),Vector3.new(1.7,0.05,3.35),0.22,BLACK)
+
+	-- Non-colliding visual wheels; each client interpolates these same motors.
+	-- Physical contacts are handled only by the spring forces and collision hull.
 	local wheelData={}
 	for _,desc in ipairs({{"FrontLeft",-1,-2.4,true},{"FrontRight",1,-2.4,true},{"RearLeft",-1,2.4,false},{"RearRight",1,2.4,false}}) do
 		local label,side,z,front=table.unpack(desc)
@@ -115,15 +136,14 @@ function Builder.build(name, spawn, color)
 			local w=Instance.new("WeldConstraint"); w.Part0=tire; w.Part1=p; w.Parent=p
 			return p
 		end
-		detail("Rim",Vector3.new(0.1,1.4,1.4),CFrame.new(side*0.49,0,0),METAL,Enum.Material.Metal,Enum.PartType.Cylinder)
-		detail("Hub",Vector3.new(0.13,0.45,0.45),CFrame.new(side*0.57,0,0),BLACK,Enum.Material.Metal,Enum.PartType.Cylinder)
-		for n=1,6 do
-			detail("Spoke",Vector3.new(0.12,0.65,0.12),CFrame.new(side*0.55,0,0)*CFrame.Angles(n*math.pi/3,0,0)*CFrame.new(0,0.37,0),WHITE,Enum.Material.Metal)
+		detail("Rim",Vector3.new(0.1,1.42,1.42),CFrame.new(side*0.49,0,0),YELLOW,Enum.Material.Metal,Enum.PartType.Cylinder)
+		detail("RimLip",Vector3.new(0.035,1.54,1.54),CFrame.new(side*0.48,0,0),YELLOW,Enum.Material.Metal,Enum.PartType.Cylinder)
+		for _,offset in ipairs({-1,1}) do
+			detail("RimCutout",Vector3.new(0.02,0.24,0.31),CFrame.new(side*0.55,offset*0.22,offset*0.12)*CFrame.Angles(math.rad(25),0,0),BLACK,Enum.Material.SmoothPlastic)
 		end
-		ring(group,cf*CFrame.new(side*0.56,0,0)*CFrame.Angles(0,math.pi/2,0),0.79,0.065,BLUE,Enum.Material.Neon,20,tire)
-		for n=1,20 do
-			for _,offset in ipairs({-0.26,0.26}) do
-				detail("Tread",Vector3.new(0.025,0.025,0.20),CFrame.Angles(n*math.pi/10,0,0)*CFrame.new(offset,1.049,0),Color3.fromRGB(28,29,33),Enum.Material.SmoothPlastic)
+		for n=1,16 do
+			for _,offset in ipairs({-0.25,0.25}) do
+				detail("Tread",Vector3.new(0.018,0.012,0.18),CFrame.Angles(n*math.pi/8,0,0)*CFrame.new(offset,1.05,0),Color3.fromRGB(25,26,30),Enum.Material.SmoothPlastic)
 			end
 		end
 		local mount=Instance.new("Attachment"); mount.Name=label.."Mount"; mount.Position=origin; mount.Parent=chassis
@@ -140,7 +160,7 @@ function Builder.build(name, spawn, color)
 	local steeringBase=CFrame.new(0,1.95,-1.05)*CFrame.Angles(math.rad(-24),0,0)
 	local hub=part("Hub",Vector3.new(0.24,0.24,0.18),steeringBase,BLACK,Enum.Material.Metal,steering,nil,true)
 	local steeringMotor=Instance.new("Motor6D"); steeringMotor.Name="SteeringMotor"; steeringMotor.Part0=chassis; steeringMotor.Part1=hub; steeringMotor.C0=steeringBase; steeringMotor.Parent=hub
-	ring(steering,steeringBase,0.63,0.12,color,Enum.Material.Fabric,20,hub)
+	ring(steering,steeringBase,0.63,0.12,BLACK,Enum.Material.SmoothPlastic,24,hub)
 	for n=1,3 do
 		local cf=steeringBase*CFrame.Angles(0,0,n*2*math.pi/3)*CFrame.new(0,-0.3,0)
 		local p=part("Spoke",Vector3.new(0.12,0.6,0.10),cf,METAL,Enum.Material.Metal,steering,nil,true)
@@ -152,20 +172,23 @@ function Builder.build(name, spawn, color)
 	bar("SteeringColumn",Vector3.new(0,0.65,-0.65),Vector3.new(0,1.95,-1.05),0.16,METAL)
 	local flames={}
 	for _,side in ipairs({-1,1}) do
-		local cf=CFrame.new(side*0.98,1.25,2.6)*CFrame.Angles(0,math.pi/2,0)
-		part("TurboCanister",Vector3.new(1.65,0.86,0.86),cf,METAL,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
-		part("ExhaustTip",Vector3.new(0.2,0.72,0.72),CFrame.new(side*0.98,1.25,3.48)*CFrame.Angles(0,math.pi/2,0),BLACK,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
-		local at=Instance.new("Attachment"); at.Name="ExhaustOutlet"; at.Position=Vector3.new(side*0.98,1.25,3.65); at.Orientation=Vector3.new(0,180,0); at.Parent=chassis
+		local pipe=CFrame.new(side*1.12,1.4,2.55)*CFrame.Angles(math.rad(-28),0,0)
+		part("BlackExhaust",Vector3.new(1.45,0.7,0.7),pipe*CFrame.Angles(0,math.pi/2,0),BLACK,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
+		part("YellowExhaustLip",Vector3.new(0.12,0.75,0.75),pipe*CFrame.new(0,0,0.75)*CFrame.Angles(0,math.pi/2,0),YELLOW,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
+		part("ExhaustOpening",Vector3.new(0.13,0.54,0.54),pipe*CFrame.new(0,0,0.78)*CFrame.Angles(0,math.pi/2,0),RUBBER,Enum.Material.SmoothPlastic,exhaust,Enum.PartType.Cylinder)
+		local at=Instance.new("Attachment"); at.Name="ExhaustOutlet"; at.CFrame=pipe*CFrame.new(0,0,0.87)*CFrame.Angles(0,math.pi,0); at.Parent=chassis
 		local flame=Instance.new("ParticleEmitter"); flame.Name="TurboFlame"; flame.Texture="rbxasset://textures/particles/fire_main.dds"; flame.EmissionDirection=Enum.NormalId.Front; flame.Rate=0; flame.Speed=NumberRange.new(12,19); flame.Lifetime=NumberRange.new(0.12,0.22); flame.SpreadAngle=Vector2.new(8,8); flame.LightEmission=1; flame.Color=ColorSequence.new(Color3.fromRGB(255,230,90),Color3.fromRGB(255,70,20)); flame.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,0.65),NumberSequenceKeypoint.new(1,0)}); flame.Parent=at
 		local light=Instance.new("PointLight"); light.Color=Color3.fromRGB(255,143,30); light.Range=9; light.Brightness=0; light.Parent=at
-		table.insert(flames,{emitter=flame,light=light})
+		local smoke=Instance.new("ParticleEmitter"); smoke.Name="EngineExhaust"; smoke.Texture="rbxasset://textures/particles/smoke_main.dds"; smoke.Rate=0; smoke.Lifetime=NumberRange.new(0.25,0.45); smoke.Speed=NumberRange.new(2,4); smoke.EmissionDirection=Enum.NormalId.Front; smoke.Size=NumberSequence.new(0.25); smoke.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.85),NumberSequenceKeypoint.new(1,1)}); smoke.Parent=at
+		table.insert(flames,{emitter=flame,light=light,smoke=smoke})
 	end
 	local rootAt=Instance.new("Attachment"); rootAt.Name="StabilityAttachment"; rootAt.Parent=chassis
 	local torque=Instance.new("Torque"); torque.Name="ArcadeStability"; torque.Attachment0=rootAt; torque.RelativeTo=Enum.ActuatorRelativeTo.World; torque.Parent=attachments
+	local driveForce=Instance.new("VectorForce"); driveForce.Name="TireTraction"; driveForce.Attachment0=rootAt; driveForce.RelativeTo=Enum.ActuatorRelativeTo.World; driveForce.ApplyAtCenterOfMass=true; driveForce.Force=Vector3.zero; driveForce.Parent=attachments
 	local prompt=Instance.new("ProximityPrompt"); prompt.Name="EnterKart"; prompt.ActionText="Drive"; prompt.ObjectText="Racing Kart"; prompt.KeyboardKeyCode=Enum.KeyCode.E; prompt.MaxActivationDistance=9; prompt.RequiresLineOfSight=false; prompt.Parent=seat
 	model:SetAttribute("IsRacingKart",true)
 	model:SetAttribute("ColorName","Red")
-	return {model=model,chassis=chassis,seat=seat,prompt=prompt,wheels=wheelData,torque=torque,steering=steeringMotor,steeringBase=steeringBase,hub=hub,flames=flames}
+	return {model=model,chassis=chassis,seat=seat,prompt=prompt,wheels=wheelData,driveForce=driveForce,torque=torque,steering=steeringMotor,steeringBase=steeringBase,hub=hub,flames=flames}
 end
 
 return Builder

@@ -77,4 +77,55 @@ check(s.boostPower==0 and s.cooldown==0,"airborne turbo is rejected without cons
 s=state(); s.player=nil; s.drift=true; s.turbo=true
 Dynamics.updateBoost(s,0,1/60,true,60,Config)
 check(s.charge==0 and s.boostPower==0,"empty kart cannot charge or activate boost")
+
+-- Interpolation must have the same elapsed-time result at different frame rates.
+local reference
+for _,hz in ipairs({30,60,120}) do
+	local blend,steer=0,0
+	for _=1,hz do
+		blend=Dynamics.approach(blend,1,Config.DriftEnterResponse,1/hz)
+		steer=Dynamics.approach(steer,1,Config.SteerResponse,1/hz)
+	end
+	check(math.abs(blend-(1-math.exp(-Config.DriftEnterResponse)))<1e-10,"frame-independent drift entry "..hz)
+	check(steer>0.99,"responsive steering "..hz)
+	local oldBlend=blend
+	blend=Dynamics.approach(blend,0,Config.DriftExitResponse,1/hz)
+	check(blend>0 and blend<oldBlend,"gradual grip recovery "..hz)
+	for _=1,hz do blend=Dynamics.approach(blend,0,Config.DriftExitResponse,1/hz) end
+	check(blend<0.005,"drift exit settles "..hz)
+	local height,vertical=0.25,0
+	for _=1,hz*3 do
+		local acceleration=Dynamics.suspension(-height,vertical,196.2,Config)-196.2
+		vertical+=acceleration/hz; height+=vertical/hz
+	end
+	check(math.abs(height)<0.001 and math.abs(vertical)<0.001,"heave settles "..hz)
+	-- Small-angle four-corner spring model with the same inertia-scaled damping
+	-- used by the server. This is a numeric regression, not an engine physics test.
+	local yawInertia=(3.7^2+6.5^2)/12
+	for _,axis in ipairs({{2.68,(3.7^2+0.5^2)/12},{2.4,(6.5^2+0.5^2)/12}}) do
+		local angle,angular=0.08,0
+		local stiffness=(Config.SpringFrequency*2*math.pi)^2*axis[1]^2+10*yawInertia
+		for _=1,hz*3 do
+			local acceleration=(-stiffness*angle-26*axis[2]*angular)/axis[2]
+			angular+=acceleration/hz; angle+=angular/hz
+			assert(math.abs(angle)<0.15,"roll/pitch response diverged")
+		end
+		check(math.abs(angle)<0.001 and math.abs(angular)<0.001,"angular damping settles "..hz)
+	end
+end
+check(Dynamics.approach(0,1,Config.DriftEnterResponse,1/60)<0.1,"drift onset cannot snap")
+check(Dynamics.suspension(0,0,196.2,Config)==196.2,"static spring supports gravity")
+check(Dynamics.suspension(-10,0,196.2,Config)==0,"spring never pulls kart down")
+check(Dynamics.suspension(10,-100,196.2,Config)<=196.2*2.5,"contact impulse bounded")
+for _,speed in ipairs({0,20,60,100}) do
+	local leftAngle,leftYaw=Dynamics.steering(speed,-1,1,Config)
+	local rightAngle,rightYaw=Dynamics.steering(speed,1,1,Config)
+	check(leftAngle==-rightAngle and leftYaw==-rightYaw,"symmetric turning "..speed)
+	check(math.abs(rightYaw)*math.abs(speed)<=Config.MaxCornerAcceleration+1e-8,"cornering limit "..speed)
+end
+local slip=Dynamics.lateral(60,0,1,1,Config)
+check(slip<0,"right drift slides outward to the left")
+check(Dynamics.lateral(60,0,-1,1,Config)==-slip,"drift direction follows steering")
+check(Dynamics.lateral(60,0,1,0,Config)==0,"normal driving has no artificial slide")
+check(Dynamics.lateral(60,10,0,0,Config)<0,"normal grip removes sideways motion")
 print(string.format("PASS: %d dynamics assertions (30/60/120 Hz)",count))

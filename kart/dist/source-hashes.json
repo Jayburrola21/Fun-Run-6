@@ -1,7 +1,7 @@
 {
-  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "f8eaa8e0d7bade781448a495864bf12da31514db0ae8334b71bffb7caef080e3",
-  "src/ReplicatedStorage/KartSystem/KartDynamics.luau": "0e26065d2168f94c9ddfd7fc15c59c0d41ab332f184230c21f218154641d2fc8",
-  "src/ReplicatedStorage/KartSystem/KartBuilder.luau": "8a3764f97f4b61988225c32608087dd49afc289da658b0bca74d2a11d6c5e148",
-  "src/ServerScriptService/KartServer.server.luau": "a2fcced314d7ad6a1fa816fe946f5a72572aaed35e738ec4a3fa6487c944d393",
-  "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau": "0227d7548f955f76aa2c33408618c8eb6090b027ccf3cdd773e8b45e51af8dc1"
+  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "e48958c05e741c79a822da7a247d4cdbe85b1cdd75ceb5c747b83e72bf22f21f",
+  "src/ReplicatedStorage/KartSystem/KartDynamics.luau": "d8717bedc91f28a4f1135fba35835bff1597336edcae4511adf9f7913fba7225",
+  "src/ReplicatedStorage/KartSystem/KartBuilder.luau": "5cc5e31c5031cb07c1f1b5fb8c315ad6c65702b674d536ec4ad0c331411a373d",
+  "src/ServerScriptService/KartServer.server.luau": "e04ca13d15d5e9fb01d585974c19045bb02374cbbd4ac2f723cef544608f2703",
+  "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau": "09a5ddbf80c667fae63533a7023e8f6ca73cd432fbeacb91707b01dac528aaa0"
 }

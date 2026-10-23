@@ -6,6 +6,7 @@ local root=assert(kart:FindFirstChild("Chassis"),"Missing chassis")
 local seat=assert(kart:FindFirstChild("DriverSeat"),"Missing seat")
 assert(seat:IsA("VehicleSeat"),"Wrong seat class")
 assert(root.CanCollide,"Chassis must collide")
+assert(kart.Attachments.TireTraction.ApplyAtCenterOfMass,"Traction must not apply roll/yaw at wheel mounts")
 assert(kart.ModelStreamingMode==Enum.ModelStreamingMode.Atomic,"Streaming must keep assemblies together")
 assert(#kart.Wheels:GetChildren()==4,"Expected four wheels")
 assert(kart.SteeringWheel.Hub:FindFirstChild("LeftGrip"),"Missing left grip")
@@ -14,6 +15,9 @@ local forceCount=0
 for _,wheel in ipairs(kart.Wheels:GetChildren()) do
 	local motor=assert(wheel.Tire:FindFirstChild("WheelMotor"),"Missing wheel motor")
 	assert(motor.Part0==root and motor.Part1==wheel.Tire,"Broken wheel assembly")
+	for _,part in ipairs(wheel:GetDescendants()) do
+		if part:IsA("BasePart") then assert(not part.CanCollide and part.Massless and not part.Anchored,"Visual wheel conflicts with physics") end
+	end
 end
 for _,force in ipairs(kart.Suspension:GetChildren()) do
 	if force:IsA("VectorForce") then

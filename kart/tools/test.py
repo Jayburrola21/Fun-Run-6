@@ -23,4 +23,5 @@ with tempfile.TemporaryDirectory(prefix="kart-tests-") as directory:
     path = Path(directory) / "run.luau"
     path.write_text(program)
     subprocess.run([args.luau, str(path)], check=True)
+subprocess.run(["python3", str(ROOT / "tools/check_geometry.py"), "--luau", args.luau], check=True)
 subprocess.run(["python3", str(ROOT / "tools/package.py")], check=True)

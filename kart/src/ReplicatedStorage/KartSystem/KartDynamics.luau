@@ -1,6 +1,29 @@
 -- Pure calculations shared by the server and the standalone Luau tests.
 local Dynamics = {}
 
+function Dynamics.approach(value, target, response, dt)
+	return value+(target-value)*(1-math.exp(-response*dt))
+end
+
+function Dynamics.suspension(compression, normalVelocity, gravity, config)
+	local omega=config.SpringFrequency*2*math.pi
+	-- Acceleration per quarter mass; critically damped, bounded contact load.
+	return math.clamp(gravity+compression*omega*omega-normalVelocity*2*config.SpringDamping*omega,0,gravity*2.5)
+end
+
+function Dynamics.steering(speed, steer, blend, config)
+	local angle=-steer*config.MaxSteer/(1+(math.abs(speed)/36)^2)
+	local limit=config.MaxCornerAcceleration/math.max(math.abs(speed),12)
+	local yaw=math.clamp(math.tan(angle)*speed/config.Wheelbase*(1+blend*0.12),-limit,limit)
+	return angle,yaw
+end
+
+function Dynamics.lateral(speed, sideSpeed, steer, blend, config)
+	local target=-steer*math.max(speed,0)*math.tan(config.DriftSlipAngle)*blend
+	local grip=config.Grip+(config.DriftGrip-config.Grip)*blend
+	return math.clamp((target-sideSpeed)*grip,-config.MaxCornerAcceleration,config.MaxCornerAcceleration)
+end
+
 function Dynamics.stage(seconds, thresholds)
 	local result = 0
 	for index, threshold in ipairs(thresholds) do

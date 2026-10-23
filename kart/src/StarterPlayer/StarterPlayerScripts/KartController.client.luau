@@ -12,6 +12,10 @@ local drift,turbo=false,false
 local held={}
 local analog=Vector2.zero
 local clock=0
+local Config=require(ReplicatedStorage:WaitForChild("KartSystem"):WaitForChild("KartConfig"))
+local Dynamics=require(ReplicatedStorage.KartSystem.KartDynamics)
+local presentations={}
+local cameraFocus,cameraHeading
 local cameraCF
 local previousCamera
 local previousJump
@@ -77,7 +81,7 @@ local function stop()
 		camera.CameraSubject=previousCamera.subject
 		camera.FieldOfView=previousCamera.fov
 	end
-	active=nil; seat=nil; root=nil; cameraCF=nil; gui.Enabled=false
+	active=nil; seat=nil; root=nil; cameraCF=nil; cameraFocus=nil; cameraHeading=nil; gui.Enabled=false
 	held={}; analog=Vector2.zero
 end
 
@@ -104,8 +108,50 @@ local function start(model)
 	gui.Enabled=true; clock=1
 end
 
+local function prepareVisuals(model)
+	if presentations[model] then return end
+	local chassis=model:FindFirstChild("Chassis")
+	local wheels=model:FindFirstChild("Wheels")
+	local steering=model:FindFirstChild("SteeringWheel")
+	if not chassis or not wheels or not steering then return end
+	local hub=steering:FindFirstChild("Hub")
+	local motor=hub and hub:FindFirstChild("SteeringMotor")
+	if not motor then return end
+	local state={root=chassis,wheels={},steering=motor,base=motor.C0,angle=0}
+	for _,wheel in ipairs(wheels:GetChildren()) do
+		local tire=wheel:FindFirstChild("Tire")
+		local wheelMotor=tire and tire:FindFirstChild("WheelMotor")
+		if wheelMotor then
+			table.insert(state.wheels,{motor=wheelMotor,origin=wheelMotor.C0.Position+Vector3.new(0,Config.SuspensionRest,0),distance=Config.SuspensionRest,spin=0,speed=0,front=wheel.Name:sub(1,5)=="Front"})
+		end
+	end
+	presentations[model]=state
+end
+
+-- Every observer animates the same replicated assembly locally at render rate.
+-- Motors are visual only; no client writes physics velocity or position.
+RunService:BindToRenderStep("KartVisuals",Enum.RenderPriority.Character.Value+1,function(dt)
+	for model,state in pairs(presentations) do
+		if not model:IsDescendantOf(workspace) or not state.root:IsDescendantOf(workspace) then presentations[model]=nil; continue end
+		state.angle=Dynamics.approach(state.angle,model:GetAttribute("SteerAngle") or 0,18,dt)
+		for _,wheel in ipairs(state.wheels) do
+			local target=wheel.motor:GetAttribute("SuspensionDistance") or Config.SuspensionRest
+			local response=target<wheel.distance and Config.VisualSuspensionResponse*2 or Config.VisualSuspensionResponse
+			wheel.distance=Dynamics.approach(wheel.distance,target,response,dt)
+			local direction=(state.root.CFrame*CFrame.Angles(0,wheel.front and state.angle or 0,0)).LookVector
+			local pv=state.root:GetVelocityAtPosition(state.root.CFrame:PointToWorldSpace(wheel.origin))
+			wheel.speed=Dynamics.approach(wheel.speed,pv:Dot(direction),16,dt)
+			wheel.spin=(wheel.spin-wheel.speed/Config.WheelRadius*dt)%(math.pi*2)
+			wheel.motor.C0=CFrame.new(wheel.origin-Vector3.new(0,wheel.distance,0))*CFrame.Angles(0,wheel.front and state.angle or 0,0)*CFrame.Angles(wheel.spin,0,0)
+		end
+		state.steering.C0=state.base*CFrame.Angles(0,0,state.angle*1.8)
+	end
+end)
+
 local function watch(model)
+	prepareVisuals(model)
 	local function changed()
+		prepareVisuals(model)
 		if model:GetAttribute("DriverUserId")==player.UserId then start(model)
 		elseif active==model then stop() end
 	end
@@ -136,20 +182,28 @@ RunService:BindToRenderStep("KartCamera",Enum.RenderPriority.Camera.Value+1,func
 	local boosting=active:GetAttribute("Boosting") or false
 	local stage=active:GetAttribute("DriftStage") or 0
 	local ready=active:GetAttribute("TurboReady")
-	local focus=root.Position+Vector3.new(0,2,0)+cf.LookVector*2
 	local flat=Vector3.new(cf.LookVector.X,0,cf.LookVector.Z)
 	if flat.Magnitude<0.01 then flat=Vector3.new(0,0,-1) else flat=flat.Unit end
-	local desired=focus-flat*(12+math.min(speed/30,3))+Vector3.new(0,5.0,0)
+	local motion=Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z)
+	local blend=active:GetAttribute("DriftBlend") or 0
+	if motion.Magnitude>10 and motion.Unit:Dot(flat)>0.3 then flat=flat:Lerp(motion.Unit,blend*0.3).Unit end
+	cameraHeading=cameraHeading and cameraHeading:Lerp(flat,1-math.exp(-dt*Config.CameraHeadingResponse)).Unit or flat
+	-- Compensate the horizontal filter's steady-speed lag; otherwise stacking
+	-- position and CFrame filters makes the kart outrun its camera at high speed.
+	local targetFocus=root.Position+Vector3.new(0,1.7,0)+motion/Config.CameraPositionResponse
+	if cameraFocus then
+		local planar=1-math.exp(-dt*Config.CameraPositionResponse)
+		local vertical=1-math.exp(-dt*Config.CameraHeightResponse)
+		cameraFocus=Vector3.new(cameraFocus.X+(targetFocus.X-cameraFocus.X)*planar,cameraFocus.Y+(targetFocus.Y-cameraFocus.Y)*vertical,cameraFocus.Z+(targetFocus.Z-cameraFocus.Z)*planar)
+	else cameraFocus=targetFocus end
+	local focus=cameraFocus+cameraHeading*1.5
+	local desired=focus-cameraHeading*(11+math.min(speed/40,2))+Vector3.new(0,4.5,0)
 	rayParams.FilterDescendantsInstances={active,player.Character}
 	local hit=workspace:Raycast(focus,desired-focus,rayParams)
 	if hit then desired=hit.Position+hit.Normal*0.6 end
 	local desiredCF=CFrame.lookAt(desired,focus)
-	cameraCF=cameraCF and cameraCF:Lerp(desiredCF,1-math.exp(-dt*8)) or desiredCF
-	-- Clamp again after smoothing so a new obstruction cannot be crossed by lag.
-	local obstruction=workspace:Raycast(focus,cameraCF.Position-focus,rayParams)
-	if obstruction then cameraCF=CFrame.lookAt(obstruction.Position+obstruction.Normal*0.6,focus) end
-	local shake=boosting and Vector3.new(math.noise(os.clock()*35,0)*0.09,math.noise(0,os.clock()*39)*0.06,0) or Vector3.zero
-	camera.CFrame=cameraCF*CFrame.new(shake)
+	cameraCF=desiredCF -- focus and heading have already been independently filtered
+	camera.CFrame=cameraCF -- no procedural shake, including drift and turbo
 	local targetFov=70+math.clamp(speed/100,0,1)*12+(boosting and 5 or 0)
 	camera.FieldOfView+=(targetFov-camera.FieldOfView)*(1-math.exp(-dt*5))
 	label.Text=string.format("%03d studs/s   •   %s   •   Drift %d/3\nWASD / arrows   Space: drift   Shift: turbo   E/F: exit",math.floor(speed),boosting and "BOOST" or (ready and "TURBO READY" or "RECHARGING"),stage)
