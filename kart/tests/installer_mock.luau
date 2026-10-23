@@ -84,7 +84,9 @@ local function scenario(mode)
    if mode=="version3" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=3; c.DriftChargeTime=1.5; c.TurboDuration=1.15;") end
    if mode=="version4" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=4; c.DriftChargeTime=0.9; c.TurboActivation='Release'; c.TurboDuration=1.5;") end
    if mode=="stickyversion4" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=4; c.DriftChargeTime=1.5; c.TurboActivation='Release'; c.TurboDuration=1.5;") end
-   if mode=="customversion5" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=5; c.DriftChargeTime=0.75; c.TurboActivation='Release'; c.TurboDuration=2;") end
+   if mode=="version5" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=5; c.DriftChargeTime=0.5; c.TurboActivation='Immediate'; c.TurboDuration=1.5;") end
+   if mode=="customversion5" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=5; c.DriftChargeTime=0.75; c.TurboActivation='Immediate'; c.TurboDuration=2;") end
+   if mode=="customversion6" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=6; c.DriftChargeTime=0.75; c.TurboActivation='Immediate'; c.TurboDuration=2;") end
    for _,name in ipairs({"KartConfig","KartBuilder","KartDynamics"}) do create("ModuleScript",name,installed,name=="KartConfig" and prior or "return 'old'") end
    create("ModuleScript","MyCustomModule",installed,"return 123")
    if mode=="badbackup" then installed.KartBuilder.Archivable=false end
@@ -127,8 +129,11 @@ local function scenario(mode)
   assert(package.destroyed,"Imported package not consumed")
   local config=require(installed.KartConfig); local defaults=evaluate(Sources.KartConfig)
   assert(config.ModelScale==defaults.ModelScale and config.WheelRadius==defaults.WheelRadius and config.Wheelbase==defaults.Wheelbase,"Geometry tuning became inconsistent")
-  if mode=="customversion5" then
-   assert(config.DriftChargeTime==0.75 and config.TurboDuration==2 and config.TurboActivation=="Release","Explicit release-5 tuning was lost on reinstall")
+  assert(defaults.ReleaseVersion==6 and defaults.TurboActivation=="Release","Incoming defaults do not contain the requested release mode")
+  if mode=="customversion5" or mode=="customversion6" then
+   assert(config.DriftChargeTime==0.75 and config.TurboDuration==2,"Explicit custom turbo timing was lost on reinstall")
+   local expectedMode=mode=="customversion6" and "Immediate" or "Release"
+   assert(config.TurboActivation==expectedMode,"Activation migration did not respect release-version boundary")
   else
    assert(config.DriftChargeTime==0.5 and config.TurboDuration==1.5,"New half-second turbo timing was not migrated")
    assert(config.TurboActivation==defaults.TurboActivation,"Old activation mode overrode new release behavior")

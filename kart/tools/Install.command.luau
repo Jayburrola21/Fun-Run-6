@@ -37,10 +37,10 @@ end
 -- driving/camera values, palette and spawn; leave retired tier settings behind.
 local legacy={MaxSpeed=82,ReverseSpeed=24,Acceleration=39,BrakeAcceleration=75,CoastDrag=0.55,Grip=8.5,DriftGrip=2.1,MaxSteer=math.rad(29),MaxCornerAcceleration=85,SpringFrequency=3.2,SpringDamping=0.82,DriftMinSpeed=27,DriftChargeTime=1.5,TurboDuration=1.15,TurboPower=32,TurboCooldown=6,InputTimeout=0.5,InputRate=30}
 local geometry={ModelScale=true,Wheelbase=true,WheelRadius=true,SuspensionRest=true,SuspensionTravel=true,ReleaseVersion=true}
--- This release deliberately changes the charge threshold and activation mode.
--- Old saved defaults must not silently reinstall the reported .9/1.5s behavior.
+-- Migrate older charge thresholds and the previous immediate-fire default.
+-- Preserve explicit tuning introduced after the corresponding migration.
 local oldVersion=tonumber(oldConfig.ReleaseVersion) or 0
-local behaviorReset=oldVersion<5 and {DriftChargeTime=true,TurboActivation=true} or {}
+local behaviorReset={DriftChargeTime=oldVersion<5,TurboActivation=oldVersion<6}
 local function encode(value)
  local kind=typeof(value)
  if kind=="number" then assert(value==value and math.abs(value)<math.huge,"Non-finite saved tuning"); return string.format("%.17g",value) end
@@ -112,6 +112,6 @@ if installedController then installedController.Source=preparedController.Source
 else installedController=preparedController; installedController.Parent=starter end
 installedServer.Disabled=false; installedController.Disabled=false
 package:Destroy()
-print("Kart installed/upgraded. Spawn markers retained. Restart Play for the reference HUD and 0.50-second turbo.")
+print("Kart installed/upgraded. Spawn markers retained. Restart Play for the reference HUD and 0.50-second charge; release drift to fire turbo.")
 if backup then print("Previous installation backed up at "..backup:GetFullName()) end
 print("New scaled geometry defaults applied. Compatible custom driving/camera tuning and paint/spawn settings preserved.")

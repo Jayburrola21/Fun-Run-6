@@ -245,7 +245,7 @@
           <string name="Name">KartConfig</string>
           <ProtectedString name="Source">-- Distances in studs, speeds in studs/second. Local forward is -Z.
 return table.freeze({
-	ReleaseVersion = 5,
+	ReleaseVersion = 6,
 	ModelScale = 0.84,
 	MaxSpeed = 82,
 	ReverseSpeed = 24,
@@ -276,7 +276,7 @@ return table.freeze({
 	SpringDamping = 1.05,
 	DriftMinSpeed = 27,
 	DriftChargeTime = 0.5,
-	TurboActivation = "Immediate", -- "Release" waits for Shift release after charging.
+	TurboActivation = "Release", -- "Immediate" fires at the threshold while Shift stays held.
 	TurboDuration = 1.5,
 	TurboPower = 32,
 	TurboCooldown = 6,

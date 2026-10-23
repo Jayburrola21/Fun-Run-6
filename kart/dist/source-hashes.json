@@ -1,5 +1,5 @@
 {
-  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "3ddcf299318acce5b58c080519427209e7859a42f59e49e42a0dfd01db706436",
+  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "377c1b6f1ff04fc188e078b1147f23fb248699370790d121294fec0497271099",
   "src/ReplicatedStorage/KartSystem/KartDynamics.luau": "17cdc1780d745d71e153df6fdfdf395d1f4221e9946e5855724321c71e0e7d9c",
   "src/ReplicatedStorage/KartSystem/KartBuilder.luau": "fd8427c1bceac55102b5698796b91e066af22a6bf939def08919fbfdee362a43",
   "src/ReplicatedStorage/KartSystem/KartSeatLock.luau": "49601375a16ed190ebebb6ee82c138e5aae123f8befc1e1e97885ccaf9423438",

@@ -32,6 +32,7 @@ local function state()
 	return {player=true,drift=false,steer=1,charge=0,turboArmed=false,wasDrift=false,boostEnd=0,boostPower=0,cooldown=0}
 end
 check(Config.DriftChargeTime==0.5 and Config.TurboDuration==1.5,"turbo uses requested half-second charge and 1.5-second duration")
+check(Config.TurboActivation=="Release","default mode waits for Shift release after the half-second charge")
 for _,mode in ipairs({"Immediate","Release"}) do
 	local tuning=table.clone(Config); tuning.TurboActivation=mode
 	for _,hz in ipairs({30,60,120}) do
