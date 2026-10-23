@@ -1,9 +1,9 @@
 {
-  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "2de5e160cea93706ef3c0edbc92826a080042df9dcb1f4f247ad27ae9d5717f0",
-  "src/ReplicatedStorage/KartSystem/KartDynamics.luau": "44e4982db3e1c73677e9b482d764af52cda3cfcf58e658b3b337282279cbf78d",
+  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "3ddcf299318acce5b58c080519427209e7859a42f59e49e42a0dfd01db706436",
+  "src/ReplicatedStorage/KartSystem/KartDynamics.luau": "17cdc1780d745d71e153df6fdfdf395d1f4221e9946e5855724321c71e0e7d9c",
   "src/ReplicatedStorage/KartSystem/KartBuilder.luau": "fd8427c1bceac55102b5698796b91e066af22a6bf939def08919fbfdee362a43",
   "src/ReplicatedStorage/KartSystem/KartSeatLock.luau": "49601375a16ed190ebebb6ee82c138e5aae123f8befc1e1e97885ccaf9423438",
-  "src/ReplicatedStorage/KartSystem/KartHUD.luau": "10a43d5d5d395c0f4d1516a7abbc15aaa5b6a6950b57ff2d6be187209c07d71d",
+  "src/ReplicatedStorage/KartSystem/KartHUD.luau": "5fa20199d0eef227f5b3acc0c10f0ba250f0c49be01e0e195b7470e15880f004",
   "src/ReplicatedStorage/KartSystem/KartRace.luau": "5c68452d2e649507b18e64dc30fbf50d90ae9c7328f351235bede920b547e001",
   "src/ReplicatedStorage/KartSystem/KartRaceRules.luau": "156fe1dfde9ad105c04627b798566673d03086942ecf0bf7ff85790eae5c3913",
   "src/ServerScriptService/KartServer.server.luau": "8fc836b752e696c5987952cecd90be9fe3927a738e8e27ce46fc1e0eecdf7265",

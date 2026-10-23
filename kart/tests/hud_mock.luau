@@ -11,8 +11,11 @@ local Color3={}
 function Color3.fromRGB(r,g,b) return setmetatable({R=r/255,G=g/255,B=b/255},color) end
 local function constructor(...) return {...} end
 local CFrame={new=constructor}
-local UDim={new=constructor}
-local UDim2={new=constructor,fromOffset=constructor,fromScale=constructor}
+local UDim={new=function(scale,offset) return {kind="UDim",scale=scale,offset=offset} end}
+local UDim2={}
+function UDim2.new(sx,ox,sy,oy) return {kind="UDim2",sx=sx,ox=ox,sy=sy,oy=oy} end
+function UDim2.fromOffset(x,y) return UDim2.new(0,x,0,y) end
+function UDim2.fromScale(x,y) return UDim2.new(x,0,y,0) end
 local Vector2={new=function(x,y) return {X=x,Y=y} end,zero={X=0,Y=0}}
 local ColorSequence={new=constructor}
 local ColorSequenceKeypoint={new=constructor}

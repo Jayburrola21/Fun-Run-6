@@ -31,119 +31,103 @@ check(Dynamics.longitudinal(0,0,0,Config)==0,"idle does not propel")
 local function state()
 	return {player=true,drift=false,steer=1,charge=0,turboArmed=false,wasDrift=false,boostEnd=0,boostPower=0,cooldown=0}
 end
-check(Config.DriftChargeTime==0.9 and Config.TurboDuration==1.5,"release turbo uses the requested timings")
-for _,hz in ipairs({30,60,120}) do
-	local s=state(); s.drift=true
-	local frames=math.floor(Config.DriftChargeTime*hz+0.5)
-	for n=1,math.floor(0.5*hz) do Dynamics.updateBoost(s,n/hz,1/hz,true,60,Config) end
-	check(not s.turboArmed and s.boostPower==0,"half-second drift has no turbo "..hz)
-	for n=math.floor(0.5*hz)+1,frames-1 do Dynamics.updateBoost(s,n/hz,1/hz,true,60,Config) end
-	check(not s.turboArmed and s.boostPower==0,"does not arm early "..hz)
-	local drifting,power=Dynamics.updateBoost(s,frames/hz,1/hz,true,60,Config)
-	check(drifting and power==0 and s.turboArmed and s.charge==Config.DriftChargeTime,"0.9 seconds arms without auto firing "..hz)
-	local releaseTime=1.2
-	for n=frames+1,math.floor(releaseTime*hz)-1 do Dynamics.updateBoost(s,n/hz,1/hz,true,60,Config) end
-	check(s.turboArmed and s.boostPower==0 and s.cooldown==0,"holding an armed drift never spends turbo "..hz)
-	s.drift=false
-	local _,released=Dynamics.updateBoost(s,releaseTime,1/hz,true,60,Config)
-	check(released==Config.TurboPower and not s.turboArmed and s.charge==0,"release after 1.2 seconds redeems turbo "..hz)
-	local deadline,boostEnd=s.cooldown,s.boostEnd
-	check(math.abs(boostEnd-releaseTime-1.5)<1e-9,"release boost lasts exactly 1.5 seconds "..hz)
-	check(math.abs(deadline-releaseTime-Config.TurboCooldown)<1e-9,"cooldown starts when turbo is redeemed "..hz)
-	Dynamics.updateBoost(s,releaseTime+1/hz,1/hz,true,60,Config)
-	check(s.cooldown==deadline and s.boostEnd==boostEnd,"repeated release cannot redeem twice "..hz)
-	local _,expired=Dynamics.updateBoost(s,boostEnd,1/hz,true,60,Config)
-	check(expired==0,"turbo expires at its deadline "..hz)
-	for n=math.ceil((boostEnd+1/hz)*hz),math.floor(deadline*hz)-1 do
-		s.drift=n%2==0
-		Dynamics.updateBoost(s,n/hz,1/hz,true,60,Config)
+check(Config.DriftChargeTime==0.5 and Config.TurboDuration==1.5,"turbo uses requested half-second charge and 1.5-second duration")
+for _,mode in ipairs({"Immediate","Release"}) do
+	local tuning=table.clone(Config); tuning.TurboActivation=mode
+	for _,hz in ipairs({30,60,120}) do
+		for _,epoch in ipairs({0,1800000000}) do
+			local label=mode.." / "..hz.."Hz / "..epoch
+			local s=state(); s.drift=true
+			local frames=math.floor(tuning.DriftChargeTime*hz+0.5)
+			for n=1,frames-1 do Dynamics.updateBoost(s,epoch+n/hz,1/hz,true,60,tuning) end
+			check(not s.turboArmed and s.boostPower==0,"no early activation: "..label)
+			local drifting,power=Dynamics.updateBoost(s,epoch+frames/hz,1/hz,true,60,tuning)
+			check(drifting,"charge threshold preserves drift: "..label)
+			local activationTime
+			if mode=="Immediate" then
+				activationTime=epoch+tuning.DriftChargeTime
+				check(power==tuning.TurboPower and not s.turboArmed and s.charge==0,"fires in threshold frame while held: "..label)
+			else
+				check(power==0 and s.turboArmed and s.charge==tuning.DriftChargeTime,"threshold arms without firing: "..label)
+			end
+			local releaseTime=epoch+0.75
+			for n=frames+1,math.floor(0.75*hz) do Dynamics.updateBoost(s,epoch+n/hz,1/hz,true,60,tuning) end
+			if mode=="Release" then check(s.turboArmed and s.boostPower==0 and s.cooldown==0,"holding armed drift never fires: "..label) end
+			s.drift=false; s.steer=0 -- natural simultaneous Shift + turn-key release
+			local _,released=Dynamics.updateBoost(s,releaseTime,1/hz,true,60,tuning)
+			if mode=="Release" then activationTime=releaseTime end
+			check(released==tuning.TurboPower and not s.turboArmed and s.charge==0,"release is compatible with mode: "..label)
+			local deadline,boostEnd=s.cooldown,s.boostEnd
+			check(math.abs(boostEnd-activationTime-tuning.TurboDuration)<1e-6,"finite boost deadline: "..label)
+			check(math.abs(deadline-activationTime-tuning.TurboCooldown)<1e-6,"cooldown starts at activation: "..label)
+			Dynamics.updateBoost(s,releaseTime+1/hz,1/hz,true,60,tuning)
+			check(s.cooldown==deadline and s.boostEnd==boostEnd,"repeat release cannot extend turbo: "..label)
+			local _,expired=Dynamics.updateBoost(s,boostEnd,1/hz,true,60,tuning)
+			check(expired==0,"turbo expires exactly at deadline: "..label)
+			s.drift=true; s.steer=1
+			Dynamics.updateBoost(s,deadline-0.01,1/hz,true,60,tuning)
+			check(s.charge==0 and not s.turboArmed,"no cooldown precharge: "..label)
+			Dynamics.updateBoost(s,deadline,1/hz,true,60,tuning)
+			check(s.charge==0 and s.boostPower==0,"cooldown boundary gives no free charge: "..label)
+			for n=1,frames do Dynamics.updateBoost(s,deadline+n/hz,1/hz,true,60,tuning) end
+			if mode=="Immediate" then
+				check(s.boostPower==tuning.TurboPower,"held drift retriggers only after fresh charge: "..label)
+			else
+				check(s.turboArmed and s.boostPower==0,"fresh charge arms after cooldown: "..label)
+				s.drift=false; s.steer=0
+				local _,second=Dynamics.updateBoost(s,deadline+(frames+1)/hz,1/hz,true,60,tuning)
+				check(second==tuning.TurboPower,"consecutive earned releases work: "..label)
+			end
+			s=state(); s.drift=true
+			for n=1,math.floor(0.25*hz) do Dynamics.updateBoost(s,epoch+n/hz,1/hz,true,60,tuning) end
+			s.drift=false; s.steer=0
+			local _,partial=Dynamics.updateBoost(s,epoch+0.25+1/hz,1/hz,true,60,tuning)
+			check(partial==0 and s.charge==0 and not s.turboArmed and s.cooldown==0,"quarter-second release gives no reward: "..label)
+		end
 	end
-	check(s.cooldown==deadline and s.boostEnd==boostEnd and s.charge==0 and not s.turboArmed,"cooldown cannot precharge or rearm "..hz)
-	s.drift=true
-	Dynamics.updateBoost(s,deadline,1/hz,true,60,Config)
-	check(s.charge==0 and not s.turboArmed,"cooldown completion gives no free charge "..hz)
-	for n=1,frames do Dynamics.updateBoost(s,deadline+n/hz,1/hz,true,60,Config) end
-	check(s.turboArmed and s.boostPower==0,"a fresh continuous drift can arm after cooldown "..hz)
-	s.drift=false
-	local _,second=Dynamics.updateBoost(s,deadline+(frames+1)/hz,1/hz,true,60,Config)
-	check(second==Config.TurboPower and s.cooldown>deadline,"consecutive earned drift boosts work "..hz)
-
+	for _,condition in ipairs({{false,60,1},{true,0,1},{true,-40,1},{true,60,0}}) do
+		local s=state(); s.drift=true; s.charge=0.2; s.steer=condition[3]
+		local drifting,power=Dynamics.updateBoost(s,1,1/60,condition[1],condition[2],tuning)
+		check(not drifting and power==0 and s.charge==0,"invalid held drift clears partial charge: "..mode)
+	end
+	local s=state(); s.player=nil; s.drift=true; s.charge=tuning.DriftChargeTime; s.turboArmed=true; s.boostEnd=5; s.boostPower=32; s.cooldown=9
+	local _,empty=Dynamics.updateBoost(s,1,1/60,true,60,tuning)
+	check(empty==0 and s.charge==0 and not s.turboArmed and s.boostEnd==0,"no-driver clears charge and boost: "..mode)
+	check(s.cooldown==9,"no-driver preserves cooldown: "..mode)
 	s=state(); s.drift=true
-	for n=1,math.floor(0.5*hz) do Dynamics.updateBoost(s,n/hz,1/hz,true,60,Config) end
-	s.drift=false
-	local _,partial=Dynamics.updateBoost(s,0.5+1/hz,1/hz,true,60,Config)
-	check(partial==0 and s.charge==0 and not s.turboArmed and s.cooldown==0,"partial release awards nothing "..hz)
+	Dynamics.updateBoost(s,10,10,true,60,tuning)
+	check(s.charge<=1/15+1e-10 and not s.turboArmed and s.boostPower==0,"long stall cannot instantly charge: "..mode)
+	for _,invalid in ipairs({-1,math.huge,0/0}) do
+		s=state(); s.drift=true
+		Dynamics.updateBoost(s,1,invalid,true,60,tuning)
+		check(s.charge==0 and not s.turboArmed,"invalid elapsed time cannot charge: "..mode)
+	end
+	s=state(); s.drift=true; s.cooldown=1800000010.017
+	Dynamics.updateBoost(s,1800000010.02,1/30,true,60,tuning)
+	check(s.charge>0.002 and s.charge<0.004,"epoch boundary credits only eligible tail: "..mode)
+	s=state(); s.drift=true; s.boostEnd=10.01; s.boostPower=tuning.TurboPower; s.cooldown=9
+	Dynamics.updateBoost(s,10,1/30,true,60,tuning)
+	check(s.charge==0 and not s.turboArmed,"active turbo blocks charge: "..mode)
+	s=state(); s.turbo=true
+	Dynamics.updateBoost(s,5,1/60,true,60,tuning)
+	check(s.boostPower==0 and s.charge==0,"legacy manual input cannot trigger turbo: "..mode)
 end
-for _,condition in ipairs({{false,60,1},{true,0,1},{true,-40,1},{true,60,0}}) do
-	local s=state(); s.drift=true; s.charge=0.5; s.steer=condition[3]
-	local drifting,power=Dynamics.updateBoost(s,1,1/60,condition[1],condition[2],Config)
-	check(not drifting and power==0 and s.charge==0,"air/slow/reverse/straight cancels partial charge")
-	s=state(); s.drift=false; s.charge=Config.DriftChargeTime; s.turboArmed=true; s.wasDrift=true; s.steer=condition[3]
-	local _,invalidRelease=Dynamics.updateBoost(s,1,1/60,condition[1],condition[2],Config)
-	check(invalidRelease==0 and not s.turboArmed and s.charge==0,"invalid release cannot redeem armed turbo")
-	s=state(); s.drift=true; s.charge=Config.DriftChargeTime; s.turboArmed=true; s.wasDrift=true; s.steer=condition[3]
-	Dynamics.updateBoost(s,1,1/60,condition[1],condition[2],Config)
-	s.drift=false; s.steer=1
-	local _,laterRelease=Dynamics.updateBoost(s,1.1,1/60,true,60,Config)
-	check(laterRelease==0 and not s.turboArmed,"lost drift eligibility discards armed charge permanently")
+-- Release mode permits simultaneous Shift/turn release after a valid drift,
+-- while losing steering on an earlier held frame still cancels the armed charge.
+local releaseConfig=table.clone(Config); releaseConfig.TurboActivation="Release"
+for _,condition in ipairs({{false,60},{true,0},{true,-40}}) do
+	local s=state(); s.drift=false; s.charge=releaseConfig.DriftChargeTime; s.turboArmed=true; s.wasDrift=true
+	local _,power=Dynamics.updateBoost(s,1,1/60,condition[1],condition[2],releaseConfig)
+	check(power==0 and not s.turboArmed and s.charge==0,"air/slow/reverse release cannot cash in armed turbo")
 end
-local s=state(); s.player=nil; s.drift=true; s.charge=Config.DriftChargeTime; s.turboArmed=true; s.boostEnd=5; s.boostPower=32; s.cooldown=9
-local _,emptyPower=Dynamics.updateBoost(s,1,1/60,true,60,Config)
-check(emptyPower==0 and s.charge==0 and not s.turboArmed and s.boostEnd==0 and s.boostPower==0,"no driver clears active boost and armed charge")
-check(s.cooldown==9,"driver departure preserves cooldown")
-s=state(); s.drift=true
-Dynamics.updateBoost(s,10,10,true,60,Config)
-check(s.charge<=1/15+1e-10 and not s.turboArmed,"long stall cannot instantly arm")
-for _,invalid in ipairs({-1,math.huge,0/0}) do
-	s=state(); s.drift=true
-	Dynamics.updateBoost(s,1,invalid,true,60,Config)
-	check(s.charge==0 and not s.turboArmed,"negative or non-finite elapsed time cannot charge")
-end
-s=state(); s.drift=true; s.cooldown=10.01
-Dynamics.updateBoost(s,10.02,1/30,true,60,Config)
-check(math.abs(s.charge-0.01)<1e-9,"boundary frame only counts time after cooldown")
-s=state(); s.drift=true; s.boostEnd=10.01; s.boostPower=Config.TurboPower; s.cooldown=9
-Dynamics.updateBoost(s,10,1/30,true,60,Config)
-check(s.charge==0 and not s.turboArmed,"active turbo blocks charge with a shorter custom cooldown")
-s=state(); s.turbo=true
-Dynamics.updateBoost(s,5,1/60,true,60,Config)
-check(s.boostPower==0 and s.charge==0,"legacy manual turbo input cannot activate")
-local custom=table.clone(Config); custom.DriftChargeTime=0.2
-s=state(); s.drift=true
-for n=1,12 do Dynamics.updateBoost(s,n/60,1/60,true,60,custom) end
-check(s.turboArmed and s.boostPower==0,"configured charge time arms without firing")
-s.drift=false
-local _,customRelease=Dynamics.updateBoost(s,0.22,1/60,true,60,custom)
-check(customRelease==Config.TurboPower,"configured charge can redeem on release")
-
--- Epoch clocks retain exact frame-level charging/release behavior despite their
--- sub-microsecond double precision; no extra frame is added after cooldown.
-for _,hz in ipairs({30,60,120}) do
-	local epoch=1800000000
-	local s=state(); s.drift=true
-	local frames=math.floor(Config.DriftChargeTime*hz+0.5)
-	for n=1,frames-1 do Dynamics.updateBoost(s,epoch+n/hz,1/hz,true,60,Config) end
-	check(not s.turboArmed,"epoch clock does not arm early "..hz)
-	Dynamics.updateBoost(s,epoch+frames/hz,1/hz,true,60,Config)
-	check(s.turboArmed and s.boostPower==0,"epoch clock arms while held "..hz)
-	s.drift=false
-	local _,power=Dynamics.updateBoost(s,epoch+1.2,1/hz,true,60,Config)
-	check(power==Config.TurboPower,"epoch release redeems turbo "..hz)
-	check(math.abs(s.boostEnd-(epoch+1.2+Config.TurboDuration))<1e-6,"epoch boost deadline "..hz)
-	check(math.abs(s.cooldown-(epoch+1.2+Config.TurboCooldown))<1e-6,"epoch cooldown deadline "..hz)
-	local cooldown=s.cooldown
-	s.drift=true
-	Dynamics.updateBoost(s,cooldown,1/hz,true,60,Config)
-	check(s.charge==0 and not s.turboArmed,"epoch cooldown has no free charge "..hz)
-	for n=1,frames do Dynamics.updateBoost(s,cooldown+n/hz,1/hz,true,60,Config) end
-	check(s.turboArmed and s.boostPower==0,"epoch fresh charge arms correctly "..hz)
-	s.drift=false
-	local _,second=Dynamics.updateBoost(s,cooldown+(frames+1)/hz,1/hz,true,60,Config)
-	check(second==Config.TurboPower,"epoch consecutive release turbo "..hz)
-end
-s=state(); s.drift=true; s.cooldown=1800000010.017
-Dynamics.updateBoost(s,1800000010.02,1/30,true,60,Config)
-check(s.charge>0.002 and s.charge<0.004,"epoch fractional boundary credits only eligible tail")
+local s=state(); s.drift=true; s.charge=releaseConfig.DriftChargeTime; s.turboArmed=true; s.wasDrift=true; s.steer=0
+Dynamics.updateBoost(s,1,1/60,true,60,releaseConfig)
+s.drift=false; s.steer=1
+local _,lateRelease=Dynamics.updateBoost(s,1.1,1/60,true,60,releaseConfig)
+check(lateRelease==0 and not s.turboArmed,"straightening before key release discards armed charge")
+s=state(); s.drift=false; s.charge=releaseConfig.DriftChargeTime; s.turboArmed=true; s.wasDrift=false
+local _,stale=Dynamics.updateBoost(s,1,1/60,true,60,releaseConfig)
+check(stale==0,"stale armed state without preceding drift cannot redeem")
 
 -- Interpolation must have the same elapsed-time result at different frame rates.
 for _,hz in ipairs({30,60,120}) do

@@ -15,21 +15,20 @@
       "BackgroundColor3",
       "BackgroundTransparency",
       "BorderSizePixel",
-      "ClipsDescendants",
       "Name",
       "Parent",
       "Position",
       "Rotation",
       "Size",
       "Transparency",
-      "Visible"
+      "Visible",
+      "ZIndex"
     ],
     "TextLabel": [
       "AnchorPoint",
       "BackgroundColor3",
       "BackgroundTransparency",
       "BorderSizePixel",
-      "ClipsDescendants",
       "Font",
       "Name",
       "Parent",
@@ -39,10 +38,13 @@
       "Text",
       "TextColor3",
       "TextSize",
+      "TextStrokeColor3",
+      "TextStrokeTransparency",
       "TextXAlignment",
       "TextYAlignment",
       "Transparency",
-      "Visible"
+      "Visible",
+      "ZIndex"
     ],
     "UICorner": [
       "CornerRadius",
@@ -55,7 +57,8 @@
       "Name",
       "Parent",
       "Thickness",
-      "Transparency"
+      "Transparency",
+      "ZIndex"
     ],
     "UIGradient": [
       "Color",

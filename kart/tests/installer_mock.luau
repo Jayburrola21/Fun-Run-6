@@ -82,6 +82,9 @@ local function scenario(mode)
    local installed=create("Folder","KartSystem",services.ReplicatedStorage)
    local prior="local c=table.clone((function()\n"..Sources.KartConfig.."\nend)()); c.ReleaseVersion=2; c.MaxSpeed=97; c.WheelRadius=1.4; c.Wheelbase=8; c.Grip=8.5; c.SpringFrequency=3.2; c.SpawnCFrame=CFrame.new(12,4,9); return c"
    if mode=="version3" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=3; c.DriftChargeTime=1.5; c.TurboDuration=1.15;") end
+   if mode=="version4" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=4; c.DriftChargeTime=0.9; c.TurboActivation='Release'; c.TurboDuration=1.5;") end
+   if mode=="stickyversion4" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=4; c.DriftChargeTime=1.5; c.TurboActivation='Release'; c.TurboDuration=1.5;") end
+   if mode=="customversion5" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=5; c.DriftChargeTime=0.75; c.TurboActivation='Release'; c.TurboDuration=2;") end
    for _,name in ipairs({"KartConfig","KartBuilder","KartDynamics"}) do create("ModuleScript",name,installed,name=="KartConfig" and prior or "return 'old'") end
    create("ModuleScript","MyCustomModule",installed,"return 123")
    if mode=="badbackup" then installed.KartBuilder.Archivable=false end
@@ -124,7 +127,12 @@ local function scenario(mode)
   assert(package.destroyed,"Imported package not consumed")
   local config=require(installed.KartConfig); local defaults=evaluate(Sources.KartConfig)
   assert(config.ModelScale==defaults.ModelScale and config.WheelRadius==defaults.WheelRadius and config.Wheelbase==defaults.Wheelbase,"Geometry tuning became inconsistent")
-  assert(config.DriftChargeTime==0.9 and config.TurboDuration==1.5,"New release-turbo timing was not migrated")
+  if mode=="customversion5" then
+   assert(config.DriftChargeTime==0.75 and config.TurboDuration==2 and config.TurboActivation=="Release","Explicit release-5 tuning was lost on reinstall")
+  else
+   assert(config.DriftChargeTime==0.5 and config.TurboDuration==1.5,"New half-second turbo timing was not migrated")
+   assert(config.TurboActivation==defaults.TurboActivation,"Old activation mode overrode new release behavior")
+  end
   if mode=="upgrade" then
    assert(config.MaxSpeed==97,"Custom speed lost")
    assert(config.Grip==defaults.Grip and config.SpringFrequency==defaults.SpringFrequency,"Legacy defaults overrode upgraded stability")

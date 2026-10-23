@@ -43,13 +43,21 @@ function Dynamics.finite(value)
 	return type(value) == "number" and value == value and math.abs(value) < math.huge
 end
 
+local function activateTurbo(state, now, config)
+	state.charge=0; state.turboArmed=false
+	state.boostEnd=now+config.TurboDuration
+	state.boostPower=config.TurboPower
+	state.cooldown=now+config.TurboCooldown
+end
+
 function Dynamics.updateBoost(state, now, dt, grounded, speed, config)
 	if state.player==nil then
 		state.charge=0; state.turboArmed=false; state.wasDrift=false; state.boostEnd=0; state.boostPower=0
 		-- The kart retains its recharge deadline when a driver leaves or respawns.
 		return false,0
 	end
-	local validMotion=math.abs(state.steer)>0.15 and speed>config.DriftMinSpeed and grounded
+	local onRoad=grounded and speed>config.DriftMinSpeed
+	local validMotion=math.abs(state.steer)>0.15 and onRoad
 	local drifting=state.drift and validMotion
 	local readyAt=math.max(state.cooldown,state.boostEnd)
 	if now<readyAt then
@@ -64,14 +72,13 @@ function Dynamics.updateBoost(state, now, dt, grounded, speed, config)
 		-- exactly full when that rounding tolerance completes the charge.
 		if state.charge+1e-6>=config.DriftChargeTime then
 			state.charge=config.DriftChargeTime; state.turboArmed=true
+			if config.TurboActivation=="Immediate" then activateTurbo(state,now,config) end
 		end
-	elseif not state.drift and state.wasDrift and state.turboArmed and validMotion then
-		-- Only a release after a continuous fully charged drift redeems turbo;
-		-- merely losing ground, speed, or steering cannot cash in the charge.
-		state.charge=0; state.turboArmed=false
-		state.boostEnd=now+config.TurboDuration
-		state.boostPower=config.TurboPower
-		state.cooldown=now+config.TurboCooldown
+	elseif config.TurboActivation~="Immediate" and not state.drift and state.wasDrift and state.turboArmed and onRoad then
+		-- Shift and the turn key may be released in the same input packet. The
+		-- preceding drift must be valid, but current steering need not remain held.
+		-- Airborne/slow releases and straightening while still held cancel charge.
+		activateTurbo(state,now,config)
 	else
 		state.charge=0; state.turboArmed=false
 	end
