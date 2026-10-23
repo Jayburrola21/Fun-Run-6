@@ -6,7 +6,7 @@ local RUBBER = Color3.fromRGB(13, 14, 19)
 local METAL = Color3.fromRGB(90, 101, 119)
 local BLUE = Color3.fromRGB(20, 85, 220)
 local YELLOW = Color3.fromRGB(255, 205, 35)
-local SEAT = Color3.fromRGB(25, 34, 59)
+local SEAT = Color3.fromRGB(12, 14, 18)
 
 function Builder.build(name, spawn, color)
 	color = color or Config.Palette.Red
@@ -53,6 +53,7 @@ function Builder.build(name, spawn, color)
 			local angle = (i-0.5)*math.pi*2/count
 			local cf = base * CFrame.Angles(0,0,angle) * CFrame.new(radius,0,0) * CFrame.Angles(0,0,math.pi/2)
 			local segment = part("RingSegment", Vector3.new(2*radius*math.tan(math.pi/count), thickness, thickness), cf, tint, material, parent, nil, target ~= nil)
+			if material==Enum.Material.Neon then segment.Name="BoostGlow"; segment.Transparency=1 end
 			if target then
 				local w = Instance.new("WeldConstraint"); w.Part0 = target; w.Part1 = segment; w.Parent = segment
 			end
@@ -77,27 +78,56 @@ function Builder.build(name, spawn, color)
 	chassis.RootPriority=127
 	model.PrimaryPart = chassis
 	part("FloorPan",Vector3.new(3.9,0.15,4.3),CFrame.new(0,0.48,0.1),METAL,Enum.Material.DiamondPlate)
-	-- Molded elliptical bodywork gives the kart a compact toy-racer silhouette.
-	-- Each shell is one smooth ellipsoid, avoiding a flat slab with tiled seams.
+	-- A tapered, crowned hood loft follows a gentle longitudinal curve. The
+	-- white center stripe is part of that surface instead of a floating decal.
 	part("BlueNoseLower",Vector3.new(3.25,0.74,2.5),CFrame.new(0,0.16,-2.2),BLUE,nil,body,Enum.PartType.Ball)
-	local noseCF=CFrame.new(0,1.00,-2.15)*CFrame.Angles(math.rad(-23),0,0)
-	part("WhiteNoseShell",Vector3.new(2.75,0.66,2.75),noseCF*CFrame.new(0,-0.10,0),WHITE,nil,body,Enum.PartType.Ball)
-	part("RedNose",Vector3.new(2.46,0.65,2.68),noseCF,color,nil,body,Enum.PartType.Ball)
+	part("RedNoseCore",Vector3.new(2.36,0.58,2.58),CFrame.new(0,0.62,-2.10)*CFrame.Angles(math.rad(-22),0,0),color,nil,body,Enum.PartType.Ball)
+	local function hood(t)
+		return -3.17+2.20*t,0.40+1.10*t+0.16*math.sin(math.pi*t),2.35-0.45*t
+	end
+	for i=0,7 do
+		local z0,y0,width0=hood(i/8)
+		local z1,y1,width1=hood((i+1)/8)
+		local width=(width0+width1)/2
+		local length=math.sqrt((z1-z0)^2+(y1-y0)^2)+0.012
+		local tilt=-math.atan((y1-y0)/(z1-z0))
+		local middle=CFrame.new(0,(y0+y1)/2,(z0+z1)/2)*CFrame.Angles(tilt,0,0)
+		part("WhiteCenterStripe",Vector3.new(0.84,0.055,length),middle,WHITE)
+		for _,side in ipairs({-1,1}) do
+			local panel=(width-0.84)/2
+			local x=side*(0.42+panel/2)
+			local crown=0.10*(math.abs(x)/(width/2))^2
+			local bank=-0.20*x/(width/2)^2
+			part("RedHoodPanel",Vector3.new(panel+0.018,0.075,length),middle*CFrame.new(x,-crown,0)*CFrame.Angles(0,0,bank),color)
+		end
+	end
+	for _,side in ipairs({-1,1}) do
+		part("RoundedHoodEdge",Vector3.new(0.30,0.27,2.48),CFrame.new(side*1.02,0.88,-2.10)*CFrame.Angles(math.rad(-26),-side*math.rad(6),0),color,nil,body,Enum.PartType.Ball)
+	end
+	-- Red tilted square with a real white center, centered on the stripe.
+	local bz,by=hood(0.53)
+	local badge=CFrame.new(0,by+0.07,bz)*CFrame.Angles(math.rad(-26),math.rad(15),0)
+	for _,side in ipairs({-1,1}) do
+		part("NoseSquareBadge",Vector3.new(0.55,0.012,0.16),badge*CFrame.new(0,0,side*0.195),color)
+		part("NoseSquareBadge",Vector3.new(0.16,0.012,0.23),badge*CFrame.new(side*0.195,0,0),color)
+	end
 	for _,side in ipairs({-1,1}) do
 		part("SidePodBlue",Vector3.new(0.98,0.78,2.22),CFrame.new(side*1.75,0.34,0.55),BLUE,nil,body,Enum.PartType.Ball)
 		part("SidePodWhite",Vector3.new(1.00,0.50,2.30),CFrame.new(side*1.75,0.61,0.55),WHITE,nil,body,Enum.PartType.Ball)
 		part("SidePodRed",Vector3.new(0.98,0.56,2.18),CFrame.new(side*1.75,0.81,0.55),color,nil,body,Enum.PartType.Ball)
+		part("RoundSidePanel",Vector3.new(0.94,1.20,1.20),CFrame.new(side*1.78,0.60,0.55),color,nil,body,Enum.PartType.Cylinder)
+		part("WhiteSideRoundel",Vector3.new(0.018,0.91,0.91),CFrame.new(side*2.259,0.60,0.55),WHITE,nil,body,Enum.PartType.Cylinder)
+		local sideBadge=CFrame.new(side*2.275,0.60,0.55)*CFrame.Angles(math.rad(15),0,0)
+		for _,offset in ipairs({-1,1}) do
+			part("SideSquareBadge",Vector3.new(0.014,0.56,0.16),sideBadge*CFrame.new(0,0,offset*0.20),color)
+			part("SideSquareBadge",Vector3.new(0.014,0.16,0.24),sideBadge*CFrame.new(0,offset*0.20,0),color)
+		end
 		bar("CockpitRail",Vector3.new(side*1.18,1.05,-0.5),Vector3.new(side*1.18,1.55,1.55),0.13,BLACK)
 		bar("SideGuard",Vector3.new(side*2.06,0.15,-0.45),Vector3.new(side*2.06,0.15,1.6),0.15,BLACK)
 		-- Red rounded haunches sit inside, rather than over, the rear tires.
 		part("RearFender",Vector3.new(0.75,0.37,1.15),CFrame.new(side*1.65,0.94,1.3),color,nil,body,Enum.PartType.Ball)
 	end
-	-- Four white bars form a flush tilted square with an actual open center.
-	local badge=noseCF*CFrame.new(0,0.326,-0.10)*CFrame.Angles(0,math.rad(15),0)
-	for _,side in ipairs({-1,1}) do
-		part("RobloxBadge",Vector3.new(0.88,0.012,0.25),badge*CFrame.new(0,0,side*0.315),WHITE)
-		part("RobloxBadge",Vector3.new(0.25,0.012,0.38),badge*CFrame.new(side*0.315,0,0),WHITE)
-	end
+
 	local bumper=folder("FrontBumper")
 	rounded("WhiteFrontBumper",Vector3.new(3.13,0.28,0.66),CFrame.new(0,0.13,-3.37)*CFrame.Angles(math.pi/2,0,0),WHITE,0.23,bumper)
 	for _,x in ipairs({-1.02,-0.52,0.52,1.02}) do
@@ -122,6 +152,27 @@ function Builder.build(name, spawn, color)
 	for i=1,6 do part("EngineCoolingFin",Vector3.new(1.62,0.045,0.10),CFrame.new(0,0.74,1.95+i*0.15),BLACK,Enum.Material.Metal) end
 	bar("RearAxle",Vector3.new(-2.4,0,2.4),Vector3.new(2.4,0,2.4),0.22,METAL)
 	bar("RearBumper",Vector3.new(-1.7,0.05,3.35),Vector3.new(1.7,0.05,3.35),0.22,BLACK)
+
+	for _,side in ipairs({-1,1}) do
+		local lower=Vector3.new(side*1.56,0.34,-1.75)
+		local upper=Vector3.new(side*1.31,1.28,-1.40)
+		local axis=upper-lower
+		local shock=CFrame.lookAt((lower+upper)/2,upper)
+		bar("DamperRod",lower,upper,0.075,METAL,suspension)
+		bar("DamperBody",lower,lower+axis*0.45,0.17,METAL,suspension)
+		for _,point in ipairs({lower,upper}) do
+			part("DamperEye",Vector3.new(0.22,0.22,0.22),CFrame.new(point),BLACK,Enum.Material.Metal,suspension,Enum.PartType.Ball)
+		end
+		local previous
+		for n=0,32 do
+			local t=n/32
+			local phase=t*math.pi*8
+			local offset=Vector3.new(math.cos(phase)*0.13,math.sin(phase)*0.13,(t-0.5)*axis.Magnitude*0.83)
+			local point=(shock*CFrame.new(offset)).Position
+			if previous then bar("BlueCoilSpring",previous,point,0.043,BLUE,suspension) end
+			previous=point
+		end
+	end
 
 	-- Non-colliding visual wheels; each client interpolates these same motors.
 	-- Physical contacts are handled only by the spring forces and collision hull.
@@ -153,6 +204,9 @@ function Builder.build(name, spawn, color)
 			for _,offset in ipairs({-0.25,0.25}) do
 				detail("Tread",Vector3.new(0.018,0.012,0.18),CFrame.Angles(n*math.pi/6,0,0)*CFrame.new(offset,radius,0),Color3.fromRGB(25,26,30),Enum.Material.SmoothPlastic)
 			end
+		end
+		if not front then
+			ring(group,cf*CFrame.new(side*0.56,0,0)*CFrame.Angles(0,math.pi/2,0),0.80,0.045,Color3.fromRGB(50,185,255),Enum.Material.Neon,16,tire)
 		end
 		local mount=Instance.new("Attachment"); mount.Name=label.."Mount"; mount.Position=origin; mount.Parent=chassis
 		local force=Instance.new("VectorForce"); force.Name=label.."Contact"; force.Attachment0=mount; force.RelativeTo=Enum.ActuatorRelativeTo.World; force.ApplyAtCenterOfMass=false; force.Force=Vector3.zero; force.Parent=suspension

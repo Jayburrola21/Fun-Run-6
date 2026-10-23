@@ -7,7 +7,7 @@ local package=selection[1]
 local storage=game:GetService("ReplicatedStorage")
 local server=game:GetService("ServerScriptService")
 local starter=game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts")
-local modules={"KartConfig","KartBuilder","KartDynamics","KartSeatLock","KartHUD"}
+local modules={"KartConfig","KartBuilder","KartDynamics","KartSeatLock","KartHUD","KartRace","KartRaceRules"}
 local incoming=assert(package:FindFirstChild("KartSystem"),"Incomplete package: missing KartSystem")
 for _,name in ipairs(modules) do
  assert(incoming:FindFirstChild(name) and incoming[name]:IsA("ModuleScript"),"Incomplete package: "..name)
@@ -35,7 +35,7 @@ end
 
 -- Geometry receives consistent scaled defaults. Preserve compatible custom
 -- driving/camera values, palette and spawn; leave retired tier settings behind.
-local legacy={MaxSpeed=82,ReverseSpeed=24,Acceleration=39,BrakeAcceleration=75,CoastDrag=0.55,Grip=8.5,DriftGrip=2.1,MaxSteer=math.rad(29),MaxCornerAcceleration=85,SpringFrequency=3.2,SpringDamping=0.82,DriftMinSpeed=27,TurboDuration=1.15,TurboPower=32,TurboCooldown=6,InputTimeout=0.5,InputRate=30}
+local legacy={MaxSpeed=82,ReverseSpeed=24,Acceleration=39,BrakeAcceleration=75,CoastDrag=0.55,Grip=8.5,DriftGrip=2.1,MaxSteer=math.rad(29),MaxCornerAcceleration=85,SpringFrequency=3.2,SpringDamping=0.82,DriftMinSpeed=27,DriftChargeTime=1.5,TurboDuration=1.15,TurboPower=32,TurboCooldown=6,InputTimeout=0.5,InputRate=30}
 local geometry={ModelScale=true,Wheelbase=true,WheelRadius=true,SuspensionRest=true,SuspensionTravel=true,ReleaseVersion=true}
 local function encode(value)
  local kind=typeof(value)
@@ -59,7 +59,7 @@ for key,newValue in pairs(newConfig) do
  local previous=oldConfig[key]
  if previous~=nil and not geometry[key] then
   local baseline=legacy[key]
-  if baseline==nil or (oldConfig.ReleaseVersion or 0)>=3 then baseline=newValue end
+  if baseline==nil or (oldConfig.ReleaseVersion or 0)>=4 then baseline=newValue end
   if key=="Palette" or key=="SpawnCFrame" or encode(previous)~=encode(baseline) then
    table.insert(overrides,"updated["..string.format("%q",key).."]="..encode(previous))
   end

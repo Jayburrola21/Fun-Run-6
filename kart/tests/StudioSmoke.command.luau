@@ -40,4 +40,6 @@ if seat.Occupant then
 end
 assert(type(kart:GetAttribute("DriftCharge"))=="number","Missing authoritative charge meter")
 assert(type(kart:GetAttribute("TurboCooldownEnd"))=="number","Missing authoritative cooldown deadline")
+assert(type(kart:GetAttribute("TurboArmed"))=="boolean","Missing authoritative armed/release state")
+assert(kart.Effects:FindFirstChild("BlueTurboTrail"),"Missing rear turbo trail")
 print("PASS: Studio assembly/constraint smoke check. Driving and multiplayer checklist still required.")

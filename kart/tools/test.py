@@ -33,5 +33,6 @@ with tempfile.TemporaryDirectory(prefix="kart-seat-tests-") as directory:
     subprocess.run([args.luau, str(path)], check=True)
 subprocess.run(["python3", str(ROOT / "tools/check_hud.py"), "--luau", args.luau], check=True)
 subprocess.run(["python3", str(ROOT / "tools/check_installer.py"), "--luau", args.luau], check=True)
+subprocess.run(["python3", str(ROOT / "tools/check_race.py"), "--luau", args.luau], check=True)
 subprocess.run(["python3", str(ROOT / "tools/check_geometry.py"), "--luau", args.luau], check=True)
 subprocess.run(["python3", str(ROOT / "tools/package.py")], check=True)

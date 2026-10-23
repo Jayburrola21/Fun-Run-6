@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <roblox version="4">
-  <Item class="Workspace" referent="RBXWorkspace">
+  <Item class="Workspace" referent="RBX12">
     <Properties>
       <string name="Name">Workspace</string>
     </Properties>
-    <Item class="Part" referent="RBXKartTestGround">
+    <Item class="Part" referent="RBX13">
       <Properties>
         <string name="Name">KartTestGround</string>
         <Vector3 name="Size">
@@ -29,7 +29,184 @@
         <bool name="Anchored">true</bool>
       </Properties>
     </Item>
-    <Item class="SpawnLocation" referent="RBXPlayerSpawn">
+    <Item class="Folder" referent="RBX14">
+      <Properties>
+        <string name="Name">KartRace</string>
+      </Properties>
+      <Item class="Folder" referent="RBX15">
+        <Properties>
+          <string name="Name">Checkpoints</string>
+        </Properties>
+        <Item class="Part" referent="RBX16">
+          <Properties>
+            <string name="Name">1</string>
+            <Vector3 name="Size">
+              <X>14</X>
+              <Y>8</Y>
+              <Z>14</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>0</X>
+              <Y>3</Y>
+              <Z>-35</Z>
+              <R00>1</R00>
+              <R01>0</R01>
+              <R02>0</R02>
+              <R10>0</R10>
+              <R11>1</R11>
+              <R12>0</R12>
+              <R20>0</R20>
+              <R21>0</R21>
+              <R22>1</R22>
+            </CoordinateFrame>
+            <bool name="Anchored">true</bool>
+            <bool name="CanCollide">false</bool>
+            <float name="Transparency">0.88</float>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX17">
+          <Properties>
+            <string name="Name">2</string>
+            <Vector3 name="Size">
+              <X>14</X>
+              <Y>8</Y>
+              <Z>14</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>65</X>
+              <Y>3</Y>
+              <Z>-35</Z>
+              <R00>1</R00>
+              <R01>0</R01>
+              <R02>0</R02>
+              <R10>0</R10>
+              <R11>1</R11>
+              <R12>0</R12>
+              <R20>0</R20>
+              <R21>0</R21>
+              <R22>1</R22>
+            </CoordinateFrame>
+            <bool name="Anchored">true</bool>
+            <bool name="CanCollide">false</bool>
+            <float name="Transparency">0.88</float>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX18">
+          <Properties>
+            <string name="Name">3</string>
+            <Vector3 name="Size">
+              <X>14</X>
+              <Y>8</Y>
+              <Z>14</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>65</X>
+              <Y>3</Y>
+              <Z>45</Z>
+              <R00>1</R00>
+              <R01>0</R01>
+              <R02>0</R02>
+              <R10>0</R10>
+              <R11>1</R11>
+              <R12>0</R12>
+              <R20>0</R20>
+              <R21>0</R21>
+              <R22>1</R22>
+            </CoordinateFrame>
+            <bool name="Anchored">true</bool>
+            <bool name="CanCollide">false</bool>
+            <float name="Transparency">0.88</float>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX19">
+          <Properties>
+            <string name="Name">4</string>
+            <Vector3 name="Size">
+              <X>14</X>
+              <Y>8</Y>
+              <Z>14</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>0</X>
+              <Y>3</Y>
+              <Z>45</Z>
+              <R00>1</R00>
+              <R01>0</R01>
+              <R02>0</R02>
+              <R10>0</R10>
+              <R11>1</R11>
+              <R12>0</R12>
+              <R20>0</R20>
+              <R21>0</R21>
+              <R22>1</R22>
+            </CoordinateFrame>
+            <bool name="Anchored">true</bool>
+            <bool name="CanCollide">false</bool>
+            <float name="Transparency">0.88</float>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Folder" referent="RBX20">
+        <Properties>
+          <string name="Name">Coins</string>
+        </Properties>
+        <Item class="Part" referent="RBX21">
+          <Properties>
+            <string name="Name">DemoCoin1</string>
+            <Vector3 name="Size">
+              <X>0.3</X>
+              <Y>2</Y>
+              <Z>2</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>0</X>
+              <Y>1.5</Y>
+              <Z>-15</Z>
+              <R00>1</R00>
+              <R01>0</R01>
+              <R02>0</R02>
+              <R10>0</R10>
+              <R11>1</R11>
+              <R12>0</R12>
+              <R20>0</R20>
+              <R21>0</R21>
+              <R22>1</R22>
+            </CoordinateFrame>
+            <bool name="Anchored">true</bool>
+            <bool name="CanCollide">false</bool>
+            <token name="shape">2</token>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX22">
+          <Properties>
+            <string name="Name">DemoCoin2</string>
+            <Vector3 name="Size">
+              <X>0.3</X>
+              <Y>2</Y>
+              <Z>2</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>65</X>
+              <Y>1.5</Y>
+              <Z>10</Z>
+              <R00>1</R00>
+              <R01>0</R01>
+              <R02>0</R02>
+              <R10>0</R10>
+              <R11>1</R11>
+              <R12>0</R12>
+              <R20>0</R20>
+              <R21>0</R21>
+              <R22>1</R22>
+            </CoordinateFrame>
+            <bool name="Anchored">true</bool>
+            <bool name="CanCollide">false</bool>
+            <token name="shape">2</token>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+    <Item class="SpawnLocation" referent="RBX23">
       <Properties>
         <string name="Name">PlayerSpawn</string>
         <Vector3 name="Size">
@@ -55,20 +232,20 @@
       </Properties>
     </Item>
   </Item>
-  <Item class="ReplicatedStorage" referent="RBXReplicatedStorage">
+  <Item class="ReplicatedStorage" referent="RBX24">
     <Properties>
       <string name="Name">ReplicatedStorage</string>
     </Properties>
-    <Item class="Folder" referent="RBXKartSystem">
+    <Item class="Folder" referent="RBX25">
       <Properties>
         <string name="Name">KartSystem</string>
       </Properties>
-      <Item class="ModuleScript" referent="RBXKartConfig">
+      <Item class="ModuleScript" referent="RBX26">
         <Properties>
           <string name="Name">KartConfig</string>
           <ProtectedString name="Source">-- Distances in studs, speeds in studs/second. Local forward is -Z.
 return table.freeze({
-	ReleaseVersion = 3,
+	ReleaseVersion = 4,
 	ModelScale = 0.84,
 	MaxSpeed = 82,
 	ReverseSpeed = 24,
@@ -98,10 +275,19 @@ return table.freeze({
 	SpringFrequency = 2.0,
 	SpringDamping = 1.05,
 	DriftMinSpeed = 27,
-	DriftChargeTime = 1.5,
-	TurboDuration = 1.15,
+	DriftChargeTime = 0.9,
+	TurboDuration = 1.5,
 	TurboPower = 32,
 	TurboCooldown = 6,
+	-- Default Roblox unit conversion: one stud = 0.28 metres.
+	StudsToMPH = 0.28 * 2.2369362921,
+	RaceTotalLaps = 3,
+	RaceStatNames = {
+		Lap = {"Lap", "CurrentLap"},
+		TotalLaps = {"TotalLaps", "MaxLaps"},
+		Coins = {"Coins"},
+		Wins = {"Wins", "Trophies"},
+	},
 	InputTimeout = 0.5,
 	InputRate = 30,
 	SpawnCFrame = CFrame.new(0, 5, 0),
@@ -118,7 +304,7 @@ return table.freeze({
 </ProtectedString>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="RBXKartDynamics">
+      <Item class="ModuleScript" referent="RBX27">
         <Properties>
           <string name="Name">KartDynamics</string>
           <ProtectedString name="Source">-- Pure calculations shared by the server and the standalone Luau tests.
@@ -168,30 +354,35 @@ end
 
 function Dynamics.updateBoost(state, now, dt, grounded, speed, config)
 	if state.player==nil then
-		state.charge=0; state.wasDrift=false; state.boostEnd=0; state.boostPower=0
+		state.charge=0; state.turboArmed=false; state.wasDrift=false; state.boostEnd=0; state.boostPower=0
 		-- The kart retains its recharge deadline when a driver leaves or respawns.
 		return false,0
 	end
-	local drifting=state.drift and math.abs(state.steer)&gt;0.15 and speed&gt;config.DriftMinSpeed and grounded
+	local validMotion=math.abs(state.steer)&gt;0.15 and speed&gt;config.DriftMinSpeed and grounded
+	local drifting=state.drift and validMotion
 	local readyAt=math.max(state.cooldown,state.boostEnd)
-	if drifting and now&gt;=readyAt then
-		-- A long simulation stall cannot instantly award a drift boost, and a
-		-- frame straddling recharge completion only credits its eligible tail.
+	if now&lt;readyAt then
+		state.charge=0; state.turboArmed=false
+	elseif drifting then
+		-- A stalled simulation cannot instantly arm turbo. A frame straddling
+		-- recharge completion only credits its eligible tail.
 		local elapsed=Dynamics.finite(dt) and math.clamp(dt,0,1/15) or 0
 		elapsed=math.min(elapsed,math.max(now-readyAt,0))
 		state.charge=math.min(state.charge+elapsed,config.DriftChargeTime)
-		-- Epoch deadlines have sub-microsecond double precision; allow that
-		-- rounding error without adding a simulation frame to the charge.
+		-- Epoch deadlines have sub-microsecond double precision. Keep the meter
+		-- exactly full when that rounding tolerance completes the charge.
 		if state.charge+1e-6&gt;=config.DriftChargeTime then
-			state.charge=0
-			state.boostEnd=now+config.TurboDuration
-			state.boostPower=config.TurboPower
-			state.cooldown=now+config.TurboCooldown
+			state.charge=config.DriftChargeTime; state.turboArmed=true
 		end
+	elseif not state.drift and state.wasDrift and state.turboArmed and validMotion then
+		-- Only a release after a continuous fully charged drift redeems turbo;
+		-- merely losing ground, speed, or steering cannot cash in the charge.
+		state.charge=0; state.turboArmed=false
+		state.boostEnd=now+config.TurboDuration
+		state.boostPower=config.TurboPower
+		state.cooldown=now+config.TurboCooldown
 	else
-		-- Releasing the drift or losing speed/contact cancels partial charge.
-		-- Turbo and recharge also require a fresh charge after they finish.
-		state.charge=0
+		state.charge=0; state.turboArmed=false
 	end
 	state.wasDrift=drifting
 	local power=now&lt;state.boostEnd and state.boostPower or 0
@@ -203,7 +394,7 @@ return table.freeze(Dynamics)
 </ProtectedString>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="RBXKartBuilder">
+      <Item class="ModuleScript" referent="RBX28">
         <Properties>
           <string name="Name">KartBuilder</string>
           <ProtectedString name="Source">local Config = require(script.Parent.KartConfig)
@@ -214,7 +405,7 @@ local RUBBER = Color3.fromRGB(13, 14, 19)
 local METAL = Color3.fromRGB(90, 101, 119)
 local BLUE = Color3.fromRGB(20, 85, 220)
 local YELLOW = Color3.fromRGB(255, 205, 35)
-local SEAT = Color3.fromRGB(25, 34, 59)
+local SEAT = Color3.fromRGB(12, 14, 18)
 
 function Builder.build(name, spawn, color)
 	color = color or Config.Palette.Red
@@ -261,6 +452,7 @@ function Builder.build(name, spawn, color)
 			local angle = (i-0.5)*math.pi*2/count
 			local cf = base * CFrame.Angles(0,0,angle) * CFrame.new(radius,0,0) * CFrame.Angles(0,0,math.pi/2)
 			local segment = part("RingSegment", Vector3.new(2*radius*math.tan(math.pi/count), thickness, thickness), cf, tint, material, parent, nil, target ~= nil)
+			if material==Enum.Material.Neon then segment.Name="BoostGlow"; segment.Transparency=1 end
 			if target then
 				local w = Instance.new("WeldConstraint"); w.Part0 = target; w.Part1 = segment; w.Parent = segment
 			end
@@ -285,27 +477,56 @@ function Builder.build(name, spawn, color)
 	chassis.RootPriority=127
 	model.PrimaryPart = chassis
 	part("FloorPan",Vector3.new(3.9,0.15,4.3),CFrame.new(0,0.48,0.1),METAL,Enum.Material.DiamondPlate)
-	-- Molded elliptical bodywork gives the kart a compact toy-racer silhouette.
-	-- Each shell is one smooth ellipsoid, avoiding a flat slab with tiled seams.
+	-- A tapered, crowned hood loft follows a gentle longitudinal curve. The
+	-- white center stripe is part of that surface instead of a floating decal.
 	part("BlueNoseLower",Vector3.new(3.25,0.74,2.5),CFrame.new(0,0.16,-2.2),BLUE,nil,body,Enum.PartType.Ball)
-	local noseCF=CFrame.new(0,1.00,-2.15)*CFrame.Angles(math.rad(-23),0,0)
-	part("WhiteNoseShell",Vector3.new(2.75,0.66,2.75),noseCF*CFrame.new(0,-0.10,0),WHITE,nil,body,Enum.PartType.Ball)
-	part("RedNose",Vector3.new(2.46,0.65,2.68),noseCF,color,nil,body,Enum.PartType.Ball)
+	part("RedNoseCore",Vector3.new(2.36,0.58,2.58),CFrame.new(0,0.62,-2.10)*CFrame.Angles(math.rad(-22),0,0),color,nil,body,Enum.PartType.Ball)
+	local function hood(t)
+		return -3.17+2.20*t,0.40+1.10*t+0.16*math.sin(math.pi*t),2.35-0.45*t
+	end
+	for i=0,7 do
+		local z0,y0,width0=hood(i/8)
+		local z1,y1,width1=hood((i+1)/8)
+		local width=(width0+width1)/2
+		local length=math.sqrt((z1-z0)^2+(y1-y0)^2)+0.012
+		local tilt=-math.atan((y1-y0)/(z1-z0))
+		local middle=CFrame.new(0,(y0+y1)/2,(z0+z1)/2)*CFrame.Angles(tilt,0,0)
+		part("WhiteCenterStripe",Vector3.new(0.84,0.055,length),middle,WHITE)
+		for _,side in ipairs({-1,1}) do
+			local panel=(width-0.84)/2
+			local x=side*(0.42+panel/2)
+			local crown=0.10*(math.abs(x)/(width/2))^2
+			local bank=-0.20*x/(width/2)^2
+			part("RedHoodPanel",Vector3.new(panel+0.018,0.075,length),middle*CFrame.new(x,-crown,0)*CFrame.Angles(0,0,bank),color)
+		end
+	end
+	for _,side in ipairs({-1,1}) do
+		part("RoundedHoodEdge",Vector3.new(0.30,0.27,2.48),CFrame.new(side*1.02,0.88,-2.10)*CFrame.Angles(math.rad(-26),-side*math.rad(6),0),color,nil,body,Enum.PartType.Ball)
+	end
+	-- Red tilted square with a real white center, centered on the stripe.
+	local bz,by=hood(0.53)
+	local badge=CFrame.new(0,by+0.07,bz)*CFrame.Angles(math.rad(-26),math.rad(15),0)
+	for _,side in ipairs({-1,1}) do
+		part("NoseSquareBadge",Vector3.new(0.55,0.012,0.16),badge*CFrame.new(0,0,side*0.195),color)
+		part("NoseSquareBadge",Vector3.new(0.16,0.012,0.23),badge*CFrame.new(side*0.195,0,0),color)
+	end
 	for _,side in ipairs({-1,1}) do
 		part("SidePodBlue",Vector3.new(0.98,0.78,2.22),CFrame.new(side*1.75,0.34,0.55),BLUE,nil,body,Enum.PartType.Ball)
 		part("SidePodWhite",Vector3.new(1.00,0.50,2.30),CFrame.new(side*1.75,0.61,0.55),WHITE,nil,body,Enum.PartType.Ball)
 		part("SidePodRed",Vector3.new(0.98,0.56,2.18),CFrame.new(side*1.75,0.81,0.55),color,nil,body,Enum.PartType.Ball)
+		part("RoundSidePanel",Vector3.new(0.94,1.20,1.20),CFrame.new(side*1.78,0.60,0.55),color,nil,body,Enum.PartType.Cylinder)
+		part("WhiteSideRoundel",Vector3.new(0.018,0.91,0.91),CFrame.new(side*2.259,0.60,0.55),WHITE,nil,body,Enum.PartType.Cylinder)
+		local sideBadge=CFrame.new(side*2.275,0.60,0.55)*CFrame.Angles(math.rad(15),0,0)
+		for _,offset in ipairs({-1,1}) do
+			part("SideSquareBadge",Vector3.new(0.014,0.56,0.16),sideBadge*CFrame.new(0,0,offset*0.20),color)
+			part("SideSquareBadge",Vector3.new(0.014,0.16,0.24),sideBadge*CFrame.new(0,offset*0.20,0),color)
+		end
 		bar("CockpitRail",Vector3.new(side*1.18,1.05,-0.5),Vector3.new(side*1.18,1.55,1.55),0.13,BLACK)
 		bar("SideGuard",Vector3.new(side*2.06,0.15,-0.45),Vector3.new(side*2.06,0.15,1.6),0.15,BLACK)
 		-- Red rounded haunches sit inside, rather than over, the rear tires.
 		part("RearFender",Vector3.new(0.75,0.37,1.15),CFrame.new(side*1.65,0.94,1.3),color,nil,body,Enum.PartType.Ball)
 	end
-	-- Four white bars form a flush tilted square with an actual open center.
-	local badge=noseCF*CFrame.new(0,0.326,-0.10)*CFrame.Angles(0,math.rad(15),0)
-	for _,side in ipairs({-1,1}) do
-		part("RobloxBadge",Vector3.new(0.88,0.012,0.25),badge*CFrame.new(0,0,side*0.315),WHITE)
-		part("RobloxBadge",Vector3.new(0.25,0.012,0.38),badge*CFrame.new(side*0.315,0,0),WHITE)
-	end
+
 	local bumper=folder("FrontBumper")
 	rounded("WhiteFrontBumper",Vector3.new(3.13,0.28,0.66),CFrame.new(0,0.13,-3.37)*CFrame.Angles(math.pi/2,0,0),WHITE,0.23,bumper)
 	for _,x in ipairs({-1.02,-0.52,0.52,1.02}) do
@@ -330,6 +551,27 @@ function Builder.build(name, spawn, color)
 	for i=1,6 do part("EngineCoolingFin",Vector3.new(1.62,0.045,0.10),CFrame.new(0,0.74,1.95+i*0.15),BLACK,Enum.Material.Metal) end
 	bar("RearAxle",Vector3.new(-2.4,0,2.4),Vector3.new(2.4,0,2.4),0.22,METAL)
 	bar("RearBumper",Vector3.new(-1.7,0.05,3.35),Vector3.new(1.7,0.05,3.35),0.22,BLACK)
+
+	for _,side in ipairs({-1,1}) do
+		local lower=Vector3.new(side*1.56,0.34,-1.75)
+		local upper=Vector3.new(side*1.31,1.28,-1.40)
+		local axis=upper-lower
+		local shock=CFrame.lookAt((lower+upper)/2,upper)
+		bar("DamperRod",lower,upper,0.075,METAL,suspension)
+		bar("DamperBody",lower,lower+axis*0.45,0.17,METAL,suspension)
+		for _,point in ipairs({lower,upper}) do
+			part("DamperEye",Vector3.new(0.22,0.22,0.22),CFrame.new(point),BLACK,Enum.Material.Metal,suspension,Enum.PartType.Ball)
+		end
+		local previous
+		for n=0,32 do
+			local t=n/32
+			local phase=t*math.pi*8
+			local offset=Vector3.new(math.cos(phase)*0.13,math.sin(phase)*0.13,(t-0.5)*axis.Magnitude*0.83)
+			local point=(shock*CFrame.new(offset)).Position
+			if previous then bar("BlueCoilSpring",previous,point,0.043,BLUE,suspension) end
+			previous=point
+		end
+	end
 
 	-- Non-colliding visual wheels; each client interpolates these same motors.
 	-- Physical contacts are handled only by the spring forces and collision hull.
@@ -361,6 +603,9 @@ function Builder.build(name, spawn, color)
 			for _,offset in ipairs({-0.25,0.25}) do
 				detail("Tread",Vector3.new(0.018,0.012,0.18),CFrame.Angles(n*math.pi/6,0,0)*CFrame.new(offset,radius,0),Color3.fromRGB(25,26,30),Enum.Material.SmoothPlastic)
 			end
+		end
+		if not front then
+			ring(group,cf*CFrame.new(side*0.56,0,0)*CFrame.Angles(0,math.pi/2,0),0.80,0.045,Color3.fromRGB(50,185,255),Enum.Material.Neon,16,tire)
 		end
 		local mount=Instance.new("Attachment"); mount.Name=label.."Mount"; mount.Position=origin; mount.Parent=chassis
 		local force=Instance.new("VectorForce"); force.Name=label.."Contact"; force.Attachment0=mount; force.RelativeTo=Enum.ActuatorRelativeTo.World; force.ApplyAtCenterOfMass=false; force.Force=Vector3.zero; force.Parent=suspension
@@ -417,7 +662,7 @@ return Builder
 </ProtectedString>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="RBXKartSeatLock">
+      <Item class="ModuleScript" referent="RBX29">
         <Properties>
           <string name="Name">KartSeatLock</string>
           <ProtectedString name="Source">-- Server seat lifecycle. A living driver stays assigned until legitimate cleanup.
@@ -488,7 +733,7 @@ return SeatLock
 </ProtectedString>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="RBXKartHUD">
+      <Item class="ModuleScript" referent="RBX30">
         <Properties>
           <string name="Name">KartHUD</string>
           <ProtectedString name="Source">-- Client presentation only. All charge, boost and cooldown decisions are server-owned.
@@ -497,8 +742,7 @@ HUD.__index = HUD
 
 local INK = Color3.fromRGB(9, 14, 25)
 local CYAN = Color3.fromRGB(76, 224, 255)
-local AMBER = Color3.fromRGB(255, 190, 63)
-local PINK = Color3.fromRGB(227, 103, 255)
+local GOLD = Color3.fromRGB(255, 214, 96)
 local MUTED = Color3.fromRGB(133, 153, 178)
 local WHITE = Color3.fromRGB(240, 248, 255)
 
@@ -564,7 +808,7 @@ function HUD.new(playerGui, config)
 			BorderSizePixel = 0, BackgroundColor3 = CYAN, BackgroundTransparency = 0.95,
 		}, shell)
 	end
-	text(shell, "SpeedCaption", UDim2.fromOffset(20, 13), UDim2.fromOffset(100, 18), "S P E E D", 10, MUTED)
+	text(shell, "SpeedCaption", UDim2.fromOffset(20, 13), UDim2.fromOffset(100, 18), "MPH", 10, MUTED)
 	self.speedText = text(shell, "Speed", UDim2.fromOffset(17, 27), UDim2.fromOffset(111, 79), "000", 64, WHITE, Enum.Font.GothamBlack)
 	self.speedBars = {}
 	for index = 1, 9 do
@@ -580,8 +824,8 @@ function HUD.new(playerGui, config)
 		Name = "Divider", Position = UDim2.fromOffset(135, 22), Size = UDim2.fromOffset(1, 107),
 		BorderSizePixel = 0, BackgroundColor3 = Color3.fromRGB(84, 119, 150), BackgroundTransparency = 0.6,
 	}, shell)
-	text(shell, "BoostCaption", UDim2.fromOffset(153, 15), UDim2.fromOffset(166, 18), "A U T O  T U R B O", 10, MUTED)
-	self.status = text(shell, "BoostState", UDim2.fromOffset(153, 37), UDim2.fromOffset(196, 29), "READY", 22, CYAN, Enum.Font.GothamBlack)
+	text(shell, "BoostCaption", UDim2.fromOffset(153, 15), UDim2.fromOffset(166, 18), "T U R B O", 10, MUTED)
+	self.status = text(shell, "BoostState", UDim2.fromOffset(153, 37), UDim2.fromOffset(196, 29), "TURBO", 22, CYAN, Enum.Font.GothamBlack)
 	self.timer = text(shell, "BoostTimer", UDim2.fromOffset(153, 68), UDim2.fromOffset(192, 24), "", 19, WHITE)
 	self.stateDot = create("Frame", {
 		Name = "StateDot", Position = UDim2.fromOffset(338, 20), Size = UDim2.fromOffset(7, 7),
@@ -602,7 +846,26 @@ function HUD.new(playerGui, config)
 		corner(fill, 2)
 		self.segments[index] = fill
 	end
-	self.phaseCaption = text(shell, "PhaseCaption", UDim2.fromOffset(153, 121), UDim2.fromOffset(195, 17), "DRIFT BOOST", 9, MUTED)
+	self.phaseCaption = text(shell, "PhaseCaption", UDim2.fromOffset(153, 121), UDim2.fromOffset(195, 17), "TURBO CHARGE", 9, MUTED)
+	-- These values come from the race system. Unknown data stays unknown.
+	self.racePanel=create("Frame", {
+		Name="RaceCounters", AnchorPoint=Vector2.new(0.5,0),
+		Position=UDim2.new(0.5,0,0,18), Size=UDim2.fromOffset(420,74),
+		BackgroundColor3=INK, BackgroundTransparency=0.12, BorderSizePixel=0,
+	},self.gui)
+	corner(self.racePanel,14)
+	create("UIStroke",{Color=Color3.fromRGB(75,114,147),Transparency=0.5,Thickness=1},self.racePanel)
+	self.raceScale=create("UIScale",{Scale=1},self.racePanel)
+	for _,x in ipairs({136,272}) do
+		create("Frame",{Name="CounterDivider",Position=UDim2.fromOffset(x,15),Size=UDim2.fromOffset(1,43),BackgroundColor3=Color3.fromRGB(84,119,150),BackgroundTransparency=0.6,BorderSizePixel=0},self.racePanel)
+	end
+	self.raceLabels={}
+	for _,counter in ipairs({{"lap",18,"LAP"},{"coins",154,"COINS"},{"wins",290,"WINS"}}) do
+		local key,x,caption=table.unpack(counter)
+		text(self.racePanel,key.."Caption",UDim2.fromOffset(x,10),UDim2.fromOffset(110,15),caption,10,key=="lap" and MUTED or GOLD)
+		self.raceLabels[key]=text(self.racePanel,key.."Value",UDim2.fromOffset(x,28),UDim2.fromOffset(110,35),"—",25,WHITE,Enum.Font.GothamBlack)
+	end
+
 	self.lines = {}
 	local random = Random.new(17)
 	for index = 1, 18 do
@@ -620,22 +883,34 @@ function HUD:SetVisible(visible)
 	if visible then self.progress = 0; self.speed = 0 end
 end
 
-function HUD:Update(model, actualSpeed, dt, now, viewport, touch)
+function HUD:Update(model, actualSpeed, dt, now, viewport, touch, raceSnapshot)
 	if viewport ~= self.viewport or touch ~= self.touch then
 		self.viewport = viewport
 		self.touch = touch
-		if touch then
-			self.shell.AnchorPoint = Vector2.new(0.5, 0)
-			self.shell.Position = UDim2.new(0.5, 0, 0, 14)
+		local scale=math.clamp(math.min(viewport.X/650,viewport.Y/600),0.62,1)
+		self.scale.Scale=scale
+		self.raceScale.Scale=scale
+		if touch and viewport.X&gt;=700 then
+			self.shell.AnchorPoint=Vector2.new(1,0)
+			self.shell.Position=UDim2.new(1,-16,0,16)
+			self.racePanel.AnchorPoint=Vector2.new(0,0)
+			self.racePanel.Position=UDim2.new(0,16,0,16)
+		elseif touch then
+			self.shell.AnchorPoint=Vector2.new(0.5,0)
+			self.shell.Position=UDim2.new(0.5,0,0,26+74*scale)
+			self.racePanel.AnchorPoint=Vector2.new(0.5,0)
+			self.racePanel.Position=UDim2.new(0.5,0,0,14)
 		else
-			self.shell.AnchorPoint = Vector2.new(1, 1)
-			self.shell.Position = UDim2.new(1, -28, 1, -28)
+			self.shell.AnchorPoint=Vector2.new(1,1)
+			self.shell.Position=UDim2.new(1,-28,1,-28)
+			self.racePanel.AnchorPoint=Vector2.new(0.5,0)
+			self.racePanel.Position=UDim2.new(0.5,0,0,18)
 		end
-		self.scale.Scale = math.clamp(math.min(viewport.X / 650, viewport.Y / 600), 0.62, 1)
 	end
-	self.speed += (actualSpeed - self.speed) * (1 - math.exp(-dt * 10))
+	local mph=actualSpeed*self.config.StudsToMPH
+	self.speed += (mph-self.speed)*(1-math.exp(-dt*10))
 	self.speedText.Text = string.format("%03d", math.floor(math.max(self.speed, 0) + 0.5))
-	local ratio = math.clamp(self.speed / (self.config.MaxSpeed + self.config.TurboPower), 0, 1)
+	local ratio = math.clamp(self.speed / ((self.config.MaxSpeed + self.config.TurboPower)*self.config.StudsToMPH), 0, 1)
 	for index, bar in ipairs(self.speedBars) do bar.BackgroundTransparency = ratio &gt;= index / 9 and 0.05 or 0.82 end
 
 	local charge = math.clamp(model:GetAttribute("DriftCharge") or 0, 0, 1)
@@ -643,35 +918,45 @@ function HUD:Update(model, actualSpeed, dt, now, viewport, touch)
 	local boostEnd = model:GetAttribute("BoostEnd") or 0
 	local cooldownEnd = model:GetAttribute("TurboCooldownEnd") or 0
 	local remaining = math.max(cooldownEnd - now, 0)
-	local color, target, status, timer, caption
+	local armed=model:GetAttribute("TurboArmed")==true
+	local color,target,status,timer,caption=CYAN,0,"TURBO","","TURBO CHARGE"
 	if boosting then
-		color, target, status = PINK, math.clamp((boostEnd - now) / self.config.TurboDuration, 0, 1), "TURBO"
-		timer, caption = string.format("%.1fs", math.max(boostEnd - now, 0)), "DRIFT BOOST ACTIVE"
-	elseif remaining &gt; 0 or model:GetAttribute("DriftReady") ~= true then
-		color, target, status = CYAN, 1 - math.clamp(remaining / self.config.TurboCooldown, 0, 1), "RECHARGING"
-		timer, caption = remaining &gt; 0 and string.format("%.1fs", remaining) or "…", "TURBO RECOVERY"
-	elseif charge &gt; 0 then
-		color, target, status = CYAN:Lerp(AMBER, charge), charge, "CHARGING"
-		timer, caption = string.format("%.1fs", math.max(self.config.DriftChargeTime * (1 - charge), 0)), "DRIFT CHARGE"
-	else
-		color, target, status, timer, caption = CYAN, 1, "READY", "", "DRIFT BOOST"
+		target=math.clamp((boostEnd-now)/self.config.TurboDuration,0,1)
+		status="TURBO ACTIVE"
+		timer,caption=string.format("%.1fs",math.max(boostEnd-now,0)),"BOOST REMAINING"
+	elseif remaining&gt;0 or model:GetAttribute("DriftReady")~=true then
+		status="RECHARGING"
+		timer,caption=remaining&gt;0 and string.format("%.1fs",remaining) or "…","TURBO RECOVERY"
+	elseif armed then
+		target,status,caption=1,"READY","TURBO CHARGED"
+	elseif charge&gt;0 then
+		target,status=charge,"CHARGING"
+		timer=string.format("%.1fs",math.max(self.config.DriftChargeTime*(1-charge),0))
 	end
 	-- Follow authoritative progress; never predict charge completion or readiness.
-	if self.lastState ~= status then
-		self.progress = status == "CHARGING" and 0 or target
-		self.lastState = status
-	end
-	self.progress += (target - self.progress) * (1 - math.exp(-dt * 18))
+	-- Charge and depletion remain continuous across charge/armed/release states.
+	self.progress+=(target-self.progress)*(1-math.exp(-dt*18))
+	if armed and not boosting then self.progress=1 end
+	self.lastState=status
 	self.status.Text, self.status.TextColor3 = status, color
 	self.timer.Text, self.phaseCaption.Text = timer, caption
 	self.edge.BackgroundColor3, self.stateDot.BackgroundColor3 = color, color
 	self.outline.Color = color:Lerp(Color3.fromRGB(75, 114, 147), 0.55)
-	local pulse = boosting and (0.5 + 0.5 * math.sin(now * 13)) or 0
+	local pulse=(boosting or armed) and (0.5+0.5*math.sin(now*10)) or 0
 	self.outline.Transparency = 0.5 - pulse * 0.3
 	for index, fill in ipairs(self.segments) do
 		fill.Size = UDim2.fromScale(math.clamp(self.progress * 16 - (index - 1), 0, 1), 1)
 		fill.BackgroundColor3 = color
 	end
+	local snapshot=raceSnapshot or {}
+	local function count(value)
+		if type(value)~="number" or value~=value or math.abs(value)==math.huge or value&lt;0 then return "—" end
+		return string.format("%d",math.floor(value))
+	end
+	self.raceLabels.lap.Text=count(snapshot.lap).." / "..count(snapshot.totalLaps)
+	self.raceLabels.coins.Text=count(snapshot.coins)
+	self.raceLabels.wins.Text=count(snapshot.wins)
+
 	for _, line in ipairs(self.lines) do
 		line.frame.Visible = boosting and actualSpeed &gt; self.config.MaxSpeed
 		if line.frame.Visible then
@@ -689,13 +974,288 @@ return HUD
 </ProtectedString>
         </Properties>
       </Item>
+      <Item class="ModuleScript" referent="RBX31">
+        <Properties>
+          <string name="Name">KartRace</string>
+          <ProtectedString name="Source">-- Server bridge to real attributes/leaderstats plus optional checkpoint/coin markers.
+-- Unknown data stays nil. This module never writes another race system's stats.
+local Players=game:GetService("Players")
+local Rules=require(script.Parent.KartRaceRules)
+local Race={}
+Race.__index=Race
+local fields={Lap="KartLap",TotalLaps="KartTotalLaps",Coins="KartCoins",Wins="KartWins"}
+local defaults={Lap={"Lap","CurrentLap"},TotalLaps={"TotalLaps","MaxLaps"},Coins={"Coins"},Wins={"Wins","Trophies"}}
+local reserved={KartLap=true,KartTotalLaps=true,KartCoins=true,KartWins=true}
+
+local function binding(player, field, config)
+	local names=(config.RaceStatNames and config.RaceStatNames[field]) or defaults[field]
+	if type(names)=="string" then names={names} end
+	if type(names)~="table" then names=defaults[field] end
+	local leaderstats=player:FindFirstChild("leaderstats")
+	for _,name in ipairs(names) do
+		if type(name)=="string" and not reserved[name] then
+			local value=Rules.counter(player:GetAttribute(name))
+			if value~=nil and (field~="TotalLaps" or value&gt;=1) then return value end
+			local stat=leaderstats and leaderstats:FindFirstChild(name)
+			if stat and (stat:IsA("IntValue") or stat:IsA("NumberValue")) then
+				value=Rules.counter(stat.Value)
+				if value~=nil and (field~="TotalLaps" or value&gt;=1) then return value end
+			end
+		end
+	end
+	return nil
+end
+
+function Race.new(config)
+	local self=setmetatable({config=config,elapsed=0,refresh=0,states={},positions={},round={},checkpoints={},coins={}},Race)
+	self.removing=Players.PlayerRemoving:Connect(function(player)
+		self.states[player]=nil; self.positions[player]=nil
+	end)
+	self:_refresh()
+	return self
+end
+
+function Race:_state(player)
+	if not self.states[player] then self.states[player]=Rules.new() end
+	return self.states[player]
+end
+
+function Race:ResetRound()
+	self.round={}
+	self.positions={}
+	for player,state in pairs(self.states) do
+		local fresh=Rules.new()
+		fresh.coins=state.coins; fresh.wins=state.wins
+		self.states[player]=fresh
+	end
+end
+
+function Race:_refresh()
+	local course=workspace:FindFirstChild("KartRace")
+	local gates=course and course:FindFirstChild("Checkpoints")
+	local coinFolder=course and course:FindFirstChild("Coins")
+	local checkpoints,coins={},{}
+	local valid=gates~=nil
+	if gates then
+		for _,part in ipairs(gates:GetChildren()) do
+			if part:IsA("BasePart") then
+				local raw=part:GetAttribute("Order")
+				if raw==nil then raw=tonumber(part.Name) end
+				local order=Rules.counter(raw)
+				if not order or order&lt;1 or order~=raw or checkpoints[order] then valid=false
+				else checkpoints[order]=part end
+			end
+		end
+	end
+	local count=0
+	for _ in pairs(checkpoints) do count+=1 end
+	if count&lt;2 or count&gt;200 then valid=false end
+	for order=1,count do if not checkpoints[order] then valid=false end end
+	local total=Rules.counter(course and course:GetAttribute("TotalLaps"))
+	if not total or total&lt;1 then total=Rules.counter(self.config.RaceTotalLaps) or 3 end
+	if total&lt;1 then total=3 end
+	local changed=self.course~=course or self.total~=total or self.hasCourse~=valid or #self.checkpoints~=(valid and count or 0)
+	if valid and not changed then for index,part in ipairs(checkpoints) do if self.checkpoints[index]~=part then changed=true; break end end end
+	if coinFolder then
+		for _,part in ipairs(coinFolder:GetChildren()) do if part:IsA("BasePart") then table.insert(coins,part) end end
+	end
+	self.course=course; self.hasCourse=valid; self.hasCoins=coinFolder~=nil
+	self.checkpoints=valid and checkpoints or {}; self.coins=coins; self.total=total
+	if changed then self:ResetRound() end
+end
+
+function Race:_publish(player)
+	local state=self:_state(player)
+	local externalLap=binding(player,"Lap",self.config)
+	for field,attribute in pairs(fields) do
+		local value=binding(player,field,self.config)
+		if value==nil then
+			if field=="Lap" and self.hasCourse then value=state.lap end
+			if field=="TotalLaps" and self.hasCourse and externalLap==nil then value=self.total end
+			if field=="Coins" and self.hasCoins then value=state.coins end
+			if field=="Wins" and self.hasCourse and externalLap==nil then value=state.wins end
+		end
+		if player:GetAttribute(attribute)~=value then player:SetAttribute(attribute,value) end
+	end
+end
+
+function Race:Update(karts, dt)
+	if self.destroyed then return end
+	self.elapsed+=math.max(0,dt)
+	self.refresh+=math.max(0,dt)
+	if self.elapsed&lt;0.1 then return end
+	local sample=self.elapsed; self.elapsed=0
+	if self.refresh&gt;=1 then self.refresh=0; self:_refresh() end
+	local active={}
+	local finishers={}
+	for _,kart in ipairs(karts) do
+		local player=kart.player
+		local occupant=kart.seat and kart.seat.Occupant
+		if player and player.Parent==Players and occupant and occupant.Health&gt;0 and player.Character==occupant.Parent
+			and kart.chassis and kart.chassis:IsDescendantOf(workspace) then
+			active[player]=true
+			local state=self:_state(player)
+			local position=kart.chassis.Position
+			local previous=self.positions[player]
+			-- Ignore void recovery/other teleports as checkpoint sweeps.
+			local limit=((self.config.MaxSpeed or 82)+(self.config.TurboPower or 32)+20)*sample+12
+			local teleported=previous and (position-previous).Magnitude&gt;limit*2
+			if teleported then previous=nil; Rules.resetRoute(state) end
+			if not teleported and self.hasCourse and binding(player,"Lap",self.config)==nil then
+				local events={}
+				for order,gate in ipairs(self.checkpoints) do
+					if gate:IsDescendantOf(workspace) then
+						local half=gate.Size/2
+						local before=previous and gate.CFrame:PointToObjectSpace(previous) or nil
+						local after=gate.CFrame:PointToObjectSpace(position)
+						local entered=Rules.entry(before,after,half)
+						if entered then table.insert(events,{order=order,time=entered}) end
+					end
+				end
+				table.sort(events,function(a,b) return a.time==b.time and a.order&lt;b.order or a.time&lt;b.time end)
+				for _,event in ipairs(events) do
+					if Rules.visit(state,event.order,#self.checkpoints,binding(player,"TotalLaps",self.config) or self.total)=="finish" then
+						table.insert(finishers,{player=player,state=state,time=event.time})
+					end
+				end
+			end
+			if self.hasCoins and binding(player,"Coins",self.config)==nil then
+				local reach=self.config.RaceCoinPickupRadius or 3.5
+				for _,coin in ipairs(self.coins) do
+					if coin:IsDescendantOf(workspace) then
+						local nearest=position
+						if previous then
+							local direction=position-previous
+							local lengthSquared=direction:Dot(direction)
+							if lengthSquared&gt;1e-9 then
+								local along=math.clamp((coin.Position-previous):Dot(direction)/lengthSquared,0,1)
+								nearest=previous+direction*along
+							end
+						end
+						if (nearest-coin.Position).Magnitude&lt;=reach then Rules.collect(state,coin,coin:GetAttribute("Value") or 1) end
+					end
+				end
+			end
+			self.positions[player]=position
+		end
+	end
+	-- Compare swept crossing times across karts, not their iteration/spawn order.
+	table.sort(finishers,function(a,b)
+		return a.time==b.time and a.player.UserId&lt;b.player.UserId or a.time&lt;b.time
+	end)
+	if finishers[1] and Rules.claimWinner(self.round,finishers[1].player.UserId) then
+		finishers[1].state.wins+=1
+	end
+
+	for player in pairs(self.positions) do
+		if not active[player] then self.positions[player]=nil; Rules.resetRoute(self:_state(player)) end
+	end
+	for _,player in ipairs(Players:GetPlayers()) do self:_publish(player) end
+end
+
+function Race:Destroy()
+	if self.destroyed then return end
+	self.destroyed=true
+	self.removing:Disconnect()
+	for _,player in ipairs(Players:GetPlayers()) do
+		for _,attribute in pairs(fields) do player:SetAttribute(attribute,nil) end
+	end
+	table.clear(self.states); table.clear(self.positions)
+end
+
+return Race
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="RBX32">
+        <Properties>
+          <string name="Name">KartRaceRules</string>
+          <ProtectedString name="Source">-- Pure server race rules. No client can submit checkpoint, coin or finish events.
+local Rules = {}
+
+function Rules.counter(value)
+	if type(value)~="number" or value~=value or math.abs(value)==math.huge or value&lt;0 then return nil end
+	return math.floor(value)
+end
+
+function Rules.new()
+	return {started=false,expected=1,lap=0,completed=0,finished=false,coins=0,wins=0,collected={}}
+end
+
+function Rules.visit(state, order, checkpointCount, totalLaps)
+	if state.finished or order~=state.expected or checkpointCount&lt;2 or totalLaps&lt;1 then return nil end
+	if not state.started then
+		if order~=1 then return nil end
+		state.started=true; state.lap=state.completed+1; state.expected=2
+		return "start"
+	end
+	if order==1 then
+		state.completed+=1
+		if state.completed&gt;=totalLaps then
+			state.finished=true; state.lap=totalLaps
+			return "finish"
+		end
+		state.lap=state.completed+1; state.expected=2
+		return "lap"
+	end
+	state.expected=order==checkpointCount and 1 or order+1
+	return "checkpoint"
+end
+
+function Rules.resetRoute(state)
+	if state.finished then return end
+	state.started=false; state.expected=1; state.lap=state.completed
+end
+
+function Rules.claimWinner(round, userId)
+	if round.winner~=nil then return false end
+	round.winner=userId
+	return true
+end
+
+function Rules.collect(state, coin, value)
+	value=Rules.counter(value)
+	if not value or value&lt;1 or state.finished or state.collected[coin] then return false end
+	state.collected[coin]=true; state.coins+=value
+	return true
+end
+
+function Rules.inside(point, half)
+	return math.abs(point.X)&lt;=half.X and math.abs(point.Y)&lt;=half.Y and math.abs(point.Z)&lt;=half.Z
+end
+
+-- Slab intersection returns when a swept server position enters a gate.
+-- A driver already inside a gate cannot repeatedly trigger it while parked.
+function Rules.entry(previous, current, half)
+	if not previous then return Rules.inside(current,half) and 0 or nil end
+	if Rules.inside(previous,half) then return nil end
+	local enter,leave=0,1
+	for _,axis in ipairs({"X","Y","Z"}) do
+		local origin=previous[axis]
+		local delta=current[axis]-origin
+		if math.abs(delta)&lt;1e-9 then
+			if math.abs(origin)&gt;half[axis] then return nil end
+		else
+			local a,b=(-half[axis]-origin)/delta,(half[axis]-origin)/delta
+			if a&gt;b then a,b=b,a end
+			enter=math.max(enter,a); leave=math.min(leave,b)
+			if enter&gt;leave then return nil end
+		end
+	end
+	return enter
+end
+
+return table.freeze(Rules)
+</ProtectedString>
+        </Properties>
+      </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="RBXServerScriptService">
+  <Item class="ServerScriptService" referent="RBX33">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="RBXKartServer">
+    <Item class="Script" referent="RBX34">
       <Properties>
         <string name="Name">KartServer</string>
         <ProtectedString name="Source">local Players = game:GetService("Players")
@@ -707,6 +1267,11 @@ local Config = require(System.KartConfig)
 local Dynamics = require(System.KartDynamics)
 local Builder = require(System.KartBuilder)
 local SeatLock = require(System.KartSeatLock)
+local Race = require(System.KartRace)
+local race = Race.new(Config)
+local resetRace = Instance.new("BindableEvent")
+resetRace.Name="ResetRace"; resetRace.Parent=script
+resetRace.Event:Connect(function() race:ResetRound() end)
 
 local remotes = Instance.new("Folder"); remotes.Name="Remotes"; remotes.Parent=System
 local input = Instance.new("RemoteEvent"); input.Name="Input"; input.Parent=remotes
@@ -736,6 +1301,7 @@ local function restoreDriver(s)
 	if s.player then playerStates[s.player]=nil end
 	s.player=nil; s.throttle=0; s.steer=0; s.drift=false
 	s.charge=0; s.boostEnd=0; s.boostPower=0
+	s.turboArmed=false; s.wasDrift=false
 	-- Cooldown is retained across character replacement/cleanup.
 	s.model:SetAttribute("DriverUserId",0)
 	s.model:SetAttribute("DriverLocked",false)
@@ -811,7 +1377,23 @@ local function spawnKart(cf, colorName)
 	s.model.Parent=world
 	CollectionService:AddTag(s.model,"RacingKart")
 	s.spawn=cf; s.throttle=0; s.steer=0; s.visualSteer=0; s.drift=false
-	s.lastInput=0; s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0
+	s.lastInput=0; s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0; s.turboArmed=false
+	s.turboEffect=0; s.trails={}
+	for _,wheel in ipairs(s.wheels) do
+		if not wheel.front then
+			local a=Instance.new("Attachment"); a.Name="TurboTrailTop"; a.Position=wheel.origin+Vector3.new(0,0.05,0.5)*Config.ModelScale; a.Parent=s.chassis
+			local b=Instance.new("Attachment"); b.Name="TurboTrailBottom"; b.Position=a.Position-Vector3.new(0,0.22*Config.ModelScale,0); b.Parent=s.chassis
+			local trail=Instance.new("Trail"); trail.Name="BlueTurboTrail"; trail.Attachment0=a; trail.Attachment1=b
+			trail.Color=ColorSequence.new(Color3.fromRGB(45,165,255),Color3.fromRGB(135,235,255))
+			trail.Lifetime=0.32; trail.LightEmission=0.6; trail.MinLength=0.1; trail.Enabled=false
+			trail.Transparency=NumberSequence.new(0.5,1); trail.Parent=s.model.Effects
+			table.insert(s.trails,trail)
+		end
+	end
+	for _,flame in ipairs(s.flames) do
+		flame.emitter.Color=ColorSequence.new(Color3.fromRGB(175,245,255),Color3.fromRGB(25,115,255))
+		flame.light.Color=Color3.fromRGB(50,170,255)
+	end
 	s.visualClock=0; s.iks={}; s.emptyTime=0
 	s.filteredSteer=0; s.filteredThrottle=0; s.driftBlend=0; s.normal=Vector3.yAxis; s.driveAccel=0
 	s.params=RaycastParams.new(); s.params.FilterType=Enum.RaycastFilterType.Exclude
@@ -892,10 +1474,10 @@ RunService.PreSimulation:Connect(function(delta)
 			root.Anchored=false; s.model:PivotTo(s.spawn)
 			if character and relative then character:PivotTo(s.spawn*relative) end
 			root.AssemblyLinearVelocity=Vector3.zero; root.AssemblyAngularVelocity=Vector3.zero
-			s.charge=0; s.boostEnd=0; s.boostPower=0
+			s.charge=0; s.boostEnd=0; s.boostPower=0; s.turboArmed=false; s.wasDrift=false
 		end
 		if s.player and now-s.lastInput&gt;Config.InputTimeout then
-			s.throttle=0; s.steer=0; s.drift=false; s.charge=0
+			s.throttle=0; s.steer=0; s.drift=false; s.charge=0; s.turboArmed=false; s.wasDrift=false
 		end
 		local exclusions={s.model,table.unpack(characters)}
 		s.params.FilterDescendantsInstances=exclusions
@@ -927,6 +1509,7 @@ RunService.PreSimulation:Connect(function(delta)
 		end
 		local grounded=#contacts&gt;=2
 		local drifting,boost=Dynamics.updateBoost(s,now,dt,grounded,speed,Config)
+		s.turboEffect=Dynamics.approach(s.turboEffect,boost&gt;0 and 1 or 0,boost&gt;0 and 14 or 5,dt)
 		s.filteredSteer=Dynamics.approach(s.filteredSteer,s.player and s.steer or 0,Config.SteerResponse,dt)
 		s.filteredThrottle=Dynamics.approach(s.filteredThrottle,s.player and s.throttle or 0,Config.ThrottleResponse,dt)
 		if math.abs(s.filteredThrottle)&lt;0.001 then s.filteredThrottle=0 end
@@ -984,11 +1567,20 @@ RunService.PreSimulation:Connect(function(delta)
 				wheel.smoke.Rate=drifting and not wheel.front and 12 or 0
 				wheel.sparks.Rate=drifting and not wheel.front and (5+charge*15) or 0
 				wheel.sparks.Color=ColorSequence.new(chargeColors[1]:Lerp(chargeColors[2],charge))
+				for _,glow in ipairs(wheel.glow or {}) do glow.Transparency=1-s.turboEffect*0.75 end
 			end
 			s.model:SetAttribute("SteerAngle",s.visualSteer)
 			s.model:SetAttribute("DriftBlend",s.driftBlend)
 			if s.waist then s.waist.C0=s.waistBase*CFrame.Angles(0,0,-s.visualSteer*0.16) end
-			for _,flame in ipairs(s.flames) do flame.emitter.Rate=boost&gt;0 and 35 or 0; flame.light.Brightness=boost&gt;0 and 2 or 0; flame.smoke.Rate=s.player and s.filteredThrottle&gt;0.1 and 3 or 0 end
+			for _,flame in ipairs(s.flames) do
+				flame.emitter.Rate=s.turboEffect&gt;0.02 and s.turboEffect*35 or 0
+				flame.light.Brightness=s.turboEffect*2
+				flame.smoke.Rate=s.player and s.filteredThrottle&gt;0.1 and 3 or 0
+			end
+			for _,trail in ipairs(s.trails) do
+				trail.Enabled=s.turboEffect&gt;0.1
+				trail.Transparency=NumberSequence.new(1-s.turboEffect*0.55,1)
+			end
 			for _,light in ipairs(s.model.Effects:GetChildren()) do
 				if light.Name=="BrakeLight" and light:IsA("BasePart") then
 					local braking=s.throttle&lt;0 and speed&gt;2
@@ -998,6 +1590,7 @@ RunService.PreSimulation:Connect(function(delta)
 			end
 			s.model:SetAttribute("Speed",math.abs(speed)); s.model:SetAttribute("Boosting",boost&gt;0)
 			s.model:SetAttribute("DriftCharge",charge)
+			s.model:SetAttribute("TurboArmed",s.turboArmed==true)
 			s.model:SetAttribute("BoostEnd",s.boostEnd)
 			s.model:SetAttribute("TurboCooldownEnd",s.cooldown)
 			s.model:SetAttribute("TurboCooldownRemaining",math.max(0,s.cooldown-now))
@@ -1005,21 +1598,22 @@ RunService.PreSimulation:Connect(function(delta)
 			s.model:SetAttribute("DriverLocked",s.seatLock~=nil)
 		end
 	end
+	race:Update(states,dt)
 end)
 </ProtectedString>
         <bool name="Disabled">false</bool>
       </Properties>
     </Item>
   </Item>
-  <Item class="StarterPlayer" referent="RBXStarterPlayer">
+  <Item class="StarterPlayer" referent="RBX35">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="RBXStarterPlayerScripts">
+    <Item class="StarterPlayerScripts" referent="RBX36">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="LocalScript" referent="RBXKartController">
+      <Item class="LocalScript" referent="RBX37">
         <Properties>
           <string name="Name">KartController</string>
           <ProtectedString name="Source">local Players=game:GetService("Players")
@@ -1269,7 +1863,10 @@ RunService:BindToRenderStep("KartCamera",Enum.RenderPriority.Camera.Value+1,func
 	camera.CFrame=cameraCF -- no procedural shake, including drift and turbo
 	local targetFov=70+math.clamp(speed/100,0,1)*12+(boosting and 5 or 0)
 	camera.FieldOfView+=(targetFov-camera.FieldOfView)*(1-math.exp(-dt*5))
-	hud:Update(active,speed,dt,workspace:GetServerTimeNow(),camera.ViewportSize,UserInputService.TouchEnabled)
+	hud:Update(active,speed,dt,workspace:GetServerTimeNow(),camera.ViewportSize,UserInputService.TouchEnabled,{
+		lap=player:GetAttribute("KartLap"),totalLaps=player:GetAttribute("KartTotalLaps"),
+		coins=player:GetAttribute("KartCoins"),wins=player:GetAttribute("KartWins"),
+	})
 end)
 </ProtectedString>
           <bool name="Disabled">false</bool>

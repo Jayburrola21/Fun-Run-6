@@ -1,6 +1,6 @@
 -- Distances in studs, speeds in studs/second. Local forward is -Z.
 return table.freeze({
-	ReleaseVersion = 3,
+	ReleaseVersion = 4,
 	ModelScale = 0.84,
 	MaxSpeed = 82,
 	ReverseSpeed = 24,
@@ -30,10 +30,19 @@ return table.freeze({
 	SpringFrequency = 2.0,
 	SpringDamping = 1.05,
 	DriftMinSpeed = 27,
-	DriftChargeTime = 1.5,
-	TurboDuration = 1.15,
+	DriftChargeTime = 0.9,
+	TurboDuration = 1.5,
 	TurboPower = 32,
 	TurboCooldown = 6,
+	-- Default Roblox unit conversion: one stud = 0.28 metres.
+	StudsToMPH = 0.28 * 2.2369362921,
+	RaceTotalLaps = 3,
+	RaceStatNames = {
+		Lap = {"Lap", "CurrentLap"},
+		TotalLaps = {"TotalLaps", "MaxLaps"},
+		Coins = {"Coins"},
+		Wins = {"Wins", "Trophies"},
+	},
 	InputTimeout = 0.5,
 	InputRate = 30,
 	SpawnCFrame = CFrame.new(0, 5, 0),

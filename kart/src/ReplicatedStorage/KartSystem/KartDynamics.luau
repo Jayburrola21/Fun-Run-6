@@ -45,30 +45,35 @@ end
 
 function Dynamics.updateBoost(state, now, dt, grounded, speed, config)
 	if state.player==nil then
-		state.charge=0; state.wasDrift=false; state.boostEnd=0; state.boostPower=0
+		state.charge=0; state.turboArmed=false; state.wasDrift=false; state.boostEnd=0; state.boostPower=0
 		-- The kart retains its recharge deadline when a driver leaves or respawns.
 		return false,0
 	end
-	local drifting=state.drift and math.abs(state.steer)>0.15 and speed>config.DriftMinSpeed and grounded
+	local validMotion=math.abs(state.steer)>0.15 and speed>config.DriftMinSpeed and grounded
+	local drifting=state.drift and validMotion
 	local readyAt=math.max(state.cooldown,state.boostEnd)
-	if drifting and now>=readyAt then
-		-- A long simulation stall cannot instantly award a drift boost, and a
-		-- frame straddling recharge completion only credits its eligible tail.
+	if now<readyAt then
+		state.charge=0; state.turboArmed=false
+	elseif drifting then
+		-- A stalled simulation cannot instantly arm turbo. A frame straddling
+		-- recharge completion only credits its eligible tail.
 		local elapsed=Dynamics.finite(dt) and math.clamp(dt,0,1/15) or 0
 		elapsed=math.min(elapsed,math.max(now-readyAt,0))
 		state.charge=math.min(state.charge+elapsed,config.DriftChargeTime)
-		-- Epoch deadlines have sub-microsecond double precision; allow that
-		-- rounding error without adding a simulation frame to the charge.
+		-- Epoch deadlines have sub-microsecond double precision. Keep the meter
+		-- exactly full when that rounding tolerance completes the charge.
 		if state.charge+1e-6>=config.DriftChargeTime then
-			state.charge=0
-			state.boostEnd=now+config.TurboDuration
-			state.boostPower=config.TurboPower
-			state.cooldown=now+config.TurboCooldown
+			state.charge=config.DriftChargeTime; state.turboArmed=true
 		end
+	elseif not state.drift and state.wasDrift and state.turboArmed and validMotion then
+		-- Only a release after a continuous fully charged drift redeems turbo;
+		-- merely losing ground, speed, or steering cannot cash in the charge.
+		state.charge=0; state.turboArmed=false
+		state.boostEnd=now+config.TurboDuration
+		state.boostPower=config.TurboPower
+		state.cooldown=now+config.TurboCooldown
 	else
-		-- Releasing the drift or losing speed/contact cancels partial charge.
-		-- Turbo and recharge also require a fresh charge after they finish.
-		state.charge=0
+		state.charge=0; state.turboArmed=false
 	end
 	state.wasDrift=drifting
 	local power=now<state.boostEnd and state.boostPower or 0

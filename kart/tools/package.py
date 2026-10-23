@@ -5,21 +5,25 @@ import hashlib
 import json
 import xml.etree.ElementTree as ET
 import zipfile
+from itertools import count
 
 ROOT = Path(__file__).resolve().parents[1]
+REFERENTS = count(1)
 SOURCES = {
     "KartConfig": ROOT / "src/ReplicatedStorage/KartSystem/KartConfig.luau",
     "KartDynamics": ROOT / "src/ReplicatedStorage/KartSystem/KartDynamics.luau",
     "KartBuilder": ROOT / "src/ReplicatedStorage/KartSystem/KartBuilder.luau",
     "KartSeatLock": ROOT / "src/ReplicatedStorage/KartSystem/KartSeatLock.luau",
     "KartHUD": ROOT / "src/ReplicatedStorage/KartSystem/KartHUD.luau",
+    "KartRace": ROOT / "src/ReplicatedStorage/KartSystem/KartRace.luau",
+    "KartRaceRules": ROOT / "src/ReplicatedStorage/KartSystem/KartRaceRules.luau",
     "KartServer": ROOT / "src/ServerScriptService/KartServer.server.luau",
     "KartController": ROOT / "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau",
 }
 
 
 def item(parent, cls, name):
-    element = ET.SubElement(parent, "Item", {"class": cls, "referent": f"RBX{name}"})
+    element = ET.SubElement(parent, "Item", {"class": cls, "referent": f"RBX{next(REFERENTS)}"})
     props = ET.SubElement(element, "Properties")
     ET.SubElement(props, "string", {"name": "Name"}).text = name
     return element, props
@@ -36,7 +40,7 @@ def code(parent, name, disabled=False):
 
 def system(parent):
     folder, _ = item(parent, "Folder", "KartSystem")
-    for name in ("KartConfig", "KartDynamics", "KartBuilder", "KartSeatLock", "KartHUD"):
+    for name in ("KartConfig", "KartDynamics", "KartBuilder", "KartSeatLock", "KartHUD", "KartRace", "KartRaceRules"):
         code(folder, name)
 
 
@@ -79,6 +83,23 @@ def main():
     vector(props, "Size", (600, 1, 600))
     frame(props, (0, -0.5, 0))
     ET.SubElement(props, "bool", {"name": "Anchored"}).text = "true"
+    course, _ = item(workspace, "Folder", "KartRace")
+    checkpoints, _ = item(course, "Folder", "Checkpoints")
+    for index, position in enumerate(((0, 3, -35), (65, 3, -35), (65, 3, 45), (0, 3, 45)), 1):
+        gate, gate_props = item(checkpoints, "Part", str(index))
+        vector(gate_props, "Size", (14, 8, 14))
+        frame(gate_props, position)
+        ET.SubElement(gate_props, "bool", {"name": "Anchored"}).text = "true"
+        ET.SubElement(gate_props, "bool", {"name": "CanCollide"}).text = "false"
+        ET.SubElement(gate_props, "float", {"name": "Transparency"}).text = "0.88"
+    coins, _ = item(course, "Folder", "Coins")
+    for index, position in enumerate(((0, 1.5, -15), (65, 1.5, 10)), 1):
+        coin, coin_props = item(coins, "Part", f"DemoCoin{index}")
+        vector(coin_props, "Size", (0.3, 2, 2))
+        frame(coin_props, position)
+        ET.SubElement(coin_props, "bool", {"name": "Anchored"}).text = "true"
+        ET.SubElement(coin_props, "bool", {"name": "CanCollide"}).text = "false"
+        ET.SubElement(coin_props, "token", {"name": "shape"}).text = "2"
     spawn, props = item(workspace, "SpawnLocation", "PlayerSpawn")
     vector(props, "Size", (6, 1, 6))
     frame(props, (9, 0.5, 6))

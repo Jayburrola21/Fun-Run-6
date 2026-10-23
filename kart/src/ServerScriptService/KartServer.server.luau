@@ -7,6 +7,11 @@ local Config = require(System.KartConfig)
 local Dynamics = require(System.KartDynamics)
 local Builder = require(System.KartBuilder)
 local SeatLock = require(System.KartSeatLock)
+local Race = require(System.KartRace)
+local race = Race.new(Config)
+local resetRace = Instance.new("BindableEvent")
+resetRace.Name="ResetRace"; resetRace.Parent=script
+resetRace.Event:Connect(function() race:ResetRound() end)
 
 local remotes = Instance.new("Folder"); remotes.Name="Remotes"; remotes.Parent=System
 local input = Instance.new("RemoteEvent"); input.Name="Input"; input.Parent=remotes
@@ -36,6 +41,7 @@ local function restoreDriver(s)
 	if s.player then playerStates[s.player]=nil end
 	s.player=nil; s.throttle=0; s.steer=0; s.drift=false
 	s.charge=0; s.boostEnd=0; s.boostPower=0
+	s.turboArmed=false; s.wasDrift=false
 	-- Cooldown is retained across character replacement/cleanup.
 	s.model:SetAttribute("DriverUserId",0)
 	s.model:SetAttribute("DriverLocked",false)
@@ -111,7 +117,23 @@ local function spawnKart(cf, colorName)
 	s.model.Parent=world
 	CollectionService:AddTag(s.model,"RacingKart")
 	s.spawn=cf; s.throttle=0; s.steer=0; s.visualSteer=0; s.drift=false
-	s.lastInput=0; s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0
+	s.lastInput=0; s.charge=0; s.boostEnd=0; s.boostPower=0; s.cooldown=0; s.turboArmed=false
+	s.turboEffect=0; s.trails={}
+	for _,wheel in ipairs(s.wheels) do
+		if not wheel.front then
+			local a=Instance.new("Attachment"); a.Name="TurboTrailTop"; a.Position=wheel.origin+Vector3.new(0,0.05,0.5)*Config.ModelScale; a.Parent=s.chassis
+			local b=Instance.new("Attachment"); b.Name="TurboTrailBottom"; b.Position=a.Position-Vector3.new(0,0.22*Config.ModelScale,0); b.Parent=s.chassis
+			local trail=Instance.new("Trail"); trail.Name="BlueTurboTrail"; trail.Attachment0=a; trail.Attachment1=b
+			trail.Color=ColorSequence.new(Color3.fromRGB(45,165,255),Color3.fromRGB(135,235,255))
+			trail.Lifetime=0.32; trail.LightEmission=0.6; trail.MinLength=0.1; trail.Enabled=false
+			trail.Transparency=NumberSequence.new(0.5,1); trail.Parent=s.model.Effects
+			table.insert(s.trails,trail)
+		end
+	end
+	for _,flame in ipairs(s.flames) do
+		flame.emitter.Color=ColorSequence.new(Color3.fromRGB(175,245,255),Color3.fromRGB(25,115,255))
+		flame.light.Color=Color3.fromRGB(50,170,255)
+	end
 	s.visualClock=0; s.iks={}; s.emptyTime=0
 	s.filteredSteer=0; s.filteredThrottle=0; s.driftBlend=0; s.normal=Vector3.yAxis; s.driveAccel=0
 	s.params=RaycastParams.new(); s.params.FilterType=Enum.RaycastFilterType.Exclude
@@ -192,10 +214,10 @@ RunService.PreSimulation:Connect(function(delta)
 			root.Anchored=false; s.model:PivotTo(s.spawn)
 			if character and relative then character:PivotTo(s.spawn*relative) end
 			root.AssemblyLinearVelocity=Vector3.zero; root.AssemblyAngularVelocity=Vector3.zero
-			s.charge=0; s.boostEnd=0; s.boostPower=0
+			s.charge=0; s.boostEnd=0; s.boostPower=0; s.turboArmed=false; s.wasDrift=false
 		end
 		if s.player and now-s.lastInput>Config.InputTimeout then
-			s.throttle=0; s.steer=0; s.drift=false; s.charge=0
+			s.throttle=0; s.steer=0; s.drift=false; s.charge=0; s.turboArmed=false; s.wasDrift=false
 		end
 		local exclusions={s.model,table.unpack(characters)}
 		s.params.FilterDescendantsInstances=exclusions
@@ -227,6 +249,7 @@ RunService.PreSimulation:Connect(function(delta)
 		end
 		local grounded=#contacts>=2
 		local drifting,boost=Dynamics.updateBoost(s,now,dt,grounded,speed,Config)
+		s.turboEffect=Dynamics.approach(s.turboEffect,boost>0 and 1 or 0,boost>0 and 14 or 5,dt)
 		s.filteredSteer=Dynamics.approach(s.filteredSteer,s.player and s.steer or 0,Config.SteerResponse,dt)
 		s.filteredThrottle=Dynamics.approach(s.filteredThrottle,s.player and s.throttle or 0,Config.ThrottleResponse,dt)
 		if math.abs(s.filteredThrottle)<0.001 then s.filteredThrottle=0 end
@@ -284,11 +307,20 @@ RunService.PreSimulation:Connect(function(delta)
 				wheel.smoke.Rate=drifting and not wheel.front and 12 or 0
 				wheel.sparks.Rate=drifting and not wheel.front and (5+charge*15) or 0
 				wheel.sparks.Color=ColorSequence.new(chargeColors[1]:Lerp(chargeColors[2],charge))
+				for _,glow in ipairs(wheel.glow or {}) do glow.Transparency=1-s.turboEffect*0.75 end
 			end
 			s.model:SetAttribute("SteerAngle",s.visualSteer)
 			s.model:SetAttribute("DriftBlend",s.driftBlend)
 			if s.waist then s.waist.C0=s.waistBase*CFrame.Angles(0,0,-s.visualSteer*0.16) end
-			for _,flame in ipairs(s.flames) do flame.emitter.Rate=boost>0 and 35 or 0; flame.light.Brightness=boost>0 and 2 or 0; flame.smoke.Rate=s.player and s.filteredThrottle>0.1 and 3 or 0 end
+			for _,flame in ipairs(s.flames) do
+				flame.emitter.Rate=s.turboEffect>0.02 and s.turboEffect*35 or 0
+				flame.light.Brightness=s.turboEffect*2
+				flame.smoke.Rate=s.player and s.filteredThrottle>0.1 and 3 or 0
+			end
+			for _,trail in ipairs(s.trails) do
+				trail.Enabled=s.turboEffect>0.1
+				trail.Transparency=NumberSequence.new(1-s.turboEffect*0.55,1)
+			end
 			for _,light in ipairs(s.model.Effects:GetChildren()) do
 				if light.Name=="BrakeLight" and light:IsA("BasePart") then
 					local braking=s.throttle<0 and speed>2
@@ -298,6 +330,7 @@ RunService.PreSimulation:Connect(function(delta)
 			end
 			s.model:SetAttribute("Speed",math.abs(speed)); s.model:SetAttribute("Boosting",boost>0)
 			s.model:SetAttribute("DriftCharge",charge)
+			s.model:SetAttribute("TurboArmed",s.turboArmed==true)
 			s.model:SetAttribute("BoostEnd",s.boostEnd)
 			s.model:SetAttribute("TurboCooldownEnd",s.cooldown)
 			s.model:SetAttribute("TurboCooldownRemaining",math.max(0,s.cooldown-now))
@@ -305,4 +338,5 @@ RunService.PreSimulation:Connect(function(delta)
 			s.model:SetAttribute("DriverLocked",s.seatLock~=nil)
 		end
 	end
+	race:Update(states,dt)
 end)

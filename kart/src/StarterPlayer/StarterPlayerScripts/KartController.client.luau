@@ -245,5 +245,8 @@ RunService:BindToRenderStep("KartCamera",Enum.RenderPriority.Camera.Value+1,func
 	camera.CFrame=cameraCF -- no procedural shake, including drift and turbo
 	local targetFov=70+math.clamp(speed/100,0,1)*12+(boosting and 5 or 0)
 	camera.FieldOfView+=(targetFov-camera.FieldOfView)*(1-math.exp(-dt*5))
-	hud:Update(active,speed,dt,workspace:GetServerTimeNow(),camera.ViewportSize,UserInputService.TouchEnabled)
+	hud:Update(active,speed,dt,workspace:GetServerTimeNow(),camera.ViewportSize,UserInputService.TouchEnabled,{
+		lap=player:GetAttribute("KartLap"),totalLaps=player:GetAttribute("KartTotalLaps"),
+		coins=player:GetAttribute("KartCoins"),wins=player:GetAttribute("KartWins"),
+	})
 end)

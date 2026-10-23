@@ -1,9 +1,11 @@
 {
-  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "c0244462c8141a400da1541bb98e4158cd0babd42f91e9e4bfd89d6958e3207d",
-  "src/ReplicatedStorage/KartSystem/KartDynamics.luau": "495054aad324e92c2c86f8f768f0c91a191ddad398aecc506979a5220ed8a888",
-  "src/ReplicatedStorage/KartSystem/KartBuilder.luau": "e36c0d876846050d536ab20e8d60f1fcbc4027d0685e233b53a9aeb40dab8943",
+  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "2de5e160cea93706ef3c0edbc92826a080042df9dcb1f4f247ad27ae9d5717f0",
+  "src/ReplicatedStorage/KartSystem/KartDynamics.luau": "44e4982db3e1c73677e9b482d764af52cda3cfcf58e658b3b337282279cbf78d",
+  "src/ReplicatedStorage/KartSystem/KartBuilder.luau": "fd8427c1bceac55102b5698796b91e066af22a6bf939def08919fbfdee362a43",
   "src/ReplicatedStorage/KartSystem/KartSeatLock.luau": "49601375a16ed190ebebb6ee82c138e5aae123f8befc1e1e97885ccaf9423438",
-  "src/ReplicatedStorage/KartSystem/KartHUD.luau": "b03eaf452074e08f53d7dd82069c2db693e31b54e69cd23197c8cb76fdc07897",
-  "src/ServerScriptService/KartServer.server.luau": "7cbb929e12ab86a8788f984e4399045438b2344843f81e71b8a3bc589f0a3f2c",
-  "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau": "5829b05c8cf640a04ddf1ecf44042145ea4659966f826e8e6d9fc1e6f7380f43"
+  "src/ReplicatedStorage/KartSystem/KartHUD.luau": "10a43d5d5d395c0f4d1516a7abbc15aaa5b6a6950b57ff2d6be187209c07d71d",
+  "src/ReplicatedStorage/KartSystem/KartRace.luau": "5c68452d2e649507b18e64dc30fbf50d90ae9c7328f351235bede920b547e001",
+  "src/ReplicatedStorage/KartSystem/KartRaceRules.luau": "156fe1dfde9ad105c04627b798566673d03086942ecf0bf7ff85790eae5c3913",
+  "src/ServerScriptService/KartServer.server.luau": "8fc836b752e696c5987952cecd90be9fe3927a738e8e27ce46fc1e0eecdf7265",
+  "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau": "3614597a521b69c41d6a79e7ca3023b80efc9bb8192b56ac08add6d3d32b6a64"
 }
