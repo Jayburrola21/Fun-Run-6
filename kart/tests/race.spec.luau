@@ -34,6 +34,7 @@ check(math.abs(Rules.entry(vec(-8,0,0),vec(8,0,0),half)-0.375)<1e-9,"fast sweep 
 check(Rules.entry(vec(-8,5,0),vec(8,5,0),half)==nil,"outside sweep misses gate")
 
 resetWorld()
+Config.TestCareerLoaded=false
 local p,k=player(1)
 local race=Race.new(Config)
 race:Update({k},0.11)
@@ -55,6 +56,7 @@ race:Destroy()
 check(p:GetAttribute("KartLap")==nil and p:GetAttribute("Wins")==4,"destroy clears only owned snapshots")
 
 resetWorld()
+Config.TestCareerLoaded=true
 local root=course(2)
 p,k=player(11)
 local p2,k2=player(12)
@@ -137,6 +139,181 @@ race.positions[p]=vec(10,0,0); race.positions[p2]=vec(5,0,0)
 race:Update({k,k2},0.11)
 check(p:GetAttribute("KartWins")==0 and p2:GetAttribute("KartWins")==1,"earlier swept finish wins within same sample, independent of kart iteration")
 check(race.states[p].finished and p:GetAttribute("KartTotalLaps")==1,"external total-lap binding drives managed finish rule and HUD consistently")
+race:Destroy()
+
+-- Actual path/checkpoint standings, membership and replicated minimap contract.
+resetWorld()
+root=square(3,true)
+local racers,karts={},{}
+for index=1,7 do racers[index],karts[index]=player(100+index,index*10) end
+race=Race.new(Config)
+for index=1,6 do Rules.visit(race:_state(racers[index]),1,4,3) end
+race:Update(karts,0.11)
+check(#race.racerFolder:GetChildren()==6 and not race:CanJoin(racers[7]),"authoritative six-racer cap")
+check(racers[7]:GetAttribute("KartPlace")==nil and race.rows[racers[7]]==nil,"overflow has no fabricated place or leaderboard row")
+check(race.snapshot:GetAttribute("CourseValid") and race.snapshot:GetAttribute("PathSource")=="Path","actual ordered path published")
+check(#race.pathFolder:GetChildren()==8 and race.pathFolder["004"].Value.Z==50,"minimap exports actual intermediate geometry")
+check(type(race.snapshot:GetAttribute("RoundId"))=="string" and race.snapshot:GetAttribute("PathRevision")==1,"race/path revision contract")
+check(race.snapshot:GetAttribute("PathPointCount")==#race.pathFolder:GetChildren(),"snapshot publishes expected point count after constructing the path")
+for _,point in ipairs(race.pathFolder:GetChildren()) do
+	check(point:GetAttribute("PathRevision")==race.pathRevision,"each point identifies its exact path revision")
+end
+for index=1,6 do
+	check(racers[index]:GetAttribute("KartPlace")==7-index,"all six positions derive from legal segment progress")
+	local row=race.rows[racers[index]]
+	check(row:GetAttribute("UserId")==racers[index].UserId and row:GetAttribute("Position").X==index*10,"actual row identity and world position")
+end
+karts[1].chassis.Position=vec(40,0,0); race:Update(karts,0.11)
+karts[1].chassis.Position=vec(75,0,0); race:Update(karts,0.11)
+check(racers[1]:GetAttribute("KartPlace")==1 and racers[6]:GetAttribute("KartPlace")==2,"positions swap from actual within-leg movement")
+local ahead=race:_state(racers[2])
+Rules.visit(ahead,2,4,3); Rules.visit(ahead,3,4,3); Rules.visit(ahead,4,4,3)
+karts[2].chassis.Position=vec(0,0,10)
+local nextLap=race:_state(racers[1])
+nextLap.completed=1
+race:Update(karts,0.11)
+check(racers[1]:GetAttribute("KartPlace")<racers[2]:GetAttribute("KartPlace"),"completed laps outrank proximity to finish")
+local legal=race:_state(racers[3]); Rules.visit(legal,2,4,3)
+karts[3].chassis.Position=vec(65,0,0); race:Update(karts,0.11)
+karts[3].chassis.Position=vec(100,0,10)
+karts[4].chassis.Position=vec(0,0,4)
+race:Update(karts,0.11)
+check(racers[3]:GetAttribute("KartPlace")<racers[4]:GetAttribute("KartPlace"),"visited checkpoint outranks raw distance to finish")
+local before=race:_state(racers[5]).rankFraction
+karts[5].chassis.Position=vec(55,0,20); race:Update(karts,0.11)
+karts[5].chassis.Position=vec(90,0,25); race:Update(karts,0.11)
+check(math.abs(race:_state(racers[5]).rankFraction-before)<1e-8,"off-track projection freezes legal segment progress")
+karts[6].chassis.Position=vec(0,0,390); race:Update(karts,0.11)
+check(race:_state(racers[6]).rankCheckpoint==0,"teleport cannot jump ahead in standings")
+local priorRevision=race.pathRevision
+root.Path["2"].Position=vec(50,0,5)
+for _=1,10 do race:Update(karts,0.11) end
+check(race.pathRevision>priorRevision,"actual path edits publish a new map revision")
+race:Destroy()
+
+resetWorld()
+root=square(1,false)
+racers={}; karts={}
+local distances={20,10,30,15,25,12}
+for index=1,6 do racers[index],karts[index]=player(200+index,0) end
+race=Race.new(Config)
+for index=1,6 do
+	local route=race:_state(racers[index])
+	route.started=true; route.expected=1
+	race.positions[racers[index]]=vec(0,0,distances[index])
+end
+race:Update({karts[6],karts[2],karts[4],karts[1],karts[5],karts[3]},0.11)
+local expected={4,1,6,3,5,2}
+for index=1,6 do
+	check(racers[index]:GetAttribute("KartPlace")==expected[index],"all six finish places use swept crossing order")
+	check(racers[index]:GetAttribute("KartWins")== (index==2 and 1 or 0),"only true winner earns career award")
+end
+check(race.snapshot:GetAttribute("PathSource")=="Checkpoints" and #race.pathFolder:GetChildren()==4,"coarse fallback map explicitly uses real checkpoints")
+removePlayer(racers[2])
+race:Update(karts,0.11)
+check(racers[6]:GetAttribute("KartPlace")==2,"finisher place survives winner departure")
+local extra,extraKart=player(250,-10)
+check(not race:CanJoin(extra),"finished slots stay reserved until next round")
+race:ResetRound(); race:Update(karts,0.11)
+check(race:TryJoin(extra) and #race.racerFolder:GetChildren()==6,"round reset makes departed slot available")
+karts[1].seat.Occupant=nil; race:Update(karts,0.11)
+check(not race:CanJoin(player(251,-10)),"temporary unseat does not churn match membership")
+race:ResetRound()
+local waiting=playerList[#playerList]
+check(race:TryJoin(waiting),"inactive slot becomes available at explicit round reset")
+race:Destroy()
+
+-- External display bindings retain ownership; incomplete progress disables a round.
+resetWorld()
+root=square(3,true)
+p,k=player(301,10); p2,k2=player(302,20)
+p:SetAttribute("Lap",3)
+race=Race.new(Config)
+Rules.visit(race:_state(p),1,4,3); Rules.visit(race:_state(p2),1,4,3)
+race:Update({k,k2},0.11)
+check(p:GetAttribute("KartLap")==3 and p:GetAttribute("Lap")==3,"external lap display retains its real authoritative binding")
+check(p:GetAttribute("KartPlace")==nil and p2:GetAttribute("KartPlace")==nil and race.snapshot:GetAttribute("StandingsValid")==false,"Lap without full progress leaves the entire round's places unavailable")
+p:SetAttribute("RaceCheckpoint",3); p:SetAttribute("RaceCompletedLaps",1); p:SetAttribute("RaceSegmentProgress",0.4)
+race:ResetRound()
+race:Update({k,k2},0.11)
+check(p:GetAttribute("KartPlace")==1 and p:GetAttribute("KartLap")==3,"full external progress drives place while preserving external lap display")
+p:SetAttribute("RaceCompletedLaps",3); p:SetAttribute("RaceFinished",true); p:SetAttribute("RaceFinishOrder",2)
+race:Update({k,k2},0.11)
+check(p:GetAttribute("KartPlace")==2 and p:GetAttribute("KartWins")==0,"external second finish is retained without fabricated win")
+p2:SetAttribute("RaceCheckpoint",4); p2:SetAttribute("RaceCompletedLaps",3); p2:SetAttribute("RaceSegmentProgress",1)
+p2:SetAttribute("RaceFinished",true); p2:SetAttribute("RaceFinishOrder",1); p2:SetAttribute("Wins",27)
+race:Update({k,k2},0.11)
+check(p2:GetAttribute("KartPlace")==1 and p:GetAttribute("KartPlace")==2,"authoritative external finish order works across update arrival order")
+check(p2:GetAttribute("KartWins")==27 and p2:GetAttribute("Wins")==27,"external persistent win provider remains untouched")
+race:Destroy()
+
+resetWorld()
+root=square(1,false)
+p,k=player(330,0); p2,k2=player(331,0)
+p:SetAttribute("Lap",1)
+race=Race.new(Config)
+for _,racer in ipairs({p,p2}) do local route=race:_state(racer); route.started=true; route.expected=1 end
+race.positions[p]=vec(0,0,10); race.positions[p2]=vec(0,0,20)
+race:Update({k,k2},0.11)
+check(race.states[p].completed==0 and race.states[p].finishOrder==nil,"incomplete external provider does not run a conflicting managed finish underneath")
+check(p2:GetAttribute("KartWins")==0 and race.snapshot:GetAttribute("WinnerUserId")==nil,"unknown competing external racer prevents a fabricated managed winner")
+p:SetAttribute("RaceCheckpoint",1); p:SetAttribute("RaceCompletedLaps",0); p:SetAttribute("RaceSegmentProgress",0)
+race:Update({k,k2},0.11)
+check(race.snapshot:GetAttribute("StandingsValid")==false and p2:GetAttribute("KartPlace")==nil,"round remains unavailable until explicit reset after provider repair")
+race:ResetRound(); race:Update({k,k2},0.11)
+check(race.snapshot:GetAttribute("StandingsValid")==true and p:GetAttribute("KartPlace")~=nil,"complete external progress plus fresh round restores actual standings")
+race:Destroy()
+
+-- A reset cannot replay stale externally completed progress as a fresh win.
+resetWorld()
+root=square(1,true)
+p,k=player(350,10)
+race=Race.new(Config)
+p:SetAttribute("RaceCheckpoint",4); p:SetAttribute("RaceCompletedLaps",1); p:SetAttribute("RaceSegmentProgress",1)
+p:SetAttribute("RaceFinished",true); p:SetAttribute("RaceFinishOrder",1)
+race:Update({k},0.11)
+check(p:GetAttribute("KartWins")==1 and race.states[p].finishOrder==1,"external actual finish awards one career win")
+race:ResetRound(); race:Update({k},0.11)
+race:ResetRound(); race:Update({k},0.11)
+check(p:GetAttribute("KartWins")==1 and race.states[p].finishOrder==nil,"repeated reset cannot replay unchanged external completion")
+check(p:GetAttribute("KartLap")==0 and race.snapshot:GetAttribute("WinnerUserId")==nil,"stale completed snapshot does not publish a new-round completed lap or winner")
+p:SetAttribute("RaceCheckpoint",1); p:SetAttribute("RaceCompletedLaps",0); p:SetAttribute("RaceSegmentProgress",0)
+p:SetAttribute("RaceFinished",false); p:SetAttribute("RaceFinishOrder",nil)
+race:Update({k},0.11)
+p:SetAttribute("RaceCheckpoint",4); p:SetAttribute("RaceCompletedLaps",1); p:SetAttribute("RaceSegmentProgress",1)
+p:SetAttribute("RaceFinished",true); p:SetAttribute("RaceFinishOrder",1)
+race:Update({k},0.11)
+check(p:GetAttribute("KartWins")==2 and race.states[p].finishOrder==1,"provider unfinished reset re-arms one legitimate subsequent finish")
+race:Destroy()
+
+-- Out-of-order publication may reserve sixth before the first five arrive.
+resetWorld()
+root=square(1,true)
+racers={}; karts={}
+for index=1,6 do racers[index],karts[index]=player(360+index,index*5) end
+race=Race.new(Config)
+racers[1]:SetAttribute("RaceCheckpoint",4); racers[1]:SetAttribute("RaceCompletedLaps",1)
+racers[1]:SetAttribute("RaceSegmentProgress",1); racers[1]:SetAttribute("RaceFinished",true); racers[1]:SetAttribute("RaceFinishOrder",6)
+race:Update({karts[1],karts[2]},0.11)
+check(racers[1]:GetAttribute("KartPlace")==6 and racers[2]:GetAttribute("KartPlace")==1,"sixth-place external finish leaves actual unfinished ranking within 1..5")
+check(race.round.finishCount==1 and race:CanJoin(racers[3]),"sparse finish order reserves one admission rather than six")
+race:Update(karts,0.11)
+local occupied={}
+for _,racer in ipairs(racers) do
+	local place=racer:GetAttribute("KartPlace")
+	check(place>=1 and place<=6 and not occupied[place],"all six places remain unique and bounded with sparse external finish")
+	occupied[place]=true
+end
+removePlayer(racers[1]); race:Update(karts,0.11)
+local overflow=player(370,0)
+check(not race:CanJoin(overflow),"sparse finished owner's reserved slot survives disconnect")
+race:Destroy()
+
+resetWorld()
+p,k=player(400,0)
+race=Race.new(Config); race:Update({k},0.11)
+check(race.snapshot:GetAttribute("CourseValid")==false and p:GetAttribute("KartPlace")==nil,"unconfigured course never produces pretend positions")
+check(#race.pathFolder:GetChildren()==0 and race.rows[p]:GetAttribute("Place")==nil,"unknown map/place stays empty while real lobby identity exists")
 race:Destroy()
 
 print("PASS: "..assertions.." race stats/rule assertions (service doubles; Studio unrun)")

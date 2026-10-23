@@ -13,7 +13,7 @@
           <string name="Name">KartConfig</string>
           <ProtectedString name="Source">-- Distances in studs, speeds in studs/second. Local forward is -Z.
 return table.freeze({
-	ReleaseVersion = 6,
+	ReleaseVersion = 7,
 	ModelScale = 0.84,
 	MaxSpeed = 82,
 	ReverseSpeed = 24,
@@ -34,10 +34,16 @@ return table.freeze({
 	CameraPositionResponse = 7,
 	CameraHeightResponse = 3.5,
 	CameraHeadingResponse = 5,
+	CameraDistance = 10.8 * 0.84,
+	CameraHeight = 4.0 * 0.84,
+	CameraLookAhead = 2.4 * 0.84,
+	CameraFocusHeight = 1.6,
+	CameraDriftFollow = 0.12,
 	MaxSteer = math.rad(29),
 	MaxCornerAcceleration = 85,
-	Wheelbase = 4.8 * 0.84,
-	WheelRadius = 1.05 * 0.84,
+	Wheelbase = 4.32 * 0.84,
+	WheelTrack = 4.4 * 0.84,
+	WheelRadius = 0.96 * 0.84,
 	SuspensionRest = 0.65 * 0.84,
 	SuspensionTravel = 0.65 * 0.84,
 	SpringFrequency = 2.0,
@@ -52,6 +58,17 @@ return table.freeze({
 	StudsToMPH = 0.28 * 2.2369362921,
 	GaugeMaxMPH = 100,
 	RaceTotalLaps = 3,
+	RaceMaxRacers = 6,
+	RaceTrackWidth = 18,
+	CareerWinsEnabled = true,
+	CareerWinsDataStore = "FunRunKartCareerWins_v1",
+	RaceProgressBinding = {
+		Checkpoint = {"RaceCheckpoint", "Checkpoint"},
+		CompletedLaps = {"RaceCompletedLaps", "CompletedLaps"},
+		Progress = {"RaceSegmentProgress", "SegmentProgress"},
+		Finished = {"RaceFinished"},
+		FinishOrder = {"RaceFinishOrder"},
+	},
 	RaceStatNames = {
 		Lap = {"Lap", "CurrentLap"},
 		TotalLaps = {"TotalLaps", "MaxLaps"},
@@ -190,6 +207,9 @@ function Builder.build(name, spawn, color)
 	-- Build once in canonical units, then scale the entire assembly together.
 	local rest = Config.SuspensionRest / scale
 	local radius = Config.WheelRadius / scale
+	local track = (Config.WheelTrack or 4.40*scale) / scale
+	local wheelbase = Config.Wheelbase / scale
+	local tireWidth = 0.76
 	local model = Instance.new("Model")
 	model.Name = name
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
@@ -250,16 +270,21 @@ function Builder.build(name, spawn, color)
 
 	chassis = part("Chassis", Vector3.new(3.7,0.5,6.5), CFrame.new(), BLACK, Enum.Material.Metal, model, nil, true)
 	chassis.Massless = false; chassis.CanCollide = true; chassis.CanQuery = true
+	-- Preserve the original mass/inertia collider for unchanged driving feel.
+	-- Rendered bodywork has true wheel cutouts and conceals this collision box.
+	chassis.Transparency = 1
 	chassis.CustomPhysicalProperties = PhysicalProperties.new(3.5,0.12,0,100,100)
 	chassis.RootPriority=127
 	model.PrimaryPart = chassis
-	part("FloorPan",Vector3.new(3.9,0.15,4.3),CFrame.new(0,0.48,0.1),METAL,Enum.Material.DiamondPlate)
+	part("FloorPan",Vector3.new(2.45,0.12,3.60),CFrame.new(0,0.34,0.1),BLACK,Enum.Material.SmoothPlastic)
+	part("TaperedSkid",Vector3.new(2.65,0.22,5.80),CFrame.new(0,-0.10,-0.05),BLACK,nil,body,Enum.PartType.Ball)
+	part("EnclosedLowerShell",Vector3.new(3.25,0.48,3.95),CFrame.new(0,0.05,0.40),BLUE,nil,body,Enum.PartType.Ball)
 	-- A tapered, crowned hood loft follows a gentle longitudinal curve. The
 	-- white center stripe is part of that surface instead of a floating decal.
-	part("BlueNoseLower",Vector3.new(3.25,0.74,2.5),CFrame.new(0,0.16,-2.2),BLUE,nil,body,Enum.PartType.Ball)
-	part("RedNoseCore",Vector3.new(2.36,0.58,2.58),CFrame.new(0,0.62,-2.10)*CFrame.Angles(math.rad(-22),0,0),color,nil,body,Enum.PartType.Ball)
+	part("BlueNoseLower",Vector3.new(2.45,0.66,2.5),CFrame.new(0,0.15,-2.12),BLUE,nil,body,Enum.PartType.Ball)
+	part("RedNoseCore",Vector3.new(2.18,0.58,2.58),CFrame.new(0,0.62,-2.10)*CFrame.Angles(math.rad(-22),0,0),color,nil,body,Enum.PartType.Ball)
 	local function hood(t)
-		return -3.17+2.20*t,0.40+1.10*t+0.16*math.sin(math.pi*t),2.35-0.45*t
+		return -3.22+2.37*t,0.40+1.10*t+0.16*math.sin(math.pi*t),2.25-0.43*t
 	end
 	for i=0,7 do
 		local z0,y0,width0=hood(i/8)
@@ -278,7 +303,7 @@ function Builder.build(name, spawn, color)
 		end
 	end
 	for _,side in ipairs({-1,1}) do
-		part("RoundedHoodEdge",Vector3.new(0.30,0.27,2.48),CFrame.new(side*1.02,0.88,-2.10)*CFrame.Angles(math.rad(-26),-side*math.rad(6),0),color,nil,body,Enum.PartType.Ball)
+		part("RoundedHoodEdge",Vector3.new(0.27,0.27,2.48),CFrame.new(side*0.98,0.88,-2.03)*CFrame.Angles(math.rad(-26),-side*math.rad(6),0),color,nil,body,Enum.PartType.Ball)
 	end
 	-- Red tilted square with a real white center, centered on the stripe.
 	local bz,by=hood(0.53)
@@ -287,51 +312,54 @@ function Builder.build(name, spawn, color)
 		part("NoseSquareBadge",Vector3.new(0.55,0.012,0.16),badge*CFrame.new(0,0,side*0.195),color)
 		part("NoseSquareBadge",Vector3.new(0.16,0.012,0.23),badge*CFrame.new(side*0.195,0,0),color)
 	end
+	-- Full-length curved pods enclose the lower cockpit and blend into the
+	-- rear housing. Their front tips and rear haunches stop inside wheel sweep.
 	for _,side in ipairs({-1,1}) do
-		part("SidePodBlue",Vector3.new(0.98,0.78,2.22),CFrame.new(side*1.75,0.34,0.55),BLUE,nil,body,Enum.PartType.Ball)
-		part("SidePodWhite",Vector3.new(1.00,0.50,2.30),CFrame.new(side*1.75,0.61,0.55),WHITE,nil,body,Enum.PartType.Ball)
-		part("SidePodRed",Vector3.new(0.98,0.56,2.18),CFrame.new(side*1.75,0.81,0.55),color,nil,body,Enum.PartType.Ball)
-		part("RoundSidePanel",Vector3.new(0.94,1.20,1.20),CFrame.new(side*1.78,0.60,0.55),color,nil,body,Enum.PartType.Cylinder)
-		part("WhiteSideRoundel",Vector3.new(0.018,0.91,0.91),CFrame.new(side*2.259,0.60,0.55),WHITE,nil,body,Enum.PartType.Cylinder)
-		local sideBadge=CFrame.new(side*2.275,0.60,0.55)*CFrame.Angles(math.rad(15),0,0)
+		part("SidePodBlue",Vector3.new(0.74,0.52,2.80),CFrame.new(side*1.33,0.13,0.30),BLUE,nil,body,Enum.PartType.Ball)
+		part("SidePodWhite",Vector3.new(0.70,0.18,2.78),CFrame.new(side*1.34,0.36,0.30),WHITE,nil,body,Enum.PartType.Ball)
+		part("SidePodRed",Vector3.new(0.66,1.10,2.70),CFrame.new(side*1.34,0.64,0.30),color,nil,body,Enum.PartType.Ball)
+		part("RoundSidePanel",Vector3.new(0.12,1.05,1.05),CFrame.new(side*1.625,0.64,0.35),color,nil,body,Enum.PartType.Cylinder)
+		part("WhiteSideRoundel",Vector3.new(0.012,0.78,0.78),CFrame.new(side*1.695,0.64,0.35),WHITE,nil,body,Enum.PartType.Cylinder)
+		local sideBadge=CFrame.new(side*1.708,0.64,0.35)*CFrame.Angles(math.rad(15),0,0)
 		for _,offset in ipairs({-1,1}) do
-			part("SideSquareBadge",Vector3.new(0.014,0.56,0.16),sideBadge*CFrame.new(0,0,offset*0.20),color)
-			part("SideSquareBadge",Vector3.new(0.014,0.16,0.24),sideBadge*CFrame.new(0,offset*0.20,0),color)
+			part("SideSquareBadge",Vector3.new(0.010,0.48,0.14),sideBadge*CFrame.new(0,0,offset*0.17),color)
+			part("SideSquareBadge",Vector3.new(0.010,0.14,0.20),sideBadge*CFrame.new(0,offset*0.17,0),color)
 		end
-		bar("CockpitRail",Vector3.new(side*1.18,1.05,-0.5),Vector3.new(side*1.18,1.55,1.55),0.13,BLACK)
-		bar("SideGuard",Vector3.new(side*2.06,0.15,-0.45),Vector3.new(side*2.06,0.15,1.6),0.15,BLACK)
-		-- Red rounded haunches sit inside, rather than over, the rear tires.
-		part("RearFender",Vector3.new(0.75,0.37,1.15),CFrame.new(side*1.65,0.94,1.3),color,nil,body,Enum.PartType.Ball)
+		bar("CockpitRail",Vector3.new(side*1.06,0.97,-0.50),Vector3.new(side*1.06,1.12,1.30),0.10,BLACK)
+		part("RearHaunch",Vector3.new(0.56,0.85,1.40),CFrame.new(side*1.36,0.56,1.53),color,nil,body,Enum.PartType.Ball)
 	end
 
 	local bumper=folder("FrontBumper")
-	rounded("WhiteFrontBumper",Vector3.new(3.13,0.28,0.66),CFrame.new(0,0.13,-3.37)*CFrame.Angles(math.pi/2,0,0),WHITE,0.23,bumper)
+	rounded("WhiteFrontBumper",Vector3.new(2.80,0.28,0.62),CFrame.new(0,0.13,-3.22)*CFrame.Angles(math.pi/2,0,0),WHITE,0.23,bumper)
 	for _,x in ipairs({-1.02,-0.52,0.52,1.02}) do
-		part("BlueBumperVent",Vector3.new(0.22,0.31,0.035),CFrame.new(x,0.12,-3.525)*CFrame.Angles(0,0,math.rad(-12)),BLUE,nil,bumper)
+		part("BlueBumperVent",Vector3.new(0.22,0.31,0.035),CFrame.new(x*0.88,0.12,-3.375)*CFrame.Angles(0,0,math.rad(-12)),BLUE,nil,bumper)
 	end
-	bar("BumperLower",Vector3.new(-1.45,-0.25,-3.38),Vector3.new(1.45,-0.25,-3.38),0.15,BLACK,bumper)
+	bar("BumperLower",Vector3.new(-1.30,-0.25,-3.23),Vector3.new(1.30,-0.25,-3.23),0.15,BLACK,bumper)
 	for _,side in ipairs({-1,1}) do
-		bar("BumperCorner",Vector3.new(side*1.45,-0.25,-3.38),Vector3.new(side*1.58,0.22,-3.31),0.15,BLACK,bumper)
-		local lamp=part("LED",Vector3.new(0.22,0.07,0.035),CFrame.new(side*1.48,0.42,-3.25),WHITE,Enum.Material.Neon,headlights)
+		bar("BumperCorner",Vector3.new(side*1.30,-0.25,-3.23),Vector3.new(side*1.40,0.22,-3.16),0.15,BLACK,bumper)
+		local lamp=part("LED",Vector3.new(0.22,0.07,0.035),CFrame.new(side*1.30,0.42,-3.15),WHITE,Enum.Material.Neon,headlights)
 		local beam=Instance.new("SpotLight"); beam.Face=Enum.NormalId.Front; beam.Brightness=0.8; beam.Range=22; beam.Angle=70; beam.Parent=lamp
-		part("BrakeLight",Vector3.new(0.32,0.13,0.04),CFrame.new(side*1.28,0.42,3.20),Color3.fromRGB(110,5,10),nil,effects)
+		part("BrakeLight",Vector3.new(0.32,0.13,0.04),CFrame.new(side*1.16,0.48,2.86),Color3.fromRGB(110,5,10),nil,effects)
 	end
 	local seat=part("DriverSeat",Vector3.new(1.95,0.3,1.65),CFrame.new(0,0.84,0.65),SEAT,Enum.Material.Fabric,model,nil,false,"VehicleSeat")
 	seat.HeadsUpDisplay=false; seat.MaxSpeed=0; seat.Torque=0; seat.TurnSpeed=0
 	rounded("SeatBack",Vector3.new(1.95,0.28,1.75),CFrame.new(0,1.66,1.42)*CFrame.Angles(math.rad(80),0,0),SEAT,0.27)
 	for _,side in ipairs({-1,1}) do
 		part("SeatBolster",Vector3.new(0.22,0.9,0.6),CFrame.new(side*0.96,1.29,1.10)*CFrame.Angles(0,0,side*0.12),SEAT,Enum.Material.Fabric)
-		bar("RearGuard",Vector3.new(side*2.04,0.15,1.6),Vector3.new(side*2.04,0.15,3.3),0.18,BLACK)
+		bar("RearGuard",Vector3.new(side*1.58,0.10,1.35),Vector3.new(side*1.58,0.10,2.72),0.13,BLACK)
 	end
-	-- Compact exposed engine and axle replace the oversized rear wing.
-	part("EngineBlock",Vector3.new(1.55,0.55,1.0),CFrame.new(0,0.47,2.45),METAL,Enum.Material.Metal)
-	for i=1,6 do part("EngineCoolingFin",Vector3.new(1.62,0.045,0.10),CFrame.new(0,0.74,1.95+i*0.15),BLACK,Enum.Material.Metal) end
-	bar("RearAxle",Vector3.new(-2.4,0,2.4),Vector3.new(2.4,0,2.4),0.22,METAL)
-	bar("RearBumper",Vector3.new(-1.7,0.05,3.35),Vector3.new(1.7,0.05,3.35),0.22,BLACK)
+	-- A closed engine cowl joins both haunches and the seat into one rear.
+	part("RearLowerHousing",Vector3.new(3.10,0.54,1.65),CFrame.new(0,0.21,2.00),BLUE,nil,body,Enum.PartType.Ball)
+	part("RearEngineHousing",Vector3.new(3.00,0.86,1.55),CFrame.new(0,0.68,1.97),color,nil,body,Enum.PartType.Ball)
+	part("EngineInset",Vector3.new(1.20,0.10,0.65),CFrame.new(0,1.06,2.00),BLACK,Enum.Material.Metal)
+	for i=1,5 do part("EngineCoolingFin",Vector3.new(1.10,0.04,0.055),CFrame.new(0,1.12,1.69+i*0.105),METAL,Enum.Material.Metal) end
+	bar("RearAxle",Vector3.new(-2.05,0.40,2.16),Vector3.new(2.05,0.40,2.16),0.18,METAL)
+	rounded("RearBumper",Vector3.new(3.10,0.34,0.40),CFrame.new(0,0.12,2.93),BLACK,0.16,body)
+	part("RearBumperAccent",Vector3.new(2.65,0.09,0.04),CFrame.new(0,0.21,3.145),WHITE)
 
 	for _,side in ipairs({-1,1}) do
-		local lower=Vector3.new(side*1.56,0.34,-1.75)
-		local upper=Vector3.new(side*1.31,1.28,-1.40)
+		local lower=Vector3.new(side*1.08,0.34,-1.48)
+		local upper=Vector3.new(side*0.94,1.28,-1.20)
 		local axis=upper-lower
 		local shock=CFrame.lookAt((lower+upper)/2,upper)
 		bar("DamperRod",lower,upper,0.075,METAL,suspension)
@@ -353,36 +381,36 @@ function Builder.build(name, spawn, color)
 	-- Non-colliding visual wheels; each client interpolates these same motors.
 	-- Physical contacts are handled only by the spring forces and collision hull.
 	local wheelData={}
-	for _,desc in ipairs({{"FrontLeft",-1,-2.4,true},{"FrontRight",1,-2.4,true},{"RearLeft",-1,2.4,false},{"RearRight",1,2.4,false}}) do
+	for _,desc in ipairs({{"FrontLeft",-1,-wheelbase/2,true},{"FrontRight",1,-wheelbase/2,true},{"RearLeft",-1,wheelbase/2,false},{"RearRight",1,wheelbase/2,false}}) do
 		local label,side,z,front=table.unpack(desc)
 		local group=Instance.new("Model"); group.Name=label; group.Parent=wheels
-		local origin=Vector3.new(side*2.68,rest+0.4,z)
+		local origin=Vector3.new(side*track/2,rest+0.4,z)
 		-- Smaller chassis-mounted collision shells catch walls/curbs without
 		-- competing with the raycast tires during normal spring compression.
-		local guard=part(label.."Collision",Vector3.new(0.85,1.35,1.35),CFrame.new(origin-Vector3.new(0,0.35,0)),BLACK,Enum.Material.SmoothPlastic,suspension,Enum.PartType.Ball)
+		local guard=part(label.."Collision",Vector3.new(0.64,1.22,1.22),CFrame.new(origin-Vector3.new(0,0.35,0)),BLACK,Enum.Material.SmoothPlastic,suspension,Enum.PartType.Ball)
 		guard.Transparency=1; guard.CanCollide=true; guard.CanQuery=true
 		guard.CustomPhysicalProperties=PhysicalProperties.new(0.1,0.1,0,100,100)
 		local cf=CFrame.new(origin-Vector3.new(0,rest,0))
-		local tire=part("Tire",Vector3.new(0.91,2*radius,2*radius),cf,RUBBER,Enum.Material.SmoothPlastic,group,Enum.PartType.Cylinder,true)
+		local tire=part("Tire",Vector3.new(tireWidth,2*radius,2*radius),cf,RUBBER,Enum.Material.SmoothPlastic,group,Enum.PartType.Cylinder,true)
 		local motor=Instance.new("Motor6D"); motor.Name="WheelMotor"; motor.Part0=chassis; motor.Part1=tire; motor.C0=cf; motor.Parent=tire
 		local function detail(label,size,offset,tint,material,shape)
 			local p=part(label,size,cf*offset,tint,material,group,shape,true)
 			local w=Instance.new("WeldConstraint"); w.Part0=tire; w.Part1=p; w.Parent=p
 			return p
 		end
-		detail("Sidewall",Vector3.new(0.075,1.99,1.99),CFrame.new(side*0.445,0,0),RUBBER,Enum.Material.SmoothPlastic,Enum.PartType.Cylinder)
-		detail("Rim",Vector3.new(0.1,1.42,1.42),CFrame.new(side*0.49,0,0),YELLOW,Enum.Material.Metal,Enum.PartType.Cylinder)
-		detail("RimLip",Vector3.new(0.035,1.54,1.54),CFrame.new(side*0.48,0,0),YELLOW,Enum.Material.Metal,Enum.PartType.Cylinder)
+		detail("Sidewall",Vector3.new(0.060,1.82,1.82),CFrame.new(side*0.367,0,0),RUBBER,Enum.Material.SmoothPlastic,Enum.PartType.Cylinder)
+		detail("Rim",Vector3.new(0.080,1.28,1.28),CFrame.new(side*0.40,0,0),YELLOW,Enum.Material.Metal,Enum.PartType.Cylinder)
+		detail("RimLip",Vector3.new(0.025,1.39,1.39),CFrame.new(side*0.395,0,0),YELLOW,Enum.Material.Metal,Enum.PartType.Cylinder)
 		for _,offset in ipairs({-1,1}) do
-			detail("RimCutout",Vector3.new(0.02,0.24,0.31),CFrame.new(side*0.55,offset*0.22,offset*0.12)*CFrame.Angles(math.rad(25),0,0),BLACK,Enum.Material.SmoothPlastic)
+			detail("RimCutout",Vector3.new(0.02,0.24,0.31),CFrame.new(side*0.448,offset*0.20,offset*0.11)*CFrame.Angles(math.rad(25),0,0),BLACK,Enum.Material.SmoothPlastic)
 		end
 		for n=1,12 do
-			for _,offset in ipairs({-0.25,0.25}) do
+			for _,offset in ipairs({-0.20,0.20}) do
 				detail("Tread",Vector3.new(0.018,0.012,0.18),CFrame.Angles(n*math.pi/6,0,0)*CFrame.new(offset,radius,0),Color3.fromRGB(25,26,30),Enum.Material.SmoothPlastic)
 			end
 		end
 		if not front then
-			ring(group,cf*CFrame.new(side*0.56,0,0)*CFrame.Angles(0,math.pi/2,0),0.80,0.045,Color3.fromRGB(50,185,255),Enum.Material.Neon,16,tire)
+			ring(group,cf*CFrame.new(side*0.455,0,0)*CFrame.Angles(0,math.pi/2,0),0.72,0.040,Color3.fromRGB(50,185,255),Enum.Material.Neon,16,tire)
 		end
 		local mount=Instance.new("Attachment"); mount.Name=label.."Mount"; mount.Position=origin; mount.Parent=chassis
 		local force=Instance.new("VectorForce"); force.Name=label.."Contact"; force.Attachment0=mount; force.RelativeTo=Enum.ActuatorRelativeTo.World; force.ApplyAtCenterOfMass=false; force.Force=Vector3.zero; force.Parent=suspension
@@ -392,7 +420,7 @@ function Builder.build(name, spawn, color)
 		local glow={}
 		for _,p in ipairs(group:GetChildren()) do if p:IsA("BasePart") and p.Material==Enum.Material.Neon then table.insert(glow,p) end end
 		table.insert(wheelData,{motor=motor,origin=origin,front=front,force=force,smoke=smoke,sparks=sparks,emitterAt=emitterAt,glow=glow,spin=0})
-		bar("Wishbone",Vector3.new(side*1.4,0.05,z),origin-Vector3.new(0,rest,0),0.13,METAL,suspension)
+		bar("Wishbone",Vector3.new(side*1.16,0.05,z),origin-Vector3.new(0,rest,0),0.13,METAL,suspension)
 	end
 	local steering=Instance.new("Model"); steering.Name="SteeringWheel"; steering.Parent=model
 	local steeringBase=CFrame.new(0,1.95,-1.05)*CFrame.Angles(math.rad(-24),0,0)
@@ -410,11 +438,11 @@ function Builder.build(name, spawn, color)
 	bar("SteeringColumn",Vector3.new(0,0.65,-0.65),Vector3.new(0,1.95,-1.05),0.16,METAL)
 	local flames={}
 	for _,side in ipairs({-1,1}) do
-		local pipe=CFrame.new(side*1.02,1.25,2.42)*CFrame.Angles(math.rad(-28),0,0)
-		part("BlackExhaust",Vector3.new(1.26,0.6,0.6),pipe*CFrame.Angles(0,math.pi/2,0),BLACK,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
-		part("YellowExhaustLip",Vector3.new(0.10,0.65,0.65),pipe*CFrame.new(0,0,0.64)*CFrame.Angles(0,math.pi/2,0),YELLOW,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
-		part("ExhaustOpening",Vector3.new(0.11,0.46,0.46),pipe*CFrame.new(0,0,0.66)*CFrame.Angles(0,math.pi/2,0),RUBBER,Enum.Material.SmoothPlastic,exhaust,Enum.PartType.Cylinder)
-		local at=Instance.new("Attachment"); at.Name="ExhaustOutlet"; at.CFrame=pipe*CFrame.new(0,0,0.74)*CFrame.Angles(0,math.pi,0); at.Parent=chassis
+		local pipe=CFrame.new(side*0.78,1.06154,2.58005)*CFrame.Angles(-math.atan(0.32/0.948),0,0)
+		part("BlackExhaust",Vector3.new(0.76,0.470,0.470),pipe*CFrame.Angles(0,math.pi/2,0),BLACK,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
+		part("YellowExhaustLip",Vector3.new(0.075,0.492,0.492),pipe*CFrame.new(0,0,0.38)*CFrame.Angles(0,math.pi/2,0),YELLOW,Enum.Material.Metal,exhaust,Enum.PartType.Cylinder)
+		part("ExhaustOpening",Vector3.new(0.04,0.36,0.36),pipe*CFrame.new(0,0,0.428)*CFrame.Angles(0,math.pi/2,0),RUBBER,Enum.Material.SmoothPlastic,exhaust,Enum.PartType.Cylinder)
+		local at=Instance.new("Attachment"); at.Name="ExhaustOutlet"; at.CFrame=pipe*CFrame.new(0,0,0.46)*CFrame.Angles(0,math.pi,0); at.Parent=chassis
 		local flame=Instance.new("ParticleEmitter"); flame.Name="TurboFlame"; flame.Texture="rbxasset://textures/particles/fire_main.dds"; flame.EmissionDirection=Enum.NormalId.Front; flame.Rate=0; flame.Speed=NumberRange.new(12,19); flame.Lifetime=NumberRange.new(0.12,0.22); flame.SpreadAngle=Vector2.new(8,8); flame.LightEmission=1; flame.Color=ColorSequence.new(Color3.fromRGB(255,230,90),Color3.fromRGB(255,70,20)); flame.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,0.65),NumberSequenceKeypoint.new(1,0)}); flame.Parent=at
 		local light=Instance.new("PointLight"); light.Color=Color3.fromRGB(255,143,30); light.Range=9; light.Brightness=0; light.Parent=at
 		local smoke=Instance.new("ParticleEmitter"); smoke.Name="EngineExhaust"; smoke.Texture="rbxasset://textures/particles/smoke_main.dds"; smoke.Rate=0; smoke.Lifetime=NumberRange.new(0.25,0.45); smoke.Speed=NumberRange.new(2,4); smoke.EmissionDirection=Enum.NormalId.Front; smoke.Size=NumberSequence.new(0.25); smoke.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.85),NumberSequenceKeypoint.new(1,1)}); smoke.Parent=at
@@ -513,289 +541,363 @@ return SeatLock
       <Item class="ModuleScript" referent="RBX7">
         <Properties>
           <string name="Name">KartHUD</string>
-          <ProtectedString name="Source">-- One native-GUI instrument cluster. This module never makes boost/gameplay decisions.
+          <ProtectedString name="Source">-- Reference racing HUD: coins/laps, six real racers, placement and actual-course map.
+-- It reads published race data only; driving and boost logic are intentionally absent.
 local HUD={}
 HUD.__index=HUD
+local activeHUDs=setmetatable({},{__mode="k"})
 local BLACK=Color3.fromRGB(5,7,10)
-local FACE=Color3.fromRGB(14,18,23)
-local CHROME=Color3.fromRGB(149,163,171)
-local BLUE=Color3.fromRGB(58,206,255)
-local RED=Color3.fromRGB(232,39,48)
-local GOLD=Color3.fromRGB(245,185,43)
-local WHITE=Color3.fromRGB(246,250,255)
-local MUTED=Color3.fromRGB(128,146,159)
-
-local function create(class,props,parent)
+local GLASS=Color3.fromRGB(18,21,25)
+local WHITE=Color3.fromRGB(247,249,252)
+local GOLD=Color3.fromRGB(255,205,65)
+local ORANGE=Color3.fromRGB(255,130,27)
+local SILVER=Color3.fromRGB(194,205,215)
+local BLUE=Color3.fromRGB(86,201,255)
+local MARKERS={WHITE,Color3.fromRGB(102,213,255),Color3.fromRGB(244,107,110),Color3.fromRGB(153,236,150),Color3.fromRGB(199,151,255),Color3.fromRGB(255,163,99)}
+local function create(class,properties,parent)
  local instance=Instance.new(class)
- for key,value in pairs(props) do instance[key]=value end
+ for key,value in pairs(properties) do instance[key]=value end
  instance.Parent=parent
  return instance
-end
-local function rounded(parent,radius)
- create("UICorner",{CornerRadius=UDim.new(radius=="circle" and 0.5 or 0,radius=="circle" and 0 or radius)},parent)
 end
 local function frame(parent,name,x,y,w,h,color,z,rotation,transparency)
  return create("Frame",{Name=name,Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),BackgroundColor3=color,BackgroundTransparency=transparency or 0,BorderSizePixel=0,ZIndex=z or 1,Rotation=rotation or 0},parent)
 end
+local function rounded(parent,radius)
+ create("UICorner",{CornerRadius=UDim.new(radius=="circle" and 0.5 or 0,radius=="circle" and 0 or radius)},parent)
+end
 local function circle(parent,name,x,y,diameter,color,z)
  local object=frame(parent,name,x-diameter/2,y-diameter/2,diameter,diameter,color,z)
- rounded(object,"circle")
- return object
-end
-local function text(parent,name,x,y,w,h,value,size,color,z,align)
- return create("TextLabel",{Name=name,Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),BackgroundTransparency=1,BorderSizePixel=0,Text=value,TextColor3=color,TextSize=size,Font=Enum.Font.GothamBlack,TextXAlignment=align or Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,ZIndex=z or 10},parent)
-end
-local function gradient(parent,top,bottom,rotation)
- parent.BackgroundColor3=WHITE -- UIGradient tints multiply the base color.
- create("UIGradient",{Color=ColorSequence.new(top,bottom),Rotation=rotation or 90},parent)
+ rounded(object,"circle"); return object
 end
 local function stroke(parent,color,width,transparency)
  return create("UIStroke",{Color=color,Thickness=width,Transparency=transparency or 0},parent)
 end
-local function diamond(parent,name,cx,cy,size,color,z)
- local object=frame(parent,name,cx-size/2,cy-size/2,size,size,color,z,45)
- return object
+local function gradient(parent,top,bottom,rotation)
+ if parent:IsA("TextLabel") then parent.TextColor3=WHITE else parent.BackgroundColor3=WHITE end
+ return create("UIGradient",{Color=ColorSequence.new(top,bottom),Rotation=rotation or 90},parent)
 end
-local function plate(parent,name,x,y,width,height,color,z,rotation)
- local group=frame(parent,name,x,y,width,height,BLACK,z,rotation,1)
- local function shape(label,inset,tint,layer)
-  local h=height-2*inset
-  local half=h/2
-  local size=h/math.sqrt(2)
-  local left=diamond(group,label.."Left",inset+half,inset+half,size,tint,layer)
-  local right=diamond(group,label.."Right",width-inset-half,inset+half,size,tint,layer)
-  local middle=frame(group,label.."Middle",inset+half,inset,width-2*inset-h,h,tint,layer)
-  return {left,middle,right}
- end
- shape("Bezel",0,BLACK,z)
- local faces=shape("Face",5,color,z+1)
- for _,face in ipairs(faces) do gradient(face,color:Lerp(WHITE,0.32),color:Lerp(BLACK,0.28),90) end
- local glass=shape("DarkGlass",11,Color3.fromRGB(13,19,25),z+2)
- for _,face in ipairs(glass) do gradient(face,Color3.fromRGB(34,43,51),Color3.fromRGB(6,10,15),90) end
- return group,faces
+local function text(parent,name,x,y,w,h,value,size,color,z,align)
+ return create("TextLabel",{Name=name,Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),BackgroundTransparency=1,BorderSizePixel=0,Text=value,TextColor3=color,TextSize=size,Font=Enum.Font.GothamBlack,TextXAlignment=align or Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,ZIndex=z or 10},parent)
 end
-local function number(value)
- if type(value)~="number" or value~=value or math.abs(value)==math.huge or value&lt;0 then return "—" end
+local function finite(value) return type(value)=="number" and value==value and math.abs(value)&lt;math.huge end
+local function count(value)
+ if not finite(value) or value&lt;0 then return "—" end
  return string.format("%d",math.floor(value))
 end
+local function rank(value)
+ return finite(value) and value%1==0 and value&gt;=1 and value&lt;=6 and value or nil
+end
+local function point(value)
+ return typeof(value)=="Vector3" and finite(value.X) and finite(value.Y) and finite(value.Z)
+end
+local function choose(...)
+ for index=1,select("#",...) do local value=select(index,...); if value~=nil then return value end end
+ return nil
+end
+local function trophy(parent,x,y,color,z)
+ local left=frame(parent,"TrophyLeftHandle",x,y+2,8,10,color,z,0,1); rounded(left,4); stroke(left,color,2,0)
+ local right=frame(parent,"TrophyRightHandle",x+17,y+2,8,10,color,z,0,1); rounded(right,4); stroke(right,color,2,0)
+ local cup=frame(parent,"TrophyCup",x+5,y,15,13,color,z+1); rounded(cup,4)
+ frame(parent,"TrophyStem",x+11,y+11,3,8,color,z+1)
+ local base=frame(parent,"TrophyFoot",x+6,y+18,13,3,color,z+1); rounded(base,1)
+end
+local function placeholder(parent)
+ local root=frame(parent,"PendingHeadshot",0,0,38,38,Color3.fromRGB(44,49,56),7)
+ rounded(root,8)
+ circle(root,"PendingAvatarHead",19,13,13,Color3.fromRGB(113,123,133),8)
+ local shoulders=frame(root,"PendingAvatarShoulders",7,23,24,14,Color3.fromRGB(113,123,133),8); rounded(shoulders,9)
+ return root
+end
+local function panel(parent,name,x,width)
+ local shell=frame(parent,name,x,0,width,58,BLACK,2,-3,0.1)
+ rounded(shell,5); stroke(shell,BLACK,2,0)
+ gradient(shell,Color3.fromRGB(37,39,42),Color3.fromRGB(7,9,12),100)
+ frame(shell,"TopHighlight",8,3,width-16,1,SILVER,3,0,0.7)
+ return shell
+end
 
-function HUD.new(playerGui,config)
+function HUD.new(playerGui,config,context)
+ local existing=activeHUDs[playerGui]
+ if existing then existing:Destroy() end
  local self=setmetatable({},HUD)
- self.config=config; self.progress=0; self.speed=0; self.viewport=Vector2.zero
+ self.playerGui=playerGui; activeHUDs[playerGui]=self
+ self.config=config; self.context=context or {}; self.destroyed=false; self.token=1
+ self.playerId=self.context.player and self.context.player.UserId or nil
+ self.pollTimer=1; self.rows={}; self.markers={}; self.rowsById={}; self.thumbnails={}; self.racers={}
+ self.pathObjects={}; self.viewport=Vector2.zero; self.mapValid=false; self.pathVersion=nil
+ local previous=playerGui:FindFirstChild("KartHUD")
+ if previous then previous:Destroy() end -- remove old dial/turbo and avoid respawn/reload duplicates
  self.gui=create("ScreenGui",{Name="KartHUD",ResetOnSpawn=false,Enabled=false,IgnoreGuiInset=false,DisplayOrder=20,ZIndexBehavior=Enum.ZIndexBehavior.Sibling},playerGui)
- self.shell=frame(self.gui,"RacingInstrumentCluster",0,0,1040,330,BLACK,1,0,1)
- self.shell.AnchorPoint=Vector2.new(0.5,1)
- self.shell.Position=UDim2.new(0.5,0,1,-20)
- self.scale=create("UIScale",{Scale=1},self.shell)
- self.raceScale=self.scale
- -- A single connected black/chrome framework joins gauge, turbo and counters.
- local bridge=frame(self.shell,"ConnectedChassis",270,134,730,172,BLACK,1)
- rounded(bridge,15)
- gradient(bridge,Color3.fromRGB(31,37,43),BLACK,90)
- frame(self.shell,"ChromeRail",290,206,706,6,CHROME,2)
- frame(self.shell,"CarbonRail",289,213,710,15,FACE,2)
- self.racePanel=frame(self.shell,"CounterStrip",327,238,700,88,BLACK,2,0,0.08)
- rounded(self.racePanel,8)
-
- -- Large circular gauge: black rim, chrome lip, red bezel segments, carbon face.
- local gauge=frame(self.shell,"Speedometer",0,0,330,330,BLACK,3,0,1)
- local outer=circle(gauge,"OuterBlackBezel",165,165,330,BLACK,3)
- stroke(outer,Color3.fromRGB(45,49,55),2,0)
- local chrome=circle(gauge,"ChromeBezel",165,165,317,CHROME,4)
- gradient(chrome,Color3.fromRGB(236,243,247),Color3.fromRGB(37,46,54),105)
- local redRim=circle(gauge,"RedBezel",165,165,308,RED,5)
- gradient(redRim,Color3.fromRGB(255,69,78),Color3.fromRGB(103,10,18),90)
- for index=0,23 do
-  local angle=index*math.pi*2/24
-  local segment=frame(gauge,"BezelSegment",165+154*math.cos(angle)-7,165+154*math.sin(angle)-3,14,6,index%3==0 and RED or BLACK,6,math.deg(angle)+90)
-  rounded(segment,2)
- end
- circle(gauge,"InnerBlackBezel",165,165,291,BLACK,7)
- local face=circle(gauge,"CarbonFace",165,165,276,FACE,8)
- gradient(face,Color3.fromRGB(29,34,40),Color3.fromRGB(6,9,13),100)
- stroke(face,Color3.fromRGB(68,83,95),1,0.25)
- -- Native tile marks stay within the circular face; no external carbon image.
- for x=-112,112,14 do for y=-112,112,14 do
-  if x*x+y*y&lt;116*116 then
-   frame(gauge,"CarbonWeave",162+x,162+y,6,6,Color3.fromRGB(40,48,54),9,45,0.9)
-  end
- end end
- self.speedBars={}
- for index=0,43 do
-  local angle=math.rad(135+index/43*270)
-  local arc=frame(gauge,"GaugeArc",165+134*math.cos(angle)-8,165+134*math.sin(angle)-7,16,14,index/43&gt;=0.8 and RED or BLUE,10,math.deg(angle)+90,0.7)
-  rounded(arc,2)
-  table.insert(self.speedBars,arc)
- end
- self.gaugeMax=config.GaugeMaxMPH or 100
- for index=0,40 do
-  local angle=math.rad(135+index/40*270)
-  local major=index%4==0
-  local length=major and 15 or 7
-  local radius=major and 119 or 123
-  local tick=frame(gauge,"GaugeTick",165+radius*math.cos(angle)-1.5,165+radius*math.sin(angle)-length/2,major and 3 or 2,length,index&gt;=32 and RED or BLUE,11,math.deg(angle)-90)
-  rounded(tick,1)
-  if major then
-   text(gauge,"GaugeNumber",165+100*math.cos(angle)-20,165+100*math.sin(angle)-11,40,22,string.format("%d",math.floor(index/40*self.gaugeMax+0.5)),14,index&gt;=32 and Color3.fromRGB(255,131,133) or Color3.fromRGB(188,213,225),12)
-  end
- end
- self.needlePivot=frame(gauge,"RedNeedlePivot",162,162,6,6,RED,13,225,1)
- local needle=frame(self.needlePivot,"RedNeedle",1,-92,4,95,RED,13)
- rounded(needle,2)
- frame(self.needlePivot,"NeedleHighlight",1,-88,1,82,Color3.fromRGB(255,145,148),14)
- frame(self.needlePivot,"NeedleCounterweight",1,3,4,20,Color3.fromRGB(124,16,21),13)
- circle(gauge,"NeedleChromeHub",165,165,25,CHROME,15)
- circle(gauge,"NeedleBlackHub",165,165,19,BLACK,16)
- circle(gauge,"NeedleRedHub",165,165,8,RED,17)
- self.speedText=text(gauge,"LiveMPHDigits",102,199,126,68,"000",59,WHITE,18)
- self.speedText.TextStrokeColor3=BLACK; self.speedText.TextStrokeTransparency=0.35
- self.mphLabel=text(gauge,"MPHCaption",125,261,80,24,"MPH",18,Color3.fromRGB(203,220,232),18)
-
- -- Horizontal electric-blue turbo cartridges and vector lightning badge.
- local turbo=frame(self.shell,"TurboAssembly",335,113,446,117,BLACK,4,0,1)
- text(turbo,"TurboCaption",64,-12,155,30,"TURBO",27,WHITE,8,Enum.TextXAlignment.Left)
- self.status=text(turbo,"TurboState",228,-7,174,24,"TURBO",16,BLUE,8,Enum.TextXAlignment.Right)
- local chromeHousing=plate(turbo,"TurboChromeHousing",50,23,406,64,CHROME,5)
- local meter,bezelFaces=plate(turbo,"TurboElectricHousing",53,26,400,58,BLUE,6)
- self.meterGlow=stroke(bezelFaces[2],BLUE,1.5,0.6)
- self.segments={}
- for index=1,12 do
-  local track=frame(turbo,"TurboCartridge",88+(index-1)*28,39,20,31,Color3.fromRGB(8,29,46),9,12)
-  rounded(track,2)
-  local fill=frame(track,"TurboBlueFill",0,0,20,31,BLUE,10)
-  fill.AnchorPoint=Vector2.new(0,1); fill.Position=UDim2.fromScale(0,1)
-  gradient(fill,Color3.fromRGB(177,253,255),Color3.fromRGB(0,119,250),90)
-  stroke(fill,Color3.fromRGB(167,242,255),0.9,0.25)
-  rounded(fill,2)
-  table.insert(self.segments,fill)
- end
- local badge=plate(turbo,"LightningChromeHex",-19,16,88,76,CHROME,11)
- plate(turbo,"LightningElectricHex",-15,20,80,68,BLUE,12)
- frame(turbo,"LightningUpper",17,30,11,25,BLUE,15,22)
- frame(turbo,"LightningBridge",13,49,26,10,BLUE,15,-12)
- frame(turbo,"LightningLower",25,55,11,25,BLUE,15,22)
- self.timer=text(turbo,"TurboTimer",296,104,112,22,"",18,WHITE,8,Enum.TextXAlignment.Right)
- self.phaseCaption=text(turbo,"TurboPhase",66,104,218,20,"TURBO CHARGE",10,MUTED,8,Enum.TextXAlignment.Left)
- self.outline=self.meterGlow
- self.edge=badge
-
- -- Right red lap plate with a native checkered-flag icon.
- local lap=plate(self.shell,"RedLapPlate",798,113,236,106,RED,5,-4)
- self.lapPlate=lap
- frame(lap,"FlagPole",42,22,4,61,CHROME,8,-10)
+ self.shell=frame(self.gui,"RaceHUDCanvas",0,0,1,1,BLACK,1,0,1)
+ self.shell.Size=UDim2.fromScale(1,1)
+ self.topLeft=frame(self.shell,"CoinsAndLaps",28,24,330,62,BLACK,2,0,1)
+ self.topScale=create("UIScale",{Scale=1},self.topLeft)
+ local coins=panel(self.topLeft,"CoinPanel",0,154)
+ circle(coins,"CoinShadow",29,29,33,Color3.fromRGB(100,59,5),4)
+ local coin=circle(coins,"GoldCoin",29,27,28,GOLD,5); stroke(coin,Color3.fromRGB(255,237,146),2,0)
+ frame(coins,"CoinStamp",27,18,4,17,Color3.fromRGB(157,91,9),6)
+ self.coinText=text(coins,"LiveCoins",54,5,88,46,"—",35,WHITE,6)
+ self.coinText.TextStrokeColor3=BLACK; self.coinText.TextStrokeTransparency=0.2
+ local lap=panel(self.topLeft,"LapPanel",167,155)
+ frame(lap,"FlagPole",15,17,3,29,SILVER,5,-10)
  for row=0,3 do for column=0,4 do
-  frame(lap,"FlagSquare",45+column*9,21+row*9,9,9,(row+column)%2==0 and WHITE or BLACK,9)
+  frame(lap,"CheckeredFlag",18+column*4.8,13+row*4.8,4.8,4.8,(row+column)%2==0 and WHITE or BLACK,6)
  end end
- text(lap,"LapCaption",108,12,91,23,"LAP",15,WHITE,9)
- self.raceLabels={}
- self.raceLabels.lap=text(lap,"LiveLapCount",91,38,124,46,"— / —",32,WHITE,9)
- self.raceLabels.lap.TextStrokeColor3=BLACK; self.raceLabels.lap.TextStrokeTransparency=0.35
+ self.lapText=text(lap,"LiveLap",47,6,100,43,"—/—",31,WHITE,6)
+ self.lapText.TextStrokeColor3=BLACK; self.lapText.TextStrokeTransparency=0.2
 
- -- Lower gold coin/trophy plates belong to the same connected cluster.
- local coins=plate(self.shell,"GoldCoinPlate",332,245,320,80,GOLD,5,-2)
- circle(coins,"CoinBlackRim",50,40,48,Color3.fromRGB(62,39,8),8)
- circle(coins,"CoinBrightRim",50,40,41,Color3.fromRGB(255,232,130),9)
- circle(coins,"CoinFace",50,40,33,GOLD,10)
- frame(coins,"CoinStamp",47,28,6,24,Color3.fromRGB(127,74,8),11)
- text(coins,"CoinCaption",91,8,166,18,"COINS",11,GOLD,9,Enum.TextXAlignment.Left)
- self.raceLabels.coins=text(coins,"LiveCoinCount",91,25,166,43,"—",35,WHITE,10,Enum.TextXAlignment.Left)
- self.raceLabels.coins.TextStrokeColor3=Color3.fromRGB(77,45,7); self.raceLabels.coins.TextStrokeTransparency=0.2
- local wins=plate(self.shell,"GoldTrophyPlate",672,245,355,80,GOLD,5,2)
- local trophyColor=GOLD
- local leftHandle=frame(wins,"TrophyLeftHandle",26,20,17,19,trophyColor,9,0,1); rounded(leftHandle,7); stroke(leftHandle,trophyColor,4,0)
- local rightHandle=frame(wins,"TrophyRightHandle",61,20,17,19,trophyColor,9,0,1); rounded(rightHandle,7); stroke(rightHandle,trophyColor,4,0)
- local cup=frame(wins,"TrophyCup",36,17,32,28,trophyColor,10); rounded(cup,8); stroke(cup,Color3.fromRGB(77,45,7),1.5,0); gradient(cup,Color3.fromRGB(255,231,128),GOLD,90)
- frame(wins,"TrophyStem",49,42,6,13,trophyColor,10)
- local base=frame(wins,"TrophyBase",37,54,30,5,trophyColor,10); rounded(base,2)
- text(wins,"WinCaption",96,8,174,18,"WINS",11,GOLD,9,Enum.TextXAlignment.Left)
- self.raceLabels.wins=text(wins,"LiveWinCount",96,25,174,43,"—",35,WHITE,10,Enum.TextXAlignment.Left)
- self.raceLabels.wins.TextStrokeColor3=Color3.fromRGB(77,45,7); self.raceLabels.wins.TextStrokeTransparency=0.2
- -- The reference mark sits inside the bottom of the speedometer bezel.
- local pedestal=frame(gauge,"EmblemChromePedestal",135,285,60,36,BLACK,18)
- rounded(pedestal,8); stroke(pedestal,CHROME,1,0.55)
- local emblem=frame(gauge,"RedSquareEmblem",151,289,28,28,RED,19,15,1)
- for _,side in ipairs({0,1}) do
-  frame(emblem,"SquareMark",0,side*20,28,8,RED,19)
-  frame(emblem,"SquareMark",side*20,8,8,12,RED,19)
+ self.leaderboard=frame(self.shell,"SixRacerLeaderboard",0,22,238,290,BLACK,3,0,1)
+ self.leaderboard.AnchorPoint=Vector2.new(1,0); self.leaderboard.Position=UDim2.new(1,-26,0,22)
+ self.boardScale=create("UIScale",{Scale=1},self.leaderboard)
+ for index=1,6 do
+  local group=frame(self.leaderboard,"RacerSlot"..index,0,(index-1)*48,238,43,GLASS,4,0,0.16)
+  rounded(group,11)
+  local outline=stroke(group,BLACK,2,0)
+  local glass=gradient(group,Color3.fromRGB(37,41,45),Color3.fromRGB(7,10,14),90)
+  local position=text(group,"LivePlace",8,1,33,40,"—",25,WHITE,6)
+  local head=create("ImageLabel",{Name="RealAvatarHeadshot",Position=UDim2.fromOffset(48,3),Size=UDim2.fromOffset(38,38),BackgroundColor3=Color3.fromRGB(34,38,44),BorderSizePixel=0,Image="",ScaleType=Enum.ScaleType.Crop,ZIndex=7},group)
+  rounded(head,8); stroke(head,BLACK,1,0)
+  local pending=placeholder(head)
+  local localDot=circle(group,"LocalRacerDot",102,21,6,GOLD,7); localDot.Visible=false
+  trophy(group,126,11,GOLD,7)
+  local wins=text(group,"RealCareerWins",161,3,65,37,"—",27,WHITE,7,Enum.TextXAlignment.Right)
+  group.Visible=false
+  self.rows[index]={frame=group,rank=position,head=head,pending=pending,wins=wins,outline=outline,glass=glass,dot=localDot,y=(index-1)*48,targetY=(index-1)*48,userId=nil,slot=index}
  end
- self.lines={}
- local random=Random.new(17)
- for index=1,18 do
-  local line=frame(self.gui,"BlueBoostStreak",0,0,1,2,Color3.fromRGB(170,231,255),0)
-  line.AnchorPoint=Vector2.new(0.5,0.5); line.Visible=false
-  self.lines[index]={frame=line,angle=index*2*math.pi/18,phase=random:NextNumber()}
+
+ self.placement=frame(self.shell,"LargeRacePlacement",32,0,228,155,BLACK,3,-6,1)
+ self.placement.AnchorPoint=Vector2.new(0,1); self.placement.Position=UDim2.new(0,32,1,-28)
+ self.placeScale=create("UIScale",{Scale=1},self.placement)
+ self.placeNumberLayers={}; self.placeSuffixLayers={}
+ for _,offset in ipairs({{-4,-3},{4,-3},{-4,3},{4,3},{0,-4},{0,4},{-4,0},{4,0}}) do
+  table.insert(self.placeNumberLayers,text(self.placement,"NumberBlackOutline",offset[1],offset[2],128,146,"—",135,BLACK,4))
+  table.insert(self.placeSuffixLayers,text(self.placement,"SuffixBlackOutline",116+offset[1]*0.6,73+offset[2]*0.6,98,62,"",47,BLACK,4))
  end
+ local extrusion=text(self.placement,"NumberExtrusion",3,7,128,146,"—",135,Color3.fromRGB(137,65,5),5)
+ table.insert(self.placeNumberLayers,extrusion)
+ self.placeNumber=text(self.placement,"LivePlacementNumber",0,0,128,146,"—",135,WHITE,6)
+ self.placeNumber.TextStrokeColor3=BLACK; self.placeNumber.TextStrokeTransparency=0
+ self.placeGradient=gradient(self.placeNumber,Color3.fromRGB(255,220,92),ORANGE,90)
+ self.placeSuffix=text(self.placement,"LivePlacementSuffix",116,73,98,62,"",47,WHITE,6)
+ self.placeSuffix.TextStrokeColor3=BLACK; self.placeSuffix.TextStrokeTransparency=0
+ gradient(self.placeSuffix,WHITE,Color3.fromRGB(154,167,180),90)
+
+ self.mapRoot=frame(self.shell,"ActualCourseMinimap",0,0,236,184,BLACK,3,0,1)
+ self.mapRoot.AnchorPoint=Vector2.new(1,1); self.mapRoot.Position=UDim2.new(1,-32,1,-32)
+ self.mapScale=create("UIScale",{Scale=1},self.mapRoot)
+ self.mapPlot=frame(self.mapRoot,"WorldXZCourse",0,0,236,184,BLACK,4,0,1)
+ self.finishMarker=frame(self.mapPlot,"RealFinishLine",0,0,20,10,WHITE,8,0,1)
+ self.finishMarker.AnchorPoint=Vector2.new(0.5,0.5)
+ for row=0,1 do for column=0,3 do
+  frame(self.finishMarker,"FinishCheck",column*5,row*5,5,5,(row+column)%2==0 and WHITE or BLACK,8)
+ end end
+ for index=1,6 do
+  local dot=circle(self.mapPlot,"RealRacerMarker"..index,0,0,13,MARKERS[index],10)
+  dot.AnchorPoint=Vector2.new(0.5,0.5)
+  local outline=stroke(dot,BLACK,2.2,0)
+  local label=text(dot,"ActualMarkerPlace",0,0,13,13,"",8,BLACK,12)
+  dot.Visible=false
+  self.markers[index]={frame=dot,label=label,outline=outline,x=nil,y=nil,targetX=0,targetY=0,valid=false}
+ end
+ self.mapRoot.Visible=false
  return self
 end
 
 function HUD:SetVisible(visible)
+ if self.destroyed then return end
  self.gui.Enabled=visible
- if visible then self.progress=0; self.speed=0 end
+ if visible then self.pollTimer=1 end
 end
 
-function HUD:Update(model,actualSpeed,dt,now,viewport,touch,raceSnapshot)
- if viewport~=self.viewport or touch~=self.touch then
-  self.viewport=viewport; self.touch=touch
-  self.scale.Scale=math.max(0.16,math.min(viewport.X*0.9/1040,viewport.Y*0.28/330,1))
-  self.shell.AnchorPoint=Vector2.new(0.5,touch and 0 or 1)
-  self.shell.Position=touch and UDim2.new(0.5,0,0,12) or UDim2.new(0.5,0,1,-18)
+function HUD:_thumbnail(userId)
+ if self.thumbnails[userId] or not self.context.players then return end
+ -- Studio test racers use synthetic non-positive IDs, not public avatar IDs.
+ if userId&lt;=0 then self.thumbnails[userId]={url=nil,attempts=0}; return end
+ local cache={url=nil,attempts=0}; self.thumbnails[userId]=cache
+ local token=self.token
+ local function load()
+  if self.destroyed or self.token~=token then return end
+  cache.attempts+=1
+  local ok,url,ready=pcall(function()
+   return self.context.players:GetUserThumbnailAsync(userId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size100x100)
+  end)
+  if self.destroyed or self.token~=token then return end
+  if ok and ready==true and type(url)=="string" and url~="" then
+   cache.url=url
+   local row=self.rowsById[userId]
+   if row and row.userId==userId then row.head.Image=url; row.pending.Visible=false end
+  elseif cache.attempts&lt;3 then task.delay(2,load) end
  end
- local mph=math.max(actualSpeed*self.config.StudsToMPH,0)
- self.speed+=(mph-self.speed)*(1-math.exp(-dt*12))
- self.speedText.Text=string.format("%03d",math.floor(self.speed+0.5))
- local ratio=math.clamp(self.speed/self.gaugeMax,0,1)
- self.needlePivot.Rotation=225+ratio*270
- for index,arc in ipairs(self.speedBars) do
-  local active=ratio&gt;=(index-1)/(#self.speedBars-1)
-  arc.BackgroundTransparency=active and 0.05 or 0.78
+ task.spawn(load)
+end
+
+function HUD:_map(state)
+ local path=state and state:FindFirstChild("Path")
+ local expected=state and state:GetAttribute("PathPointCount")
+ local revision=state and state:GetAttribute("PathRevision")
+ local version=state and tostring(state:GetAttribute("RoundId"))..":"..tostring(revision)..":"..tostring(expected)..":"..tostring(state:GetAttribute("CourseValid")) or "none"
+ if self.mapValid and version==self.pathVersion and path==self.pathObject then return end
+ -- Replicated attributes can arrive before children (or before an old path is
+ -- replaced). A pending/partial revision must stay retryable, never cached.
+ self.pathVersion=nil; self.pathObject=nil
+ for _,object in ipairs(self.pathObjects) do object:Destroy() end
+ self.pathObjects={}; self.mapValid=false; self.mapRoot.Visible=false
+ if not state or state:GetAttribute("CourseValid")~=true or not path then return end
+ if not finite(expected) or expected%1~=0 or expected&lt;2 or not finite(revision) then return end
+ local children=path:GetChildren()
+ if #children~=expected then return end
+ table.sort(children,function(a,b)
+  local ai,bi=tonumber(a.Name),tonumber(b.Name)
+  if ai and bi then return ai&lt;bi end
+  return a.Name&lt;b.Name
+ end)
+ local points={}; local minX,maxX,minZ,maxZ=math.huge,-math.huge,math.huge,-math.huge
+ for index,value in ipairs(children) do
+  if not value:IsA("Vector3Value") or tonumber(value.Name)~=index or not point(value.Value) or value:GetAttribute("PathRevision")~=revision then return end
+  local p=value.Value; table.insert(points,p)
+  minX=math.min(minX,p.X); maxX=math.max(maxX,p.X); minZ=math.min(minZ,p.Z); maxZ=math.max(maxZ,p.Z)
  end
- local charge=math.clamp(model:GetAttribute("DriftCharge") or 0,0,1)
- local armed=model:GetAttribute("TurboArmed")==true
- local boosting=model:GetAttribute("Boosting")==true
- local boostEnd=model:GetAttribute("BoostEnd") or 0
- local cooldownEnd=model:GetAttribute("TurboCooldownEnd") or 0
- local remaining=math.max(cooldownEnd-now,0)
- local target,status,timer,caption=0,"READY","","TURBO CHARGE"
- if boosting then
-  target=math.clamp((boostEnd-now)/self.config.TurboDuration,0,1)
-  status="BOOST"
-  timer,caption=string.format("%.1fs",math.max(boostEnd-now,0)),"TURBO ACTIVE"
- elseif remaining&gt;0 or model:GetAttribute("DriftReady")~=true then
-  status="COOLDOWN"
-  timer,caption=remaining&gt;0 and string.format("%.1fs",remaining) or "…","TURBO RECOVERY"
- elseif armed then
-  target,status,caption=1,"READY","TURBO CHARGED"
- elseif charge&gt;0 then
-  target,status=charge,"CHARGING"
-  timer=string.format("%.1fs",math.max(self.config.DriftChargeTime*(1-charge),0))
+ if #points&lt;2 or math.max(maxX-minX,maxZ-minZ)&lt;0.001 then return end
+ local scale=math.min(204/math.max(maxX-minX,0.001),152/math.max(maxZ-minZ,0.001))
+ self.projection={minX=minX,minZ=minZ,scale=scale,offsetX=(236-(maxX-minX)*scale)/2,offsetY=(184-(maxZ-minZ)*scale)/2}
+ local projected={}
+ for _,p in ipairs(points) do local x,y=self:_project(p); table.insert(projected,{x=x,y=y}) end
+ local function keep(object) table.insert(self.pathObjects,object); return object end
+ for index,a in ipairs(projected) do
+  local b=projected[index%#projected+1]
+  local dx,dy=b.x-a.x,b.y-a.y; local length=math.sqrt(dx*dx+dy*dy)
+  if length&gt;0.001 then
+   local rotation=math.deg(math.atan2(dy,dx))
+   local outer=keep(frame(self.mapPlot,"ActualRouteOutline",(a.x+b.x)/2,(a.y+b.y)/2,length+2,16,BLACK,5,rotation))
+   outer.AnchorPoint=Vector2.new(0.5,0.5)
+   local inner=keep(frame(self.mapPlot,"ActualRoute",(a.x+b.x)/2,(a.y+b.y)/2,length+2,9,Color3.fromRGB(203,207,211),6,rotation))
+   inner.AnchorPoint=Vector2.new(0.5,0.5)
+  end
+  keep(circle(self.mapPlot,"RouteJointBlack",a.x,a.y,16,BLACK,5))
+  keep(circle(self.mapPlot,"RouteJointGray",a.x,a.y,9,Color3.fromRGB(203,207,211),6))
  end
- self.progress+=(target-self.progress)*(1-math.exp(-dt*20))
- self.status.Text=status; self.timer.Text=timer; self.phaseCaption.Text=caption
- local pulse=(armed or boosting) and (0.5+0.5*math.sin(now*12)) or 0
- self.meterGlow.Transparency=0.65-pulse*0.5
- self.meterGlow.Thickness=1.5+pulse*1.5
- self.status.TextColor3=(armed or boosting) and WHITE or BLUE
- for index,fill in ipairs(self.segments) do
-  local fraction=math.clamp(self.progress*#self.segments-(index-1),0,1)
-  fill.Size=UDim2.new(1,0,fraction,0)
-  fill.Visible=fraction&gt;0.001
-  fill.BackgroundTransparency=(armed or boosting) and 0.05+0.15*(1-pulse) or 0
- end
- local snapshot=raceSnapshot or {}
- self.raceLabels.lap.Text=number(snapshot.lap).." / "..number(snapshot.totalLaps)
- self.raceLabels.coins.Text=number(snapshot.coins)
- self.raceLabels.wins.Text=number(snapshot.wins)
- for _,line in ipairs(self.lines) do
-  line.frame.Visible=boosting and actualSpeed&gt;self.config.MaxSpeed
-  if line.frame.Visible then
-   line.phase=(line.phase+dt*1.5)%1
-   local radius=0.36+line.phase*0.25
-   line.frame.Position=UDim2.fromScale(0.5+math.cos(line.angle)*radius,0.5+math.sin(line.angle)*radius)
-   line.frame.Size=UDim2.fromOffset(18+line.phase*65,2)
-   line.frame.Rotation=math.deg(line.angle)
-   line.frame.BackgroundTransparency=0.65+line.phase*0.3
+ local first,second=projected[1],projected[2]
+ self.finishMarker.Position=UDim2.fromOffset(first.x,first.y)
+ self.finishMarker.Rotation=math.deg(math.atan2(second.y-first.y,second.x-first.x))+90
+ self.pathVersion=version; self.pathObject=path
+ self.mapValid=true; self.mapRoot.Visible=true
+end
+
+function HUD:_project(position)
+ local p=self.projection
+ return math.clamp((position.X-p.minX)*p.scale+p.offsetX,8,228),math.clamp((position.Z-p.minZ)*p.scale+p.offsetY,8,176)
+end
+
+function HUD:_poll()
+ local state=self.context.raceState
+ if self.context.getRaceState then state=self.context.getRaceState() end
+ self:_map(state)
+ self.standingsValid=not state or state:GetAttribute("StandingsValid")~=false
+ local folder=state and state:FindFirstChild("Racers")
+ local racers={}
+ if folder then
+  for _,record in ipairs(folder:GetChildren()) do
+   local id=record:GetAttribute("UserId")
+   if record:IsA("Folder") and record:GetAttribute("Active")==true and finite(id) and id%1==0 then
+    table.insert(racers,{id=id,place=self.standingsValid and rank(record:GetAttribute("Place")) or nil,position=record:GetAttribute("Position"),lap=record:GetAttribute("Lap"),totalLaps=record:GetAttribute("TotalLaps"),coins=record:GetAttribute("Coins"),wins=record:GetAttribute("Wins")})
+   end
   end
  end
+ table.sort(racers,function(a,b) if a.place~=b.place then return (a.place or 99)&lt;(b.place or 99) end; return a.id&lt;b.id end)
+ local present={}; self.localRace=nil
+ for index,record in ipairs(racers) do
+  if index&gt;6 then break end
+  present[record.id]=true
+  if record.id==self.playerId then self.localRace=record end
+ end
+ for id,row in pairs(self.rowsById) do
+  if not present[id] then row.userId=nil; row.frame.Visible=false; self.rowsById[id]=nil end
+ end
+ self.racers={}
+ for _,marker in ipairs(self.markers) do marker.valid=false end
+ for index,record in ipairs(racers) do
+  if index&gt;6 then break end
+  table.insert(self.racers,record)
+  local row=self.rowsById[record.id]
+  if not row then
+   for _,candidate in ipairs(self.rows) do if not candidate.userId then row=candidate; break end end
+   row.userId=record.id; row.y=(index-1)*48; self.rowsById[record.id]=row
+  end
+  local localPlayer=record.id==self.playerId
+  row.targetY=(index-1)*48; row.frame.Visible=true
+  row.rank.Text=count(record.place); row.rank.TextColor3=record.place==1 and GOLD or WHITE
+  row.wins.Text=count(record.wins); row.dot.Visible=localPlayer
+  row.outline.Color=localPlayer and GOLD or BLACK; row.outline.Thickness=localPlayer and 2.5 or 2
+  row.glass.Color=localPlayer and ColorSequence.new(Color3.fromRGB(83,65,25),Color3.fromRGB(24,21,17)) or ColorSequence.new(Color3.fromRGB(37,41,45),Color3.fromRGB(7,10,14))
+  self:_thumbnail(record.id)
+  local cached=self.thumbnails[record.id]
+  row.head.Image=cached and cached.url or ""; row.pending.Visible=not (cached and cached.url)
+  local marker=self.markers[row.slot]
+  marker.frame.Visible=self.mapValid and point(record.position)
+  marker.valid=marker.frame.Visible
+  marker.frame.BackgroundColor3=localPlayer and GOLD or MARKERS[index]
+  marker.frame.ZIndex=localPlayer and 14 or 10
+  marker.frame.Size=UDim2.fromOffset(localPlayer and 17 or 13,localPlayer and 17 or 13)
+  marker.label.Size=UDim2.fromScale(1,1); marker.label.Text=count(record.place)
+  marker.label.ZIndex=localPlayer and 16 or 12
+  if marker.valid then
+   marker.targetX,marker.targetY=self:_project(record.position)
+   if marker.userId~=record.id then marker.x,marker.y=marker.targetX,marker.targetY end
+  end
+  marker.userId=record.id
+ end
+ for _,marker in ipairs(self.markers) do if not marker.valid then marker.frame.Visible=false end end
+end
+
+function HUD:_placement(place)
+ if place==self.lastPlace then return end
+ self.lastPlace=place
+ local digit=place and tostring(place) or "—"
+ local suffix=place and ({"ST","ND","RD","TH","TH","TH"})[place] or ""
+ for _,label in ipairs(self.placeNumberLayers) do label.Text=digit end
+ for _,label in ipairs(self.placeSuffixLayers) do label.Text=suffix end
+ self.placeNumber.Text=digit; self.placeSuffix.Text=suffix
+ self.placeGradient.Color=place==2 and ColorSequence.new(WHITE,SILVER) or ColorSequence.new(Color3.fromRGB(255,220,92),ORANGE)
+end
+
+function HUD:Update(_model,_actualSpeed,dt,_now,viewport,touch,snapshot)
+ if self.destroyed then return end
+ if viewport~=self.viewport or touch~=self.touch then
+  self.viewport=viewport; self.touch=touch
+  local scale=touch and math.clamp(math.min(viewport.X/620,viewport.Y/700),0.45,0.72) or math.clamp(math.min(viewport.X/1280,viewport.Y/720),0.6,1.2)
+  for _,object in ipairs({self.topScale,self.boardScale,self.placeScale,self.mapScale}) do object.Scale=scale end
+  self.topLeft.Position=UDim2.fromOffset(touch and 14 or 28,touch and 16 or 24)
+  self.leaderboard.Position=UDim2.new(1,touch and -14 or -26,0,touch and 16 or 22)
+  self.placement.Position=UDim2.new(0,touch and 18 or 32,1,touch and -208 or -28)
+  self.mapRoot.Position=UDim2.new(1,touch and -18 or -32,1,touch and -208 or -32)
+ end
+ self.pollTimer+=dt
+ if self.pollTimer&gt;=0.1 then self.pollTimer=0; self:_poll() end
+ local data=snapshot or {}; local own=self.localRace or {}; local player=self.context.player
+ local function attribute(name) return player and player:GetAttribute(name) or nil end
+ self.coinText.Text=count(choose(data.coins,own.coins,attribute("KartCoins")))
+ self.lapText.Text=count(choose(data.lap,own.lap,attribute("KartLap"))).."/"..count(choose(data.totalLaps,own.totalLaps,attribute("KartTotalLaps")))
+ local place=rank(choose(data.place,own.place,attribute("KartPlace")))
+ if not self.standingsValid then place=nil end
+ self:_placement(place)
+ local blend=1-math.exp(-dt*12)
+ for _,row in ipairs(self.rows) do
+  if row.userId then row.y+=(row.targetY-row.y)*blend; row.frame.Position=UDim2.fromOffset(0,row.y) end
+ end
+ for _,marker in ipairs(self.markers) do
+  if marker.valid then
+   marker.x+=(marker.targetX-marker.x)*blend; marker.y+=(marker.targetY-marker.y)*blend
+   marker.frame.Position=UDim2.fromOffset(marker.x,marker.y)
+  end
+ end
+end
+
+function HUD:Destroy()
+ if self.destroyed then return end
+ self.destroyed=true; self.token+=1
+ if activeHUDs[self.playerGui]==self then activeHUDs[self.playerGui]=nil end
+ self.rowsById={}; self.thumbnails={}; self.gui:Destroy()
 end
 return HUD
 </ProtectedString>
@@ -804,38 +906,85 @@ return HUD
       <Item class="ModuleScript" referent="RBX8">
         <Properties>
           <string name="Name">KartRace</string>
-          <ProtectedString name="Source">-- Server bridge to real attributes/leaderstats plus optional checkpoint/coin markers.
--- Unknown data stays nil. This module never writes another race system's stats.
+          <ProtectedString name="Source">-- Server-authoritative six-racer match, standings and actual course snapshot.
 local Players=game:GetService("Players")
+local HttpService=game:GetService("HttpService")
 local Rules=require(script.Parent.KartRaceRules)
+local Career=require(script.Parent.KartCareerWins)
 local Race={}
 Race.__index=Race
 local fields={Lap="KartLap",TotalLaps="KartTotalLaps",Coins="KartCoins",Wins="KartWins"}
 local defaults={Lap={"Lap","CurrentLap"},TotalLaps={"TotalLaps","MaxLaps"},Coins={"Coins"},Wins={"Wins","Trophies"}}
-local reserved={KartLap=true,KartTotalLaps=true,KartCoins=true,KartWins=true}
+local progressDefaults={Checkpoint={"RaceCheckpoint","Checkpoint"},CompletedLaps={"RaceCompletedLaps","CompletedLaps"},Progress={"RaceSegmentProgress","SegmentProgress"},Finished={"RaceFinished"},FinishOrder={"RaceFinishOrder"}}
+local reserved={KartLap=true,KartTotalLaps=true,KartCoins=true,KartWins=true,KartPlace=true}
 
-local function binding(player, field, config)
-	local names=(config.RaceStatNames and config.RaceStatNames[field]) or defaults[field]
+local function binding(player,field,config,progress)
+	local definitions=progress and progressDefaults or defaults
+	local configured=progress and config.RaceProgressBinding or config.RaceStatNames
+	local names=(configured and configured[field]) or definitions[field]
 	if type(names)=="string" then names={names} end
-	if type(names)~="table" then names=defaults[field] end
-	local leaderstats=player:FindFirstChild("leaderstats")
-	for _,name in ipairs(names) do
+	if type(names)~="table" then names=definitions[field] end
+	local stats=player:FindFirstChild("leaderstats")
+	local function valid(raw)
+		if field=="Finished" then if type(raw)=="boolean" then return raw end; return nil end
+		if field=="Progress" then
+			return type(raw)=="number" and raw==raw and raw&gt;=0 and raw&lt;=1 and raw or nil
+		end
+		local value=Rules.counter(raw)
+		if value~=nil and (field~="TotalLaps" and field~="FinishOrder" or value&gt;=1) and (not progress or value==raw) then return value end
+		return nil
+	end
+	for _,name in ipairs(names or {}) do
 		if type(name)=="string" and not reserved[name] then
-			local value=Rules.counter(player:GetAttribute(name))
-			if value~=nil and (field~="TotalLaps" or value&gt;=1) then return value end
-			local stat=leaderstats and leaderstats:FindFirstChild(name)
-			if stat and (stat:IsA("IntValue") or stat:IsA("NumberValue")) then
-				value=Rules.counter(stat.Value)
-				if value~=nil and (field~="TotalLaps" or value&gt;=1) then return value end
+			local value=valid(player:GetAttribute(name))
+			if value~=nil then return value end
+			local stat=stats and stats:FindFirstChild(name)
+			if stat and (stat:IsA("IntValue") or stat:IsA("NumberValue") or stat:IsA("BoolValue")) then
+				value=valid(stat.Value)
+				if value~=nil then return value end
 			end
 		end
 	end
 	return nil
 end
 
-function Race.new(config)
-	local self=setmetatable({config=config,elapsed=0,refresh=0,states={},positions={},round={},checkpoints={},coins={}},Race)
+local function folder(parent,name)
+	local value=Instance.new("Folder"); value.Name=name; value.Parent=parent
+	return value
+end
+local function attribute(object,name,value)
+	if object:GetAttribute(name)~=value then object:SetAttribute(name,value) end
+end
+local function ordered(parent)
+	local result,count={},0
+	if not parent then return nil end
+	for _,part in ipairs(parent:GetChildren()) do
+		if part:IsA("BasePart") then
+			local raw=part:GetAttribute("Order")
+			if raw==nil then raw=tonumber(part.Name) end
+			local order=Rules.counter(raw)
+			if not order or order&lt;1 or order~=raw or result[order] then return nil end
+			result[order]=part; count+=1
+		end
+	end
+	if count&lt;2 or count&gt;500 then return nil end
+	for index=1,count do if not result[index] then return nil end end
+	return result
+end
+
+function Race.new(config,dependencies)
+	dependencies=dependencies or {}
+	local self=setmetatable({config=config,elapsed=0,refresh=0,states={},positions={},round={},
+		checkpoints={},coins={},admitted={},serial=0,activeDrivers={},rows={},pathRevision=0},Race)
+	self.maxRacers=math.clamp(Rules.counter(config.RaceMaxRacers) or 6,1,6)
+	self.career=dependencies.career or Career.new(config)
+	local existing=script.Parent:FindFirstChild("RaceState")
+	if existing then existing:Destroy() end
+	self.snapshot=folder(script.Parent,"RaceState")
+	self.pathFolder=folder(self.snapshot,"Path"); self.racerFolder=folder(self.snapshot,"Racers")
 	self.removing=Players.PlayerRemoving:Connect(function(player)
+		self:ReleaseAdmission(player)
+		self.career:Remove(player)
 		self.states[player]=nil; self.positions[player]=nil
 	end)
 	self:_refresh()
@@ -847,147 +996,295 @@ function Race:_state(player)
 	return self.states[player]
 end
 
+function Race:CanJoin(player)
+	if self.destroyed or not player or player.Parent~=Players then return false end
+	if self.admitted[player] then return true end
+	local count=self.round.finishCount or 0
+	for racer in pairs(self.admitted) do if not self:_state(racer).finishOrder then count+=1 end end
+	return count&lt;self.maxRacers
+end
+
+function Race:TryJoin(player)
+	if not self:CanJoin(player) then return false end
+	if self.admitted[player] then return true end
+	self.serial+=1; self.admitted[player]=self.serial
+	self:_state(player)
+	local row=folder(self.racerFolder,tostring(player.UserId))
+	row:SetAttribute("UserId",player.UserId); row:SetAttribute("Active",true)
+	self.rows[player]=row
+	attribute(player,"KartRaceAdmitted",true)
+	return true
+end
+
+function Race:ReleaseAdmission(player)
+	self.admitted[player]=nil; self.positions[player]=nil; self.activeDrivers[player]=nil
+	if self.rows[player] then self.rows[player]:Destroy(); self.rows[player]=nil end
+	attribute(player,"KartRaceAdmitted",false); attribute(player,"KartPlace",nil)
+end
+
 function Race:ResetRound()
-	self.round={}
+	self.round={finishCount=0,finishOwners={}}
+	self.roundId=HttpService:GenerateGUID(false)
 	self.positions={}
 	for player,state in pairs(self.states) do
-		local fresh=Rules.new()
-		fresh.coins=state.coins; fresh.wins=state.wins
+		local fresh=Rules.new(); fresh.coins=state.coins
+		-- A provider must actually reset its progress before its previous finish
+		-- can be consumed in a new round. Never write to another race's stats.
+		local external=self:_externalProgress(player,binding(player,"TotalLaps",self.config) or self.total)
+		fresh.externalFinishBlocked=state.externalFinishBlocked or state.externalFinished==true or (external and external.finished) or false
 		self.states[player]=fresh
 	end
+	local inactive={}
+	for player in pairs(self.admitted) do if not self.activeDrivers[player] then table.insert(inactive,player) end end
+	for _,player in ipairs(inactive) do self:ReleaseAdmission(player) end
+	attribute(self.snapshot,"RoundId",self.roundId)
+	attribute(self.snapshot,"WinnerUserId",nil)
 end
 
 function Race:_refresh()
 	local course=workspace:FindFirstChild("KartRace")
-	local gates=course and course:FindFirstChild("Checkpoints")
-	local coinFolder=course and course:FindFirstChild("Coins")
-	local checkpoints,coins={},{}
-	local valid=gates~=nil
-	if gates then
-		for _,part in ipairs(gates:GetChildren()) do
-			if part:IsA("BasePart") then
-				local raw=part:GetAttribute("Order")
-				if raw==nil then raw=tonumber(part.Name) end
-				local order=Rules.counter(raw)
-				if not order or order&lt;1 or order~=raw or checkpoints[order] then valid=false
-				else checkpoints[order]=part end
-			end
-		end
+	local checkpoints=ordered(course and course:FindFirstChild("Checkpoints"))
+	local pathParts=ordered(course and course:FindFirstChild("Path"))
+	local source=pathParts and "Path" or "Checkpoints"
+	local points,gates={},{}
+	if checkpoints then
+		for _,part in ipairs(checkpoints) do table.insert(gates,part.Position) end
+		for _,part in ipairs(pathParts or checkpoints) do table.insert(points,part.Position) end
 	end
-	local count=0
-	for _ in pairs(checkpoints) do count+=1 end
-	if count&lt;2 or count&gt;200 then valid=false end
-	for order=1,count do if not checkpoints[order] then valid=false end end
+	local width=self.config.RaceTrackWidth or 18
+	local track=checkpoints and Rules.track(points,gates,width) or nil
+	local valid=track~=nil
 	local total=Rules.counter(course and course:GetAttribute("TotalLaps"))
 	if not total or total&lt;1 then total=Rules.counter(self.config.RaceTotalLaps) or 3 end
-	if total&lt;1 then total=3 end
-	local changed=self.course~=course or self.total~=total or self.hasCourse~=valid or #self.checkpoints~=(valid and count or 0)
-	if valid and not changed then for index,part in ipairs(checkpoints) do if self.checkpoints[index]~=part then changed=true; break end end end
-	if coinFolder then
-		for _,part in ipairs(coinFolder:GetChildren()) do if part:IsA("BasePart") then table.insert(coins,part) end end
+	total=math.max(total,1)
+	local changed=self.course~=course or self.total~=total or self.hasCourse~=valid
+	if not changed and valid then
+		if #self.checkpoints~=#checkpoints or not self.track or #self.track.points~=#track.points then changed=true
+		else
+			for index,part in ipairs(checkpoints) do if self.checkpoints[index]~=part then changed=true; break end end
+			if not changed then for index,point in ipairs(track.points) do
+				if (point-self.track.points[index]).Magnitude&gt;0.01 then changed=true; break end
+			end end
+		end
 	end
+	local coins={}
+	local coinFolder=course and course:FindFirstChild("Coins")
+	if coinFolder then for _,part in ipairs(coinFolder:GetChildren()) do if part:IsA("BasePart") then table.insert(coins,part) end end end
 	self.course=course; self.hasCourse=valid; self.hasCoins=coinFolder~=nil
-	self.checkpoints=valid and checkpoints or {}; self.coins=coins; self.total=total
-	if changed then self:ResetRound() end
+	self.checkpoints=valid and checkpoints or {}; self.track=track; self.coins=coins; self.total=total
+	attribute(self.snapshot,"CourseValid",valid); attribute(self.snapshot,"TotalLaps",total)
+	attribute(self.snapshot,"PathSource",valid and source or nil)
+	if changed then
+		for _,child in ipairs(self.pathFolder:GetChildren()) do child:Destroy() end
+		if valid then for index,point in ipairs(track.points) do
+			local item=Instance.new("Vector3Value"); item.Name=string.format("%03d",index); item.Value=point
+			item:SetAttribute("PathRevision",self.pathRevision+1); item.Parent=self.pathFolder
+		end end
+		attribute(self.snapshot,"PathPointCount",valid and #track.points or 0)
+		self.pathRevision+=1; attribute(self.snapshot,"PathRevision",self.pathRevision)
+		self:ResetRound()
+	end
+end
+
+function Race:_externalProgress(player,total)
+	if not self.hasCourse then return nil end
+	local checkpoint=binding(player,"Checkpoint",self.config,true)
+	local completed=binding(player,"CompletedLaps",self.config,true)
+	local fraction=binding(player,"Progress",self.config,true)
+	if not checkpoint or checkpoint&lt;1 or checkpoint&gt;#self.checkpoints or not completed or completed&gt;total or fraction==nil then return nil end
+	return {completed=completed,checkpoint=checkpoint,fraction=fraction,
+		finished=binding(player,"Finished",self.config,true)==true or completed&gt;=total,
+		finishOrder=binding(player,"FinishOrder",self.config,true)}
+end
+
+function Race:_rank(player,position)
+	local state=self:_state(player)
+	local total=binding(player,"TotalLaps",self.config) or self.total
+	local external=self:_externalProgress(player,total)
+	if external and external.finished and state.externalFinishBlocked then external=nil end
+	local checkpoint=state.started and (state.expected==1 and #self.checkpoints or state.expected-1) or 0
+	local completed=state.completed
+	local fraction=0
+	if external then
+		checkpoint=external.checkpoint; completed=external.completed; fraction=external.fraction
+	elseif checkpoint&gt;0 then
+		local sameLeg=state.rankCheckpoint==checkpoint and state.rankCompleted==completed
+		local projected,distance=Rules.trackProgress(self.track,checkpoint,position,
+			sameLeg and state.rankDistance or nil,self.config.RaceTrackWidth or 18)
+		if projected~=nil then fraction=projected; state.rankDistance=distance
+		elseif sameLeg then fraction=state.rankFraction or 0 end
+	end
+	state.rankCheckpoint=checkpoint; state.rankCompleted=completed; state.rankFraction=fraction
+	return {player=player,serial=self.admitted[player],userId=player.UserId,completed=completed,
+		checkpoint=checkpoint,fraction=fraction,finishOrder=state.finishOrder,external=external,total=total}
+end
+
+function Race:_values(player)
+	local state=self:_state(player)
+	local rank=state.rank
+	local lap=binding(player,"Lap",self.config)
+	local total=binding(player,"TotalLaps",self.config)
+	if rank and self.hasCourse then
+		total=total or rank.total
+		if lap==nil then lap=rank.finishOrder and total or math.min(rank.completed+(rank.checkpoint&gt;0 and 1 or 0),total) end
+	else
+		if self.hasCourse and self.admitted[player] then lap=lap or state.lap; total=total or self.total end
+	end
+	local coins=binding(player,"Coins",self.config)
+	if coins==nil and self.hasCoins then coins=state.coins end
+	local wins=binding(player,"Wins",self.config)
+	if wins==nil then self.career:Track(player); wins=self.career:Get(player) end
+	return {Lap=lap,TotalLaps=total,Coins=coins,Wins=wins}
 end
 
 function Race:_publish(player)
+	local values=self:_values(player)
+	for field,name in pairs(fields) do attribute(player,name,values[field]) end
 	local state=self:_state(player)
-	local externalLap=binding(player,"Lap",self.config)
-	for field,attribute in pairs(fields) do
-		local value=binding(player,field,self.config)
-		if value==nil then
-			if field=="Lap" and self.hasCourse then value=state.lap end
-			if field=="TotalLaps" and self.hasCourse and externalLap==nil then value=self.total end
-			if field=="Coins" and self.hasCoins then value=state.coins end
-			if field=="Wins" and self.hasCourse and externalLap==nil then value=state.wins end
-		end
-		if player:GetAttribute(attribute)~=value then player:SetAttribute(attribute,value) end
+	attribute(player,"KartPlace",self.admitted[player] and self.hasCourse and state.place or nil)
+	local row=self.rows[player]
+	if row then
+		attribute(row,"Active",true); attribute(row,"Place",self.hasCourse and state.place or nil)
+		attribute(row,"Position",state.position)
+		for field,value in pairs(values) do attribute(row,field,value) end
+		-- pairs omits nil fields; remove stale unknown data explicitly.
+		for field in pairs(fields) do attribute(row,field,values[field]) end
 	end
 end
 
-function Race:Update(karts, dt)
+function Race:Update(karts,dt)
 	if self.destroyed then return end
-	self.elapsed+=math.max(0,dt)
-	self.refresh+=math.max(0,dt)
+	self.career:Update(dt)
+	self.elapsed+=math.max(0,dt); self.refresh+=math.max(0,dt)
 	if self.elapsed&lt;0.1 then return end
 	local sample=self.elapsed; self.elapsed=0
 	if self.refresh&gt;=1 then self.refresh=0; self:_refresh() end
-	local active={}
-	local finishers={}
+	local active,candidates,finishers={},{},{}
 	for _,kart in ipairs(karts) do
 		local player=kart.player
 		local occupant=kart.seat and kart.seat.Occupant
 		if player and player.Parent==Players and occupant and occupant.Health&gt;0 and player.Character==occupant.Parent
-			and kart.chassis and kart.chassis:IsDescendantOf(workspace) then
+			and kart.chassis and kart.chassis:IsDescendantOf(workspace) and Rules.finiteVector(kart.chassis.Position) then
+			table.insert(candidates,kart)
+		end
+	end
+	table.sort(candidates,function(a,b) return a.player.UserId&lt;b.player.UserId end)
+	-- A Lap-only provider owns a different race whose ordering is unknown.
+	-- Latch this round unavailable; resetting after the provider supplies its
+	-- complete progress schema gives every participant a coherent fresh race.
+	for _,kart in ipairs(candidates) do self:TryJoin(kart.player) end
+	for player in pairs(self.admitted) do
+		if binding(player,"Lap",self.config)~=nil and not self:_externalProgress(player,binding(player,"TotalLaps",self.config) or self.total) then
+			self.round.progressBlocked=true
+		end
+	end
+	local standingsValid=self.hasCourse and not self.round.progressBlocked
+	attribute(self.snapshot,"StandingsValid",standingsValid)
+	for _,kart in ipairs(candidates) do
+		local player=kart.player
+		if self:TryJoin(player) then
 			active[player]=true
 			local state=self:_state(player)
-			local position=kart.chassis.Position
+			local position=kart.chassis.Position; state.position=position
 			local previous=self.positions[player]
-			-- Ignore void recovery/other teleports as checkpoint sweeps.
 			local limit=((self.config.MaxSpeed or 82)+(self.config.TurboPower or 32)+20)*sample+12
 			local teleported=previous and (position-previous).Magnitude&gt;limit*2
-			if teleported then previous=nil; Rules.resetRoute(state) end
-			if not teleported and self.hasCourse and binding(player,"Lap",self.config)==nil then
+			if teleported then previous=nil; Rules.resetRoute(state); state.rankCheckpoint=nil; state.rankDistance=nil end
+			if not teleported and self.hasCourse then
+				local external=self:_externalProgress(player,binding(player,"TotalLaps",self.config) or self.total)
+				local ownsIncomplete=binding(player,"Lap",self.config)~=nil and not external
+				if external then
+					if not external.finished then state.externalFinishBlocked=false end
+					state.externalFinished=external.finished
+				end
+				if state.externalActive and not external then Rules.resetRoute(state); state.rankDistance=nil end
+				state.externalActive=external~=nil
 				local events={}
 				for order,gate in ipairs(self.checkpoints) do
 					if gate:IsDescendantOf(workspace) then
-						local half=gate.Size/2
-						local before=previous and gate.CFrame:PointToObjectSpace(previous) or nil
-						local after=gate.CFrame:PointToObjectSpace(position)
-						local entered=Rules.entry(before,after,half)
+						local entered=Rules.entry(previous and gate.CFrame:PointToObjectSpace(previous) or nil,
+							gate.CFrame:PointToObjectSpace(position),gate.Size/2)
 						if entered then table.insert(events,{order=order,time=entered}) end
 					end
 				end
 				table.sort(events,function(a,b) return a.time==b.time and a.order&lt;b.order or a.time&lt;b.time end)
 				for _,event in ipairs(events) do
-					if Rules.visit(state,event.order,#self.checkpoints,binding(player,"TotalLaps",self.config) or self.total)=="finish" then
+					if not external and not ownsIncomplete and Rules.visit(state,event.order,#self.checkpoints,binding(player,"TotalLaps",self.config) or self.total)=="finish" and not state.finishOrder then
 						table.insert(finishers,{player=player,state=state,time=event.time})
 					end
 				end
+				if external and external.finished and not state.externalFinishBlocked and not state.finishOrder then
+					state.finished=true
+					table.insert(finishers,{player=player,state=state,time=external.finishOrder or math.huge,provided=external.finishOrder})
+				end
 			end
 			if self.hasCoins and binding(player,"Coins",self.config)==nil then
-				local reach=self.config.RaceCoinPickupRadius or 3.5
 				for _,coin in ipairs(self.coins) do
 					if coin:IsDescendantOf(workspace) then
 						local nearest=position
 						if previous then
-							local direction=position-previous
-							local lengthSquared=direction:Dot(direction)
-							if lengthSquared&gt;1e-9 then
-								local along=math.clamp((coin.Position-previous):Dot(direction)/lengthSquared,0,1)
-								nearest=previous+direction*along
-							end
+							local direction=position-previous; local squared=direction:Dot(direction)
+							if squared&gt;1e-9 then nearest=previous+direction*math.clamp((coin.Position-previous):Dot(direction)/squared,0,1) end
 						end
-						if (nearest-coin.Position).Magnitude&lt;=reach then Rules.collect(state,coin,coin:GetAttribute("Value") or 1) end
+						if (nearest-coin.Position).Magnitude&lt;=(self.config.RaceCoinPickupRadius or 3.5) then Rules.collect(state,coin,coin:GetAttribute("Value") or 1) end
 					end
 				end
 			end
 			self.positions[player]=position
 		end
 	end
-	-- Compare swept crossing times across karts, not their iteration/spawn order.
-	table.sort(finishers,function(a,b)
-		return a.time==b.time and a.player.UserId&lt;b.player.UserId or a.time&lt;b.time
-	end)
-	if finishers[1] and Rules.claimWinner(self.round,finishers[1].player.UserId) then
-		finishers[1].state.wins+=1
+	self.activeDrivers=active
+	table.sort(finishers,function(a,b) return a.time==b.time and a.player.UserId&lt;b.player.UserId or a.time&lt;b.time end)
+	for _,finisher in ipairs(finishers) do
+		if standingsValid and not finisher.state.finishOrder then
+			local order=finisher.provided or 1
+			if not finisher.provided then while self.round.finishOwners[order] do order+=1 end end
+			if order&lt;=self.maxRacers and not self.round.finishOwners[order] then
+				self.round.finishCount=(self.round.finishCount or 0)+1
+				self.round.finishOwners[order]=finisher.player.UserId
+				finisher.state.finishOrder=order
+				if order==1 and Rules.claimWinner(self.round,finisher.player.UserId) then
+					attribute(self.snapshot,"WinnerUserId",finisher.player.UserId)
+					if binding(finisher.player,"Wins",self.config)==nil then self.career:Award(finisher.player,self.roundId..":"..tostring(finisher.player.UserId)) end
+				end
+			end
+		end
 	end
 
 	for player in pairs(self.positions) do
 		if not active[player] then self.positions[player]=nil; Rules.resetRoute(self:_state(player)) end
+	end
+	local standings={}
+	for player in pairs(self.admitted) do
+		local state=self:_state(player)
+		if standingsValid and state.position then
+			local rank=self:_rank(player,state.position); state.rank=rank
+			table.insert(standings,rank)
+		else state.place=nil; state.rank=nil end
+	end
+	table.sort(standings,Rules.ahead)
+	local unfinished=0
+	for _,rank in ipairs(standings) do
+		if rank.finishOrder then self:_state(rank.player).place=rank.finishOrder
+		else
+			unfinished+=1
+			while self.round.finishOwners[unfinished] do unfinished+=1 end
+			self:_state(rank.player).place=unfinished
+		end
 	end
 	for _,player in ipairs(Players:GetPlayers()) do self:_publish(player) end
 end
 
 function Race:Destroy()
 	if self.destroyed then return end
-	self.destroyed=true
-	self.removing:Disconnect()
+	self.destroyed=true; self.removing:Disconnect()
+	self.career:Destroy()
 	for _,player in ipairs(Players:GetPlayers()) do
-		for _,attribute in pairs(fields) do player:SetAttribute(attribute,nil) end
+		for _,name in pairs(fields) do player:SetAttribute(name,nil) end
+		player:SetAttribute("KartPlace",nil); player:SetAttribute("KartRaceAdmitted",false)
 	end
-	table.clear(self.states); table.clear(self.positions)
+	self.snapshot:Destroy()
+	table.clear(self.states); table.clear(self.positions); table.clear(self.admitted)
 end
 
 return Race
@@ -1072,12 +1369,481 @@ function Rules.entry(previous, current, half)
 	return enter
 end
 
+function Rules.finiteVector(value)
+	if value==nil then return false end
+	for _,axis in ipairs({"X","Y","Z"}) do
+		local n=value[axis]
+		if type(n)~="number" or n~=n or math.abs(n)==math.huge then return false end
+	end
+	return true
+end
+
+local function segments(points)
+	local result,total={},0
+	for index,a in ipairs(points) do
+		local b=points[index%#points+1]
+		local length=(b-a).Magnitude
+		if length&gt;1e-5 then
+			table.insert(result,{a=a,b=b,length=length,start=total,finish=total+length})
+			total+=length
+		end
+	end
+	return result,total
+end
+
+local function project(point,parts,from,to,previous)
+	local best
+	for _,segment in ipairs(parts) do
+		local low=math.max(from,segment.start)
+		local high=math.min(to,segment.finish)
+		if high&gt;=low then
+			local direction=segment.b-segment.a
+			local t=math.clamp((point-segment.a):Dot(direction)/(segment.length^2),
+				(low-segment.start)/segment.length,(high-segment.start)/segment.length)
+			local projected=segment.a+direction*t
+			local distance=(point-projected).Magnitude
+			local arc=segment.start+segment.length*t
+			local tie=previous and math.abs(arc-previous) or arc
+			if not best or distance&lt;best.error-1e-6 or (math.abs(distance-best.error)&lt;=1e-6 and tie&lt;best.tie) then
+				best={point=projected,arc=arc,error=distance,tie=tie,index=segment.index,t=t}
+			end
+		end
+	end
+	return best
+end
+
+-- Normalize the real closed polyline so checkpoint one is the minimap start.
+-- Checkpoints must follow the path order. Invalid geometry is not ranked.
+function Rules.track(points,checkpoints,maxError)
+	if #points&lt;2 or #checkpoints&lt;2 then return nil end
+	local clean={}
+	for _,point in ipairs(points) do
+		if not Rules.finiteVector(point) then return nil end
+		if #clean==0 or (point-clean[#clean]).Magnitude&gt;1e-5 then table.insert(clean,point) end
+	end
+	if #clean&gt;1 and (clean[1]-clean[#clean]).Magnitude&lt;1e-5 then table.remove(clean) end
+	if #clean&lt;2 then return nil end
+	local raw,total=segments(clean)
+	if total&lt;1e-4 then return nil end
+	for index,segment in ipairs(raw) do segment.index=index end
+	local first=project(checkpoints[1],raw,0,total)
+	if not first or first.error&gt;maxError then return nil end
+	local normalized={first.point}
+	for offset=1,#clean do
+		local index=(first.index+offset-1)%#clean+1
+		local point=clean[index]
+		if (point-normalized[#normalized]).Magnitude&gt;1e-5 and (point-normalized[1]).Magnitude&gt;1e-5 then table.insert(normalized,point) end
+	end
+	local path,length=segments(normalized)
+	local gates={0}
+	local previous=0
+	for index=2,#checkpoints do
+		local at=project(checkpoints[index],path,previous+1e-4,length-1e-4)
+		if not at or at.error&gt;maxError or at.arc&lt;=previous then return nil end
+		gates[index]=at.arc; previous=at.arc
+	end
+	return {points=normalized,segments=path,length=length,gates=gates}
+end
+
+-- Projection is confined to the legal leg between visited/next checkpoints.
+-- Being physically near a later part of the circuit cannot skip race progress.
+function Rules.trackProgress(track,checkpoint,position,previous,maxError)
+	local from=track.gates[checkpoint]
+	local to=track.gates[checkpoint+1] or track.length
+	if not from or to-from&lt;1e-5 or not Rules.finiteVector(position) then return nil end
+	local at=project(position,track.segments,from,to,previous)
+	if not at or at.error&gt;maxError then return nil end
+	return math.clamp((at.arc-from)/(to-from),0,1),at.arc
+end
+
+function Rules.ahead(a,b)
+	if a.finishOrder or b.finishOrder then
+		if not a.finishOrder then return false end
+		if not b.finishOrder then return true end
+		if a.finishOrder~=b.finishOrder then return a.finishOrder&lt;b.finishOrder end
+	end
+	if a.completed~=b.completed then return a.completed&gt;b.completed end
+	if a.checkpoint~=b.checkpoint then return a.checkpoint&gt;b.checkpoint end
+	if math.abs(a.fraction-b.fraction)&gt;1e-7 then return a.fraction&gt;b.fraction end
+	if a.serial~=b.serial then return a.serial&lt;b.serial end
+	return a.userId&lt;b.userId
+end
+
 return table.freeze(Rules)
 </ProtectedString>
         </Properties>
       </Item>
+      <Item class="ModuleScript" referent="RBX10">
+        <Properties>
+          <string name="Name">KartCareerWins</string>
+          <ProtectedString name="Source">-- Server career-win storage. Get never yields; unknown/failed loads remain nil.
+-- UpdateAsync merges monotonic per-server-session award watermarks. Retrying a
+-- write after an ambiguous response cannot increment twice or erase other servers.
+local Career={}
+Career.__index=Career
+
+local function count(value)
+	if type(value)~="number" or value~=value or math.abs(value)==math.huge or value&lt;0 then return nil end
+	return math.floor(value)
+end
+
+local function record(value)
+	if value==nil then return {version=1,wins=0,sessions={}} end
+	if type(value)=="number" then
+		local wins=count(value)
+		if not wins then return nil end
+		return {version=1,wins=wins,sessions={}}
+	end
+	if type(value)~="table" or count(value.wins)==nil then return nil end
+	if value.sessions~=nil and type(value.sessions)~="table" then return nil end
+	local sessions={}
+	for session,sequence in pairs(value.sessions or {}) do
+		if type(session)~="string" or count(sequence)==nil then return nil end
+		sessions[session]=count(sequence)
+	end
+	local copy=table.clone(value)
+	copy.version=1; copy.wins=count(value.wins); copy.sessions=sessions
+	return copy
+end
+
+local function identity(player)
+	local id=type(player)=="number" and player or (player and player.UserId)
+	if type(id)~="number" or id~=id or math.abs(id)==math.huge or id%1~=0 then return nil end
+	return tostring(id)
+end
+
+function Career.new(config, deps)
+	deps=deps or {}
+	local self=setmetatable({},Career)
+	self.enabled=config.CareerWinsEnabled~=false
+	self.records={}
+	self.sequences={}; self.awardIds={}
+	self.clock=deps.clock or os.clock
+	self.spawn=deps.spawn or task.spawn
+	self.wait=deps.wait or task.wait
+	self.warning=deps.warn or warn
+	self.session=deps.sessionId or game:GetService("HttpService"):GenerateGUID(false)
+	self.retryBase=1
+	self.closeBudget=math.clamp(config.CareerWinsCloseTimeout or 25,0,25)
+	self.name=config.CareerWinsDataStore or "FunRunKartCareerWins_v1"
+	self.store=deps.store
+	self.factory=deps.storeFactory or function()
+		return game:GetService("DataStoreService"):GetDataStore(self.name)
+	end
+	self.storeNext=0
+	self.storeFailures=0
+	local bind=deps.bindToClose or function(callback) game:BindToClose(callback) end
+	if self.enabled then bind(function() self:Close() end) end
+	return self
+end
+
+function Career:_getStore()
+	if self.store then return self.store end
+	if self.clock()&lt;self.storeNext then return nil end
+	local ok,value=pcall(self.factory)
+	if ok and value then self.store=value; self.storeFailures=0; return value end
+	self.storeFailures+=1
+	self.storeNext=self.clock()+math.min(60,self.retryBase*2^math.min(self.storeFailures-1,6))
+	self.warning("Kart career wins storage unavailable; values remain unknown and pending awards are retained.")
+	return nil
+end
+
+function Career:_record(player)
+	local id=identity(player)
+	if not id then return nil end
+	local current=self.records[id]
+	if not current then
+		local known=self.sequences[id] or 0
+		self.awardIds[id]=self.awardIds[id] or {}
+		current={id=id,loaded=false,wins=nil,nextSeq=known,savedSeq=known,awards=self.awardIds[id],
+			nextAttempt=0,failures=0,inFlight=false,removed=false}
+		self.records[id]=current
+	end
+	return current
+end
+
+function Career:_prune(current)
+	if current.removed and not current.inFlight and current.nextSeq&lt;=current.savedSeq then
+		if self.records[current.id]==current then self.records[current.id]=nil end
+	end
+end
+
+function Career:_queue(current, force)
+	if not self.enabled or self.destroyed or current.inFlight then return false end
+	local dirty=current.nextSeq&gt;current.savedSeq
+	if current.loaded and not dirty then self:_prune(current); return false end
+	if not force and self.clock()&lt;current.nextAttempt then return false end
+	local store=self:_getStore()
+	if not store then return false end
+	current.inFlight=true
+	local target=current.nextSeq
+	self.spawn(function()
+		local ok,value=pcall(function()
+			if target&gt;current.savedSeq then
+				return store:UpdateAsync("u_"..current.id,function(previous)
+					local data=record(previous)
+					if not data then error("Invalid stored career-win record; refusing to overwrite it") end
+					local applied=data.sessions[self.session] or 0
+					local delta=math.max(target-applied,0)
+					data.wins+=delta
+					data.sessions[self.session]=math.max(applied,target)
+					return data
+				end)
+			end
+			return store:GetAsync("u_"..current.id)
+		end)
+		local data=ok and record(value) or nil
+		local watermark=data and (data.sessions[self.session] or 0) or 0
+		if data and target&gt;current.savedSeq and watermark&lt;target then data=nil end
+		if data then
+			current.loaded=true
+			current.wins=data.wins
+			current.savedSeq=math.max(current.savedSeq,watermark)
+			current.nextSeq=math.max(current.nextSeq,current.savedSeq)
+			self.sequences[current.id]=math.max(self.sequences[current.id] or 0,current.nextSeq)
+			current.failures=0; current.nextAttempt=0
+		else
+			-- Never replace an unknown count with 0 after an access failure,
+			-- malformed record or an ambiguous write result.
+			current.failures+=1
+			current.nextAttempt=self.clock()+math.min(60,self.retryBase*2^math.min(current.failures-1,6))
+			if current.failures==1 or current.failures%6==0 then
+				self.warning("Kart career wins request failed for user "..current.id.."; pending awards retained for retry.")
+			end
+		end
+		current.inFlight=false
+		self:_prune(current)
+	end)
+	return true
+end
+
+function Career:Track(player)
+	if not self.enabled or self.destroyed or self.closing then return end
+	local current=self:_record(player)
+	if not current then return end
+	current.removed=false
+	self:_queue(current,false)
+end
+
+function Career:Get(player)
+	if not self.enabled then return nil end
+	local id=identity(player)
+	local current=id and self.records[id]
+	if not current or not current.loaded then return nil end
+	-- Confirmed storage plus actual locally earned awards still awaiting a save.
+	return current.wins+math.max(current.nextSeq-current.savedSeq,0)
+end
+
+function Career:Award(player, awardId)
+	if not self.enabled or self.destroyed or self.closing or type(awardId)~="string" or #awardId==0 then return false end
+	local current=self:_record(player)
+	if not current or current.awards[awardId] then return false end
+	current.awards[awardId]=true
+	current.nextSeq+=1
+	self.sequences[current.id]=current.nextSeq
+	self:_queue(current,false)
+	return true
+end
+
+function Career:Flush(player)
+	local id=identity(player)
+	local current=id and self.records[id]
+	return current and self:_queue(current,true) or false
+end
+
+function Career:Update(_dt)
+	if not self.enabled or self.destroyed then return end
+	for _,current in pairs(self.records) do self:_queue(current,false) end
+end
+
+function Career:Remove(player)
+	local id=identity(player)
+	local current=id and self.records[id]
+	if not current then return end
+	current.removed=true
+	self:_queue(current,true)
+	self:_prune(current)
+	-- Failed dirty records deliberately remain queued after the Player is gone.
+end
+
+function Career:Close()
+	if not self.enabled or self.destroyed or self.closing then return end
+	self.closing=true
+	local deadline=self.clock()+self.closeBudget
+	for _,current in pairs(self.records) do
+		if current.nextSeq&gt;current.savedSeq then self:_queue(current,true) end
+	end
+	while self.clock()&lt;deadline do
+		local pending=false
+		for _,current in pairs(self.records) do
+			if current.nextSeq&gt;current.savedSeq then
+				pending=true
+				self:_queue(current,false)
+			end
+		end
+		if not pending then return end
+		self.wait(0.1)
+	end
+	local unsaved=0
+	for _,current in pairs(self.records) do unsaved+=math.max(current.nextSeq-current.savedSeq,0) end
+	if unsaved&gt;0 then
+		self.warning("Kart career wins shutdown deadline reached with "..unsaved.." pending award(s). Storage access must be restored; these writes are not confirmed.")
+	end
+end
+
+function Career:Destroy()
+	if self.destroyed then return end
+	self:Close()
+	self.destroyed=true
+end
+
+return Career
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="RBX11">
+        <Properties>
+          <string name="Name">KartMeshVisuals</string>
+          <ProtectedString name="Source">-- Imported Blender meshes replace presentation only. The existing raycast rig,
+-- wheel carriers, steering motor, seat, hand targets and effects remain intact.
+local MeshVisuals={}
+local GROUPS={
+	"MainBody","FrontNose","LeftSidePod","RightSidePod","RearBody","RearBumper",
+	"Seat","SteeringWheel","FrontLeftWheel","FrontRightWheel","RearLeftWheel",
+	"RearRightWheel","LeftExhaust","RightExhaust","Chassis",
+}
+local wheelNames={FrontLeftWheel="FrontLeft",FrontRightWheel="FrontRight",RearLeftWheel="RearLeft",RearRightWheel="RearRight"}
+
+local function finite(value)
+	return type(value)=="number" and value==value and math.abs(value)&lt;math.huge
+end
+local function validFrame(cf)
+	if typeof(cf)~="CFrame" then return false end
+	for _,value in ipairs({cf:GetComponents()}) do if not finite(value) then return false end end
+	return true
+end
+local function validSize(size)
+	return typeof(size)=="Vector3" and finite(size.X) and finite(size.Y) and finite(size.Z)
+		and size.X&gt;0 and size.Y&gt;0 and size.Z&gt;0 and math.max(size.X,size.Y,size.Z)&lt;32
+end
+local function scaledFrame(cf,scale)
+	return CFrame.new(cf.Position*scale)*cf.Rotation
+end
+local function sanitize(part)
+	for _,child in ipairs(part:GetChildren()) do
+		-- Imported solid-color meshes need no scripts, constraints or attachments.
+		if not child:IsA("SurfaceAppearance") then child:Destroy() end
+	end
+	part.Anchored=false; part.Massless=true
+	part.CanCollide=false; part.CanTouch=false; part.CanQuery=false
+	assert(finite(part.Transparency),"invalid mesh transparency")
+	part.Transparency=math.clamp(part.Transparency,0,1)
+end
+
+function MeshVisuals.apply(rig,color,template)
+	if not rig or not rig.model or not rig.chassis or not rig.hub or not rig.seat then return false,"invalid rig" end
+	if rig.model:FindFirstChild("ImportedKartVisuals") then return true,"already applied" end
+	-- The template is created by ImportBlender.command.luau after Studio uploads
+	-- the FBX meshes to the experience owner's account. No asset IDs are invented.
+	if not template then template=script.Parent:FindFirstChild("KartMeshTemplate") end
+	if not template then rig.model:SetAttribute("VisualSource","Native"); return false,"no imported mesh template" end
+	local holder
+	local brakeLights={}
+	local ok,result=pcall(function()
+		assert(template:IsA("Model") and template:GetAttribute("KartMeshFormat")==1,"invalid mesh template format")
+		local scale=rig.model:GetAttribute("ModelScale") or 1
+		assert(finite(scale) and scale&gt;0 and scale&lt;=4,"invalid rig scale")
+		local wheels=assert(rig.model:FindFirstChild("Wheels"),"missing wheel rig")
+		local accepted={}
+		for _,name in ipairs(GROUPS) do accepted[name]=true end
+		for _,group in ipairs(template:GetChildren()) do assert(accepted[group.Name],"unexpected mesh group: "..group.Name) end
+		holder=Instance.new("Folder"); holder.Name="ImportedKartVisuals"
+		local count=0
+		for _,name in ipairs(GROUPS) do
+			local source=assert(template:FindFirstChild(name),"missing mesh group: "..name)
+			assert(source:IsA("Folder") or source:IsA("Model"),"invalid mesh group: "..name)
+			local pivot=source:GetAttribute("KartGroupPivot")
+			assert(validFrame(pivot),"missing canonical group pivot: "..name)
+			local carrier=rig.chassis
+			if wheelNames[name] then
+				local wheel=assert(wheels:FindFirstChild(wheelNames[name]),"missing wheel: "..name)
+				carrier=assert(wheel:FindFirstChild("Tire"),"missing tire carrier: "..name)
+			elseif name=="SteeringWheel" then carrier=rig.hub end
+			local destination=Instance.new("Folder"); destination.Name=name; destination.Parent=holder
+			local groupCount=0
+			for _,part in ipairs(source:GetChildren()) do
+				assert(part:IsA("MeshPart"),"template contains a non-mesh: "..part.Name)
+				assert(validSize(part.Size) and validFrame(part.CFrame),"invalid mesh transform: "..part.Name)
+				local copy=assert(part:Clone(),"mesh is not Archivable: "..part.Name)
+				sanitize(copy)
+				copy.Size=part.Size*scale
+				-- Template CFrames are normalized chassis-local canonical units.
+				-- Dynamic groups are expressed relative to their real motor pivot.
+				local relative=carrier==rig.chassis and part.CFrame or pivot:ToObjectSpace(part.CFrame)
+				copy.CFrame=carrier.CFrame*scaledFrame(relative,scale)
+				if part:GetAttribute("KartPrimaryPaint")==true and color then copy.Color=color end
+				if part:GetAttribute("KartBrakeLight")==true then table.insert(brakeLights,copy) end
+				copy.Parent=destination
+				local weld=Instance.new("WeldConstraint"); weld.Name="VisualWeld"
+				weld.Part0=carrier; weld.Part1=copy; weld.Parent=copy
+				groupCount+=1; count+=1
+				assert(count&lt;=256,"mesh object budget exceeded")
+			end
+			assert(groupCount&gt;0,"empty mesh group: "..name)
+		end
+		return count
+	end)
+	if not ok then
+		if holder then holder:Destroy() end
+		rig.model:SetAttribute("VisualSource","Native")
+		return false,tostring(result)
+	end
+	-- All clones and motor-relative transforms are valid before anything visible
+	-- is hidden. A bad import leaves the complete native fallback drivable.
+	local oldParts={}
+	for _,part in ipairs(rig.model:GetDescendants()) do
+		if part:IsA("BasePart") and part.Name~="BoostGlow" and part.Name~="BrakeLight" then table.insert(oldParts,part) end
+	end
+	holder.Parent=rig.model
+	for _,part in ipairs(oldParts) do part.Transparency=1 end
+	rig.model:SetAttribute("VisualSource","Blender")
+	rig.model:SetAttribute("MeshObjectCount",result)
+	rig.meshBrakeLights=brakeLights
+	return true,"Blender meshes applied"
+end
+
+return table.freeze(MeshVisuals)
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="RBX12">
+        <Properties>
+          <string name="Name">KartPresentation</string>
+          <ProtectedString name="Source">-- Pure visual motion calculations. Never changes vehicle forces or turbo rules.
+local Presentation={}
+
+function Presentation.delta(dt)
+	return type(dt)=="number" and dt==dt and math.clamp(dt,0,0.1) or 0
+end
+
+function Presentation.wheel(phase,filteredSpeed,actualSpeed,radius,dt)
+	dt=Presentation.delta(dt)
+	if radius&lt;=0 then return phase,0 end
+	-- Ignore sub-pixel replication noise at rest; parked tires stop immediately.
+	if math.abs(actualSpeed)&lt;0.05 then return phase,0 end
+	local decay=math.exp(-16*dt)
+	local speed=actualSpeed+(filteredSpeed-actualSpeed)*decay
+	-- Analytic distance under the smoothing curve, so spin agrees across FPS.
+	local distance=actualSpeed*dt+(filteredSpeed-actualSpeed)*(1-decay)/16
+	return (phase-distance/radius)%(2*math.pi),speed
+end
+
+return table.freeze(Presentation)
+</ProtectedString>
+        </Properties>
+      </Item>
     </Item>
-    <Item class="Script" referent="RBX10">
+    <Item class="Script" referent="RBX13">
       <Properties>
         <string name="Name">KartServer</string>
         <ProtectedString name="Source">local Players = game:GetService("Players")
@@ -1088,6 +1854,7 @@ local System = ReplicatedStorage:WaitForChild("KartSystem")
 local Config = require(System.KartConfig)
 local Dynamics = require(System.KartDynamics)
 local Builder = require(System.KartBuilder)
+local MeshVisuals = require(System.KartMeshVisuals)
 local SeatLock = require(System.KartSeatLock)
 local Race = require(System.KartRace)
 local race = Race.new(Config)
@@ -1139,7 +1906,7 @@ local function attachDriver(s)
 	local humanoid=s.seat.Occupant
 	if not humanoid then return end
 	local player=Players:GetPlayerFromCharacter(humanoid.Parent)
-	if not player or humanoid.Health&lt;=0 or playerStates[player] then humanoid.Sit=false; return end
+	if not player or humanoid.Health&lt;=0 or playerStates[player] or not race:TryJoin(player) then humanoid.Sit=false; return end
 	s.player=player; playerStates[player]=s; s.humanoid=humanoid
 	s.seatLock=SeatLock.new(s.seat,humanoid,function()
 		return s.player==player and player.Parent==Players and player.Character==humanoid.Parent
@@ -1194,7 +1961,22 @@ local function attachDriver(s)
 end
 
 local function spawnKart(cf, colorName)
-	local s=Builder.build("RacingKart",cf,Config.Palette[colorName] or Config.Palette.Red)
+	local color=Config.Palette[colorName] or Config.Palette.Red
+	local s=Builder.build("RacingKart",cf,color)
+	MeshVisuals.apply(s,color)
+	s.brakeLights={}
+	for _,part in ipairs(s.model.Effects:GetChildren()) do
+		if part:IsA("BasePart") and part.Name=="BrakeLight" then
+			if #(s.meshBrakeLights or {})&gt;0 then part.Transparency=1 end
+			table.insert(s.brakeLights,part)
+		end
+	end
+	for _,part in ipairs(s.meshBrakeLights or {}) do table.insert(s.brakeLights,part) end
+	for _,wheel in ipairs(s.wheels) do
+		wheel.motor:SetAttribute("WheelRadius",Config.WheelRadius)
+		wheel.motor:SetAttribute("ContactOrigin",wheel.origin)
+		wheel.motor:SetAttribute("SuspensionDistance",Config.SuspensionRest)
+	end
 	s.model:SetAttribute("ColorName",colorName)
 	s.model.Parent=world
 	CollectionService:AddTag(s.model,"RacingKart")
@@ -1225,7 +2007,7 @@ local function spawnKart(cf, colorName)
 		local humanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 		local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		if not humanoid or humanoid.Health&lt;=0 or not root or playerStates[player] or s.seat.Occupant or s.reserved then return end
-		if (root.Position-s.seat.Position).Magnitude&gt;11 then return end
+		if (root.Position-s.seat.Position).Magnitude&gt;11 or not race:CanJoin(player) then return end
 		s.reserved=true; s.prompt.Enabled=false
 		s.seat:Sit(humanoid)
 		task.delay(1,function()
@@ -1246,7 +2028,7 @@ if markers then
 	for _,marker in ipairs(markers:GetChildren()) do
 		if marker:IsA("BasePart") then
 			marker.CanCollide=false; marker.CanTouch=false; marker.CanQuery=false; marker.Transparency=1
-			spawnKart(marker.CFrame,marker:GetAttribute("ColorName") or "Red")
+			spawnKart(marker.CFrame,marker:GetAttribute("ColorName") or (Config.Palette[marker.Name] and marker.Name) or "Red")
 		end
 	end
 end
@@ -1403,8 +2185,8 @@ RunService.PreSimulation:Connect(function(delta)
 				trail.Enabled=s.turboEffect&gt;0.1
 				trail.Transparency=NumberSequence.new(1-s.turboEffect*0.55,1)
 			end
-			for _,light in ipairs(s.model.Effects:GetChildren()) do
-				if light.Name=="BrakeLight" and light:IsA("BasePart") then
+			for _,light in ipairs(s.brakeLights) do
+				if light.Parent then
 					local braking=s.throttle&lt;0 and speed&gt;2
 					light.Material=braking and Enum.Material.Neon or Enum.Material.SmoothPlastic
 					light.Color=braking and Color3.fromRGB(255,30,35) or Color3.fromRGB(110,5,10)
@@ -1426,7 +2208,7 @@ end)
         <bool name="Disabled">true</bool>
       </Properties>
     </Item>
-    <Item class="LocalScript" referent="RBX11">
+    <Item class="LocalScript" referent="RBX14">
       <Properties>
         <string name="Name">KartController</string>
         <ProtectedString name="Source">local Players=game:GetService("Players")
@@ -1445,14 +2227,17 @@ local analog=Vector2.zero
 local clock=0
 local Config=require(ReplicatedStorage:WaitForChild("KartSystem"):WaitForChild("KartConfig"))
 local Dynamics=require(ReplicatedStorage.KartSystem:WaitForChild("KartDynamics"))
+local Presentation=require(ReplicatedStorage.KartSystem:WaitForChild("KartPresentation"))
 local presentations={}
-local cameraFocus,cameraHeading
+local cameraFocus,cameraHeading,lastCameraRoot
 local cameraCF
 local previousCamera
 local previousJump
 local previousZoom
 local HUD=require(ReplicatedStorage.KartSystem:WaitForChild("KartHUD"))
-local hud=HUD.new(player:WaitForChild("PlayerGui"),Config)
+local hud=HUD.new(player:WaitForChild("PlayerGui"),Config,{
+	player=player,players=Players,raceState=ReplicatedStorage.KartSystem:WaitForChild("RaceState"),
+})
 local previousStates
 local seatedHumanoid
 local originalStates=setmetatable({},{__mode="k"})
@@ -1525,7 +2310,7 @@ local function stop()
 		camera.CameraSubject=previousCamera.subject
 		camera.FieldOfView=previousCamera.fov
 	end
-	active=nil; seat=nil; root=nil; cameraCF=nil; cameraFocus=nil; cameraHeading=nil; hud:SetVisible(false)
+	active=nil; seat=nil; root=nil; cameraCF=nil; cameraFocus=nil; cameraHeading=nil; lastCameraRoot=nil; hud:SetVisible(false)
 	held={}; analog=Vector2.zero
 end
 
@@ -1589,7 +2374,7 @@ local function prepareVisuals(model)
 		local tire=wheel:FindFirstChild("Tire")
 		local wheelMotor=tire and tire:FindFirstChild("WheelMotor")
 		if wheelMotor then
-			table.insert(state.wheels,{motor=wheelMotor,origin=wheelMotor.C0.Position+Vector3.new(0,Config.SuspensionRest,0),distance=Config.SuspensionRest,spin=0,speed=0,front=wheel.Name:sub(1,5)=="Front"})
+			table.insert(state.wheels,{motor=wheelMotor,origin=wheelMotor:GetAttribute("ContactOrigin") or wheelMotor.C0.Position+Vector3.new(0,Config.SuspensionRest,0),radius=wheelMotor:GetAttribute("WheelRadius") or Config.WheelRadius,distance=Config.SuspensionRest,spin=0,speed=0,front=wheel.Name:sub(1,5)=="Front"})
 		end
 	end
 	presentations[model]=state
@@ -1598,6 +2383,7 @@ end
 -- Every observer animates the same replicated assembly locally at render rate.
 -- Motors are visual only; no client writes physics velocity or position.
 RunService:BindToRenderStep("KartVisuals",Enum.RenderPriority.Character.Value+1,function(dt)
+	dt=Presentation.delta(dt)
 	for model,state in pairs(presentations) do
 		if not model:IsDescendantOf(workspace) or not state.root:IsDescendantOf(workspace) then presentations[model]=nil; continue end
 		state.angle=Dynamics.approach(state.angle,model:GetAttribute("SteerAngle") or 0,18,dt)
@@ -1607,8 +2393,7 @@ RunService:BindToRenderStep("KartVisuals",Enum.RenderPriority.Character.Value+1,
 			wheel.distance=Dynamics.approach(wheel.distance,target,response,dt)
 			local direction=(state.root.CFrame*CFrame.Angles(0,wheel.front and state.angle or 0,0)).LookVector
 			local pv=state.root:GetVelocityAtPosition(state.root.CFrame:PointToWorldSpace(wheel.origin))
-			wheel.speed=Dynamics.approach(wheel.speed,pv:Dot(direction),16,dt)
-			wheel.spin=(wheel.spin-wheel.speed/Config.WheelRadius*dt)%(math.pi*2)
+			wheel.spin,wheel.speed=Presentation.wheel(wheel.spin,wheel.speed,pv:Dot(direction),wheel.radius,dt)
 			wheel.motor.C0=CFrame.new(wheel.origin-Vector3.new(0,wheel.distance,0))*CFrame.Angles(0,wheel.front and state.angle or 0,0)*CFrame.Angles(wheel.spin,0,0)
 		end
 		state.steering.C0=state.base*CFrame.Angles(0,0,state.angle*1.8)
@@ -1648,26 +2433,31 @@ RunService:BindToRenderStep("KartCamera",Enum.RenderPriority.Camera.Value+1,func
 	if clock&gt;=1/30 then clock=0; send() end
 	local camera=workspace.CurrentCamera
 	if not camera then return end
+	dt=Presentation.delta(dt)
 	local cf=root.CFrame
+	if lastCameraRoot and (root.Position-lastCameraRoot).Magnitude&gt;48 then
+		cameraFocus=nil; cameraHeading=nil
+	end
+	lastCameraRoot=root.Position
 	local speed=active:GetAttribute("Speed") or 0
 	local boosting=active:GetAttribute("Boosting") or false
 	local flat=Vector3.new(cf.LookVector.X,0,cf.LookVector.Z)
 	if flat.Magnitude&lt;0.01 then flat=Vector3.new(0,0,-1) else flat=flat.Unit end
 	local motion=Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z)
 	local blend=active:GetAttribute("DriftBlend") or 0
-	if motion.Magnitude&gt;10 and motion.Unit:Dot(flat)&gt;0.3 then flat=flat:Lerp(motion.Unit,blend*0.3).Unit end
-	cameraHeading=cameraHeading and cameraHeading:Lerp(flat,1-math.exp(-dt*Config.CameraHeadingResponse)).Unit or flat
+	if motion.Magnitude&gt;10 and motion.Unit:Dot(flat)&gt;0.3 then flat=flat:Lerp(motion.Unit,blend*Config.CameraDriftFollow).Unit end
+	local heading=cameraHeading and cameraHeading:Lerp(flat,1-math.exp(-dt*Config.CameraHeadingResponse)) or flat
+	cameraHeading=heading.Magnitude&gt;0.001 and heading.Unit or flat
 	-- Compensate the horizontal filter's steady-speed lag; otherwise stacking
 	-- position and CFrame filters makes the kart outrun its camera at high speed.
-	local targetFocus=root.Position+Vector3.new(0,1.7,0)+motion/Config.CameraPositionResponse
+	local targetFocus=root.Position+Vector3.new(0,Config.CameraFocusHeight,0)+motion/Config.CameraPositionResponse
 	if cameraFocus then
 		local planar=1-math.exp(-dt*Config.CameraPositionResponse)
 		local vertical=1-math.exp(-dt*Config.CameraHeightResponse)
 		cameraFocus=Vector3.new(cameraFocus.X+(targetFocus.X-cameraFocus.X)*planar,cameraFocus.Y+(targetFocus.Y-cameraFocus.Y)*vertical,cameraFocus.Z+(targetFocus.Z-cameraFocus.Z)*planar)
 	else cameraFocus=targetFocus end
-	local scale=Config.ModelScale
-	local focus=cameraFocus+cameraHeading*(1.5*scale)
-	local desired=focus-cameraHeading*((11+math.min(speed/40,2))*scale)+Vector3.new(0,4.5*scale,0)
+	local focus=cameraFocus+cameraHeading*Config.CameraLookAhead
+	local desired=focus-cameraHeading*(Config.CameraDistance+math.min(speed/40,2)*Config.ModelScale)+Vector3.new(0,Config.CameraHeight,0)
 	rayParams.FilterDescendantsInstances={active,player.Character}
 	local hit=workspace:Raycast(focus,desired-focus,rayParams)
 	if hit then desired=hit.Position+hit.Normal*0.6 end
@@ -1678,7 +2468,7 @@ RunService:BindToRenderStep("KartCamera",Enum.RenderPriority.Camera.Value+1,func
 	camera.FieldOfView+=(targetFov-camera.FieldOfView)*(1-math.exp(-dt*5))
 	hud:Update(active,speed,dt,workspace:GetServerTimeNow(),camera.ViewportSize,UserInputService.TouchEnabled,{
 		lap=player:GetAttribute("KartLap"),totalLaps=player:GetAttribute("KartTotalLaps"),
-		coins=player:GetAttribute("KartCoins"),wins=player:GetAttribute("KartWins"),
+		coins=player:GetAttribute("KartCoins"),wins=player:GetAttribute("KartWins"),place=player:GetAttribute("KartPlace"),
 	})
 end)
 </ProtectedString>

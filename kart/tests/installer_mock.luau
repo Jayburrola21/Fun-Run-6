@@ -54,7 +54,7 @@ local function evaluate(source)
  return compiled()
 end
 local function require(module) return evaluate(module.Source) end
-local moduleNames={"KartConfig","KartBuilder","KartDynamics","KartSeatLock","KartHUD","KartRace","KartRaceRules"}
+local moduleNames={"KartConfig","KartBuilder","KartDynamics","KartSeatLock","KartHUD","KartRace","KartRaceRules","KartCareerWins","KartMeshVisuals","KartPresentation"}
 local function snapshot(o)
  local result={source=o.Source,children={}}
  for _,child in ipairs(o.children) do result.children[child.Name]=snapshot(child) end
@@ -89,6 +89,7 @@ local function scenario(mode)
    if mode=="customversion6" then prior=prior:gsub("c.ReleaseVersion=2;","c.ReleaseVersion=6; c.DriftChargeTime=0.75; c.TurboActivation='Immediate'; c.TurboDuration=2;") end
    for _,name in ipairs({"KartConfig","KartBuilder","KartDynamics"}) do create("ModuleScript",name,installed,name=="KartConfig" and prior or "return 'old'") end
    create("ModuleScript","MyCustomModule",installed,"return 123")
+   create("Model","KartMeshTemplate",installed)
    if mode=="badbackup" then installed.KartBuilder.Archivable=false end
    table.insert(oldItems,installed)
   end
@@ -129,20 +130,26 @@ local function scenario(mode)
   assert(package.destroyed,"Imported package not consumed")
   local config=require(installed.KartConfig); local defaults=evaluate(Sources.KartConfig)
   assert(config.ModelScale==defaults.ModelScale and config.WheelRadius==defaults.WheelRadius and config.Wheelbase==defaults.Wheelbase,"Geometry tuning became inconsistent")
-  assert(defaults.ReleaseVersion==6 and defaults.TurboActivation=="Release","Incoming defaults do not contain the requested release mode")
+  assert(defaults.ReleaseVersion==7 and defaults.TurboActivation=="Release","Incoming remodel config is incorrect")
   if mode=="customversion5" or mode=="customversion6" then
-   assert(config.DriftChargeTime==0.75 and config.TurboDuration==2,"Explicit custom turbo timing was lost on reinstall")
-   local expectedMode=mode=="customversion6" and "Immediate" or "Release"
-   assert(config.TurboActivation==expectedMode,"Activation migration did not respect release-version boundary")
+   assert(config.DriftChargeTime==0.75 and config.TurboDuration==2 and config.TurboActivation=="Immediate","Remodel changed custom boost feel")
+  elseif mode=="version3" then
+   assert(config.DriftChargeTime==1.5 and config.TurboDuration==1.15,"Remodel changed older active boost settings")
+  elseif mode=="version4" then
+   assert(config.DriftChargeTime==0.9 and config.TurboDuration==1.5 and config.TurboActivation=="Release","Existing .9s boost changed")
+  elseif mode=="stickyversion4" then
+   assert(config.DriftChargeTime==1.5 and config.TurboActivation=="Release","Existing saved timing changed")
+  elseif mode=="version5" then
+   assert(config.DriftChargeTime==0.5 and config.TurboDuration==1.5 and config.TurboActivation=="Immediate","Remodel changed active boost mode")
   else
-   assert(config.DriftChargeTime==0.5 and config.TurboDuration==1.5,"New half-second turbo timing was not migrated")
-   assert(config.TurboActivation==defaults.TurboActivation,"Old activation mode overrode new release behavior")
+   assert(config.DriftChargeTime==0.5 and config.TurboDuration==1.5 and config.TurboActivation==defaults.TurboActivation,"Fresh/default timing changed")
   end
   if mode=="upgrade" then
    assert(config.MaxSpeed==97,"Custom speed lost")
    assert(config.Grip==defaults.Grip and config.SpringFrequency==defaults.SpringFrequency,"Legacy defaults overrode upgraded stability")
    assert(config.SpawnCFrame.components[1]==12 and config.SpawnCFrame.components[3]==9,"Custom spawn lost")
    assert(installed.MyCustomModule.Source=="return 123","Custom module removed")
+   assert(installed.KartMeshTemplate and installed.KartMeshTemplate:IsA("Model"),"Imported mesh template removed")
   end
   assert(#services.ServerScriptService:GetChildren()==1 and #starter:GetChildren()==1,"Duplicate controller scripts")
  end

@@ -42,4 +42,30 @@ assert(type(kart:GetAttribute("DriftCharge"))=="number","Missing authoritative c
 assert(type(kart:GetAttribute("TurboCooldownEnd"))=="number","Missing authoritative cooldown deadline")
 assert(type(kart:GetAttribute("TurboArmed"))=="boolean","Missing authoritative armed/release state")
 assert(kart.Effects:FindFirstChild("BlueTurboTrail"),"Missing rear turbo trail")
-print("PASS: Studio assembly/constraint smoke check. Driving and multiplayer checklist still required.")
+if kart:GetAttribute("VisualSource")=="Blender" then
+ local visuals=assert(kart:FindFirstChild("ImportedKartVisuals"),"Missing imported visual assembly")
+ local meshCount=0
+ for _,part in ipairs(visuals:GetDescendants()) do
+  if part:IsA("MeshPart") then
+   meshCount+=1
+   assert(part.Massless and not part.Anchored and not part.CanCollide,"Imported mesh conflicts with physics")
+   local weld=assert(part:FindFirstChild("VisualWeld"),"Imported mesh is not attached")
+   assert(weld.Part1==part and weld.Part0,"Imported mesh has invalid weld")
+   local group=part.Parent.Name
+   local wheelName=({FrontLeftWheel="FrontLeft",FrontRightWheel="FrontRight",RearLeftWheel="RearLeft",RearRightWheel="RearRight"})[group]
+   local expected=wheelName and kart.Wheels[wheelName].Tire or group=="SteeringWheel" and kart.SteeringWheel.Hub or root
+   assert(weld.Part0==expected,"Mesh attached to wrong moving pivot: "..group)
+  end
+ end
+ assert(meshCount==kart:GetAttribute("MeshObjectCount"),"Imported mesh object count changed")
+end
+local system=game:GetService("ReplicatedStorage"):FindFirstChild("KartSystem")
+local race=assert(system and system:FindFirstChild("RaceState"),"Missing authoritative race snapshot")
+assert(#race.Racers:GetChildren()<=6,"More than six racers admitted")
+if race:GetAttribute("CourseValid") then
+ assert(#race.Path:GetChildren()==race:GetAttribute("PathPointCount"),"Incomplete course path")
+ for _,point in ipairs(race.Path:GetChildren()) do
+  assert(point:IsA("Vector3Value") and point:GetAttribute("PathRevision")==race:GetAttribute("PathRevision"),"Mixed course revisions")
+ end
+end
+print("PASS: Studio assembly/mesh/snapshot smoke check. Driving and multiplayer checklist still required.")

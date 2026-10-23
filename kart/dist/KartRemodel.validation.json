@@ -1,0 +1,18 @@
+{
+  "fbx_sha256": "5de2b413b0d231ac8c6df264c0722bfb397add01e3c7773a516ad22e65efd097",
+  "validator_source_sha256": "7c176f1d6ae553563eb3634333c8c1295c917e6f4d20be0c8da06428cfb73e93",
+  "fbx_meshes": 123,
+  "triangles": 31282,
+  "markers": "all three present; 4-unit orthogonal basis round-trips",
+  "pivots": "all wheel and steering object origins round-trip",
+  "swept_tire_poses": 140,
+  "body_surface_samples": 82527,
+  "clearance_margin": 0.003,
+  "wheel_component_envelopes": 40,
+  "sweep_geometry": "separate actual FBX wheel-component axial extents and radial envelopes including all rim, brake and hub protrusions",
+  "wheel_center_y_test_range": [
+    -0.25,
+    1.3
+  ],
+  "status": "passed"
+}

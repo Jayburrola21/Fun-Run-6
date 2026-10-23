@@ -155,7 +155,7 @@ for _,hz in ipairs({30,60,120}) do
 	local scale=Config.ModelScale
 	local width,length,height=3.7*scale,6.5*scale,0.5*scale
 	local yawInertia=(width^2+length^2)/12
-	for _,axis in ipairs({{2.68*scale,(width^2+height^2)/12},{Config.Wheelbase/2,(length^2+height^2)/12}}) do
+	for _,axis in ipairs({{Config.WheelTrack/2,(width^2+height^2)/12},{Config.Wheelbase/2,(length^2+height^2)/12}}) do
 		local angle,angular=0.08,0
 		local stiffness=(Config.SpringFrequency*2*math.pi)^2*axis[1]^2+10*yawInertia
 		for _=1,hz*3 do

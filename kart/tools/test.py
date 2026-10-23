@@ -35,4 +35,7 @@ subprocess.run(["python3", str(ROOT / "tools/check_hud.py"), "--luau", args.luau
 subprocess.run(["python3", str(ROOT / "tools/check_installer.py"), "--luau", args.luau], check=True)
 subprocess.run(["python3", str(ROOT / "tools/check_race.py"), "--luau", args.luau], check=True)
 subprocess.run(["python3", str(ROOT / "tools/check_geometry.py"), "--luau", args.luau], check=True)
+for checker in ("check_presentation.py", "check_meshes.py", "check_career.py"):
+    subprocess.run(["python3", str(ROOT / "tools" / checker), "--luau", args.luau], check=True)
+subprocess.run(["python3", str(ROOT / "tools/check_model_assets.py")], check=True)
 subprocess.run(["python3", str(ROOT / "tools/package.py")], check=True)

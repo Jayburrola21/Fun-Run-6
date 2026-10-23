@@ -14,14 +14,17 @@ local analog=Vector2.zero
 local clock=0
 local Config=require(ReplicatedStorage:WaitForChild("KartSystem"):WaitForChild("KartConfig"))
 local Dynamics=require(ReplicatedStorage.KartSystem:WaitForChild("KartDynamics"))
+local Presentation=require(ReplicatedStorage.KartSystem:WaitForChild("KartPresentation"))
 local presentations={}
-local cameraFocus,cameraHeading
+local cameraFocus,cameraHeading,lastCameraRoot
 local cameraCF
 local previousCamera
 local previousJump
 local previousZoom
 local HUD=require(ReplicatedStorage.KartSystem:WaitForChild("KartHUD"))
-local hud=HUD.new(player:WaitForChild("PlayerGui"),Config)
+local hud=HUD.new(player:WaitForChild("PlayerGui"),Config,{
+	player=player,players=Players,raceState=ReplicatedStorage.KartSystem:WaitForChild("RaceState"),
+})
 local previousStates
 local seatedHumanoid
 local originalStates=setmetatable({},{__mode="k"})
@@ -94,7 +97,7 @@ local function stop()
 		camera.CameraSubject=previousCamera.subject
 		camera.FieldOfView=previousCamera.fov
 	end
-	active=nil; seat=nil; root=nil; cameraCF=nil; cameraFocus=nil; cameraHeading=nil; hud:SetVisible(false)
+	active=nil; seat=nil; root=nil; cameraCF=nil; cameraFocus=nil; cameraHeading=nil; lastCameraRoot=nil; hud:SetVisible(false)
 	held={}; analog=Vector2.zero
 end
 
@@ -158,7 +161,7 @@ local function prepareVisuals(model)
 		local tire=wheel:FindFirstChild("Tire")
 		local wheelMotor=tire and tire:FindFirstChild("WheelMotor")
 		if wheelMotor then
-			table.insert(state.wheels,{motor=wheelMotor,origin=wheelMotor.C0.Position+Vector3.new(0,Config.SuspensionRest,0),distance=Config.SuspensionRest,spin=0,speed=0,front=wheel.Name:sub(1,5)=="Front"})
+			table.insert(state.wheels,{motor=wheelMotor,origin=wheelMotor:GetAttribute("ContactOrigin") or wheelMotor.C0.Position+Vector3.new(0,Config.SuspensionRest,0),radius=wheelMotor:GetAttribute("WheelRadius") or Config.WheelRadius,distance=Config.SuspensionRest,spin=0,speed=0,front=wheel.Name:sub(1,5)=="Front"})
 		end
 	end
 	presentations[model]=state
@@ -167,6 +170,7 @@ end
 -- Every observer animates the same replicated assembly locally at render rate.
 -- Motors are visual only; no client writes physics velocity or position.
 RunService:BindToRenderStep("KartVisuals",Enum.RenderPriority.Character.Value+1,function(dt)
+	dt=Presentation.delta(dt)
 	for model,state in pairs(presentations) do
 		if not model:IsDescendantOf(workspace) or not state.root:IsDescendantOf(workspace) then presentations[model]=nil; continue end
 		state.angle=Dynamics.approach(state.angle,model:GetAttribute("SteerAngle") or 0,18,dt)
@@ -176,8 +180,7 @@ RunService:BindToRenderStep("KartVisuals",Enum.RenderPriority.Character.Value+1,
 			wheel.distance=Dynamics.approach(wheel.distance,target,response,dt)
 			local direction=(state.root.CFrame*CFrame.Angles(0,wheel.front and state.angle or 0,0)).LookVector
 			local pv=state.root:GetVelocityAtPosition(state.root.CFrame:PointToWorldSpace(wheel.origin))
-			wheel.speed=Dynamics.approach(wheel.speed,pv:Dot(direction),16,dt)
-			wheel.spin=(wheel.spin-wheel.speed/Config.WheelRadius*dt)%(math.pi*2)
+			wheel.spin,wheel.speed=Presentation.wheel(wheel.spin,wheel.speed,pv:Dot(direction),wheel.radius,dt)
 			wheel.motor.C0=CFrame.new(wheel.origin-Vector3.new(0,wheel.distance,0))*CFrame.Angles(0,wheel.front and state.angle or 0,0)*CFrame.Angles(wheel.spin,0,0)
 		end
 		state.steering.C0=state.base*CFrame.Angles(0,0,state.angle*1.8)
@@ -217,26 +220,31 @@ RunService:BindToRenderStep("KartCamera",Enum.RenderPriority.Camera.Value+1,func
 	if clock>=1/30 then clock=0; send() end
 	local camera=workspace.CurrentCamera
 	if not camera then return end
+	dt=Presentation.delta(dt)
 	local cf=root.CFrame
+	if lastCameraRoot and (root.Position-lastCameraRoot).Magnitude>48 then
+		cameraFocus=nil; cameraHeading=nil
+	end
+	lastCameraRoot=root.Position
 	local speed=active:GetAttribute("Speed") or 0
 	local boosting=active:GetAttribute("Boosting") or false
 	local flat=Vector3.new(cf.LookVector.X,0,cf.LookVector.Z)
 	if flat.Magnitude<0.01 then flat=Vector3.new(0,0,-1) else flat=flat.Unit end
 	local motion=Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z)
 	local blend=active:GetAttribute("DriftBlend") or 0
-	if motion.Magnitude>10 and motion.Unit:Dot(flat)>0.3 then flat=flat:Lerp(motion.Unit,blend*0.3).Unit end
-	cameraHeading=cameraHeading and cameraHeading:Lerp(flat,1-math.exp(-dt*Config.CameraHeadingResponse)).Unit or flat
+	if motion.Magnitude>10 and motion.Unit:Dot(flat)>0.3 then flat=flat:Lerp(motion.Unit,blend*Config.CameraDriftFollow).Unit end
+	local heading=cameraHeading and cameraHeading:Lerp(flat,1-math.exp(-dt*Config.CameraHeadingResponse)) or flat
+	cameraHeading=heading.Magnitude>0.001 and heading.Unit or flat
 	-- Compensate the horizontal filter's steady-speed lag; otherwise stacking
 	-- position and CFrame filters makes the kart outrun its camera at high speed.
-	local targetFocus=root.Position+Vector3.new(0,1.7,0)+motion/Config.CameraPositionResponse
+	local targetFocus=root.Position+Vector3.new(0,Config.CameraFocusHeight,0)+motion/Config.CameraPositionResponse
 	if cameraFocus then
 		local planar=1-math.exp(-dt*Config.CameraPositionResponse)
 		local vertical=1-math.exp(-dt*Config.CameraHeightResponse)
 		cameraFocus=Vector3.new(cameraFocus.X+(targetFocus.X-cameraFocus.X)*planar,cameraFocus.Y+(targetFocus.Y-cameraFocus.Y)*vertical,cameraFocus.Z+(targetFocus.Z-cameraFocus.Z)*planar)
 	else cameraFocus=targetFocus end
-	local scale=Config.ModelScale
-	local focus=cameraFocus+cameraHeading*(1.5*scale)
-	local desired=focus-cameraHeading*((11+math.min(speed/40,2))*scale)+Vector3.new(0,4.5*scale,0)
+	local focus=cameraFocus+cameraHeading*Config.CameraLookAhead
+	local desired=focus-cameraHeading*(Config.CameraDistance+math.min(speed/40,2)*Config.ModelScale)+Vector3.new(0,Config.CameraHeight,0)
 	rayParams.FilterDescendantsInstances={active,player.Character}
 	local hit=workspace:Raycast(focus,desired-focus,rayParams)
 	if hit then desired=hit.Position+hit.Normal*0.6 end
@@ -247,6 +255,6 @@ RunService:BindToRenderStep("KartCamera",Enum.RenderPriority.Camera.Value+1,func
 	camera.FieldOfView+=(targetFov-camera.FieldOfView)*(1-math.exp(-dt*5))
 	hud:Update(active,speed,dt,workspace:GetServerTimeNow(),camera.ViewportSize,UserInputService.TouchEnabled,{
 		lap=player:GetAttribute("KartLap"),totalLaps=player:GetAttribute("KartTotalLaps"),
-		coins=player:GetAttribute("KartCoins"),wins=player:GetAttribute("KartWins"),
+		coins=player:GetAttribute("KartCoins"),wins=player:GetAttribute("KartWins"),place=player:GetAttribute("KartPlace"),
 	})
 end)

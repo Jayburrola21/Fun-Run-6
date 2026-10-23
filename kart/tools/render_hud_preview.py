@@ -15,12 +15,13 @@ parser=argparse.ArgumentParser()
 parser.add_argument('graph',type=Path)
 parser.add_argument('output',type=Path)
 args=parser.parse_args()
-records=json.loads(args.graph.read_text())
+graph=json.loads(args.graph.read_text())
+records=graph['records'] if isinstance(graph,dict) else graph
 by_id={i+1:row for i,row in enumerate(records)}
 children={}
 for ident,row in by_id.items():children.setdefault(row.get('parent'),[]).append((ident,row))
-S=2; WIDTH=1040; HEIGHT=330
-canvas=Image.new('RGBA',(WIDTH*S,(HEIGHT+30)*S),(37,42,47,255))
+S=2; WIDTH=graph.get('width',1040) if isinstance(graph,dict) else 1040; HEIGHT=graph.get('height',330) if isinstance(graph,dict) else 330
+canvas=Image.new('RGBA',(WIDTH*S,(HEIGHT+30)*S),(66,78,80,255))
 font_path='/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf'
 
 def rgb(value,alpha=1):
@@ -39,7 +40,7 @@ def layout(ident):
  if parent in by_id:
   pm,pw,ph,pvis=layout(parent)
  else:pm,pw,ph,pvis=identity,WIDTH,HEIGHT,True
- if row['ClassName'] not in ('Frame','TextLabel'):
+ if row['ClassName'] not in ('Frame','TextLabel','ImageLabel'):
   result=pm,pw,ph,pvis and row.get('Enabled',True)
   cache[ident]=result;return result
  size=row.get('Size',{});pos=row.get('Position',{});anchor=row.get('AnchorPoint',{})
@@ -60,7 +61,7 @@ def draw_layer(local,transform):
 
 def own_children(ident,cls):return [row for _,row in children.get(ident,[]) if row['ClassName']==cls]
 for ident,row in sorted(by_id.items(),key=lambda item:(item[1].get('ZIndex',1),item[0])):
- if row['ClassName'] not in ('Frame','TextLabel'):continue
+ if row['ClassName'] not in ('Frame','TextLabel','ImageLabel'):continue
  transform,w,h,visible=layout(ident)
  if not visible or w<=0 or h<=0:continue
  iw=max(1,math.ceil(w*S));ih=max(1,math.ceil(h*S))
@@ -102,10 +103,26 @@ for ident,row in sorted(by_id.items(),key=lambda item:(item[1].get('ZIndex',1),i
   anchor='lm' if align=='Left' else 'rm' if align=='Right' else 'mm'
   stroke_width=round(S*(1-row.get('TextStrokeTransparency',1)))
   draw.text((x,ih/2),row.get('Text',''),font=font,fill=rgb(row.get('TextColor3')),anchor=anchor,stroke_width=stroke_width,stroke_fill=rgb(row.get('TextStrokeColor3')))
+  text_gradients=own_children(ident,'UIGradient')
+  if text_gradients:
+   glyph=Image.new('L',(iw,ih),0)
+   ImageDraw.Draw(glyph).text((x,ih/2),row.get('Text',''),font=font,fill=255,anchor=anchor)
+   grad=text_gradients[-1];colors=grad['Color'];first,last=colors[0],colors[-1]
+   if isinstance(first,list):first=first[1];last=last[1]
+   c0,c1=rgb(first),rgb(last)
+   colored=Image.new('RGBA',(iw,ih));pixels=colored.load()
+   theta=math.radians(grad.get('Rotation',0));dx,dy=math.cos(theta),math.sin(theta)
+   extent=abs(dx)*iw+abs(dy)*ih
+   base=rgb(row.get('TextColor3'))
+   for yy in range(ih):
+    for xx in range(iw):
+     t=max(0,min(1,0.5+((xx-iw/2)*dx+(yy-ih/2)*dy)/max(extent,1)))
+     pixels[xx,yy]=tuple(round((c0[k]+(c1[k]-c0[k])*t)*base[k]/255) for k in range(3))+(255,)
+   colored.putalpha(glyph);local.alpha_composite(colored)
  draw_layer(local,transform)
 footer=ImageDraw.Draw(canvas)
 font=ImageFont.truetype(font_path,10*S)
-footer.text((12*S,346*S),'SOURCE-DRIVEN GUI PREVIEW  •  Sample race values  •  Native Roblox UI layout; font/rendering approximated outside Studio',font=font,fill=(164,179,188,255),anchor='lm')
+footer.text((12*S,(HEIGHT+16)*S),'SOURCE-DRIVEN RACE HUD  •  Six sample racers; headshots pending offline  •  Actual included demo checkpoint path  •  Not a Studio screenshot',font=font,fill=(164,179,188,255),anchor='lm')
 args.output.parent.mkdir(parents=True,exist_ok=True)
 canvas.convert('RGB').save(args.output)
 print('Rendered actual HUD scene graph:',args.output)

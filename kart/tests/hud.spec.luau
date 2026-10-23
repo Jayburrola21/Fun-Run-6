@@ -1,96 +1,167 @@
--- Actual KartHUD + Config are injected by the runner. No implementation is copied.
+-- Actual KartHUD + Config source is injected; these are service/graph tests only.
 local count=0
 local function check(value,message) assert(value,message); count+=1 end
-local hud=HUD.new(Instance.new("Folder"),Config)
-local attrs={DriftCharge=0,TurboArmed=false,Boosting=false,DriftReady=true,BoostEnd=0,TurboCooldownEnd=0}
-local kart={GetAttribute=function(_,key) return attrs[key] end}
-local race={lap=2,totalLaps=3,coins=12,wins=5}
-local function tick(now,speed) hud:Update(kart,speed or 60,1/60,now,{X=1920,Y=1080},false,race) end
-check(not hud.gui.Enabled,"HUD hidden before entering")
-hud:SetVisible(true); check(hud.gui.Enabled,"HUD visible while driving")
-tick(100)
-check(hud.status.Text=="READY" and hud.timer.Text=="","Idle authoritative readiness displayed")
-check(hud.progress==0,"Uncharged turbo meter starts empty")
-check(#hud.segments==12,"Reference-style blue 12-cartridge turbo meter exists")
-for _,fill in ipairs(hud.segments) do
- local track=fill.Parent
- local width,height=track.Size.ox,track.Size.oy
- local angle=math.rad(track.Rotation)
- local boundWidth=width*math.abs(math.cos(angle))+height*math.abs(math.sin(angle))
- local boundHeight=height*math.abs(math.cos(angle))+width*math.abs(math.sin(angle))
- local cx,cy=track.Position.ox+width/2,track.Position.oy+height/2
- check(cx-boundWidth/2>=82 and cx+boundWidth/2<=424 and cy-boundHeight/2>=37 and cy+boundHeight/2<=73,"All slanted turbo cells fit the angular glass housing")
+local function folder(name,parent)
+ local instance=Instance.new("Folder"); instance.Name=name; instance.Parent=parent; return instance
 end
-check(#hud.speedBars==44,"Circular gauge arc exists")
-check(hud.shell.Size.ox==1040 and hud.shell.Size.oy==330,"One connected wide instrument cluster")
-check(hud.lapPlate.Parent==hud.shell and hud.racePanel.Parent==hud.shell,"Counters and gauge belong to one cluster")
-for _=1,120 do tick(100,60) end
-check(hud.speedText.Text==string.format("%03d",math.floor(60*Config.StudsToMPH+0.5)),"Speed converts live studs/second to MPH")
-check(math.abs(hud.speed-60*Config.StudsToMPH)<0.00001,"MPH conversion uses actual configured scale")
-check(math.abs(Config.StudsToMPH-0.28*2.2369362921)<0.000001,"Default MPH factor follows Roblox 0.28m stud scale")
-local expectedNeedle=225+math.clamp(60*Config.StudsToMPH/(Config.GaugeMaxMPH or 100),0,1)*270
-check(math.abs(hud.needlePivot.Rotation-expectedNeedle)<0.001,"Red needle follows real MPH")
-check(hud.raceLabels.lap.Text=="2 / 3","Lap counter uses actual snapshot")
-check(hud.raceLabels.coins.Text=="12" and hud.raceLabels.wins.Text=="5","Coin and win counters use actual snapshot")
-race={lap=3,totalLaps=3,coins=13,wins=6}; tick(100)
-check(hud.raceLabels.lap.Text=="3 / 3" and hud.raceLabels.coins.Text=="13" and hud.raceLabels.wins.Text=="6","Race counters react to live changes")
-race={}; tick(100)
-check(hud.raceLabels.lap.Text=="— / —" and hud.raceLabels.coins.Text=="—" and hud.raceLabels.wins.Text=="—","Missing race data stays unknown, not fabricated")
-race={lap=0/0,totalLaps=math.huge,coins=-1,wins="9"}; tick(100)
-check(hud.raceLabels.lap.Text=="— / —" and hud.raceLabels.coins.Text=="—" and hud.raceLabels.wins.Text=="—","Invalid race data is rejected")
-race={lap=0,totalLaps=3,coins=0,wins=0}; tick(100)
-check(hud.raceLabels.lap.Text=="0 / 3" and hud.raceLabels.coins.Text=="0" and hud.raceLabels.wins.Text=="0","Real zeros remain visible")
-attrs.DriftCharge=0.4; tick(100)
-check(hud.status.Text=="CHARGING","Turbo charge state displayed")
-check(hud.timer.Text==string.format("%.1fs",Config.DriftChargeTime*0.6),"Charge countdown uses actual tuning")
-check(hud.progress>0 and hud.progress<0.4,"Charge follows server without predicting completion")
-attrs.DriftCharge=1; tick(100)
-check(hud.status.Text=="CHARGING","Client cannot invent armed status at full charge")
-attrs.TurboArmed=true
-for _=1,60 do tick(100) end
-check(hud.status.Text=="READY" and hud.progress>0.99,"Release-mode server armed signal fills READY meter")
-check(not hud.lines[1].frame.Visible,"Holding an armed turbo does not display active boost")
-check(hud.meterGlow.Transparency<0.65,"Armed state glows blue")
-attrs.TurboArmed=false; attrs.Boosting=true; attrs.BoostEnd=100+Config.TurboDuration; tick(100,Config.MaxSpeed+10)
-check(hud.status.Text=="BOOST","Immediate-mode boost state displayed directly from server")
-check(hud.lines[1].frame.Visible,"High-speed boost streaks visible")
-local startProgress=hud.progress
-for _=1,60 do tick(100+Config.TurboDuration*0.5,Config.MaxSpeed+10) end
-check(hud.progress<startProgress and hud.progress>0.49,"Active boost meter smoothly empties")
-attrs.Boosting=false; attrs.DriftCharge=0; attrs.DriftReady=false; attrs.TurboCooldownEnd=100+Config.TurboDuration+Config.TurboCooldown
-local recoveryStart=100+Config.TurboDuration
-tick(recoveryStart)
-check(hud.status.Text=="COOLDOWN","Cooldown state displayed")
-check(hud.timer.Text==string.format("%.1fs",Config.TurboCooldown),"Cooldown uses server deadline")
-check(not hud.lines[1].frame.Visible,"Boost streaks clear after boost")
-for _=1,120 do tick(recoveryStart+1) end
-check(hud.timer.Text==string.format("%.1fs",Config.TurboCooldown-1),"Cooldown counts down from server time")
-check(hud.progress<0.001,"Turbo charge meter resets empty during cooldown")
-tick(attrs.TurboCooldownEnd+1)
-check(hud.status.Text=="COOLDOWN","Expired timer cannot invent server readiness")
-attrs.DriftReady=true; tick(attrs.TurboCooldownEnd+1)
-check(hud.status.Text=="READY" and hud.progress<0.001,"Available turbo remains uncharged after cooldown")
-hud:Update(kart,60,1/60,110,{X=844,Y=390},true,race)
-check(hud.scale.Scale<=844*0.9/1040 and hud.scale.Scale<=390*0.28/330,"Mobile HUD fits width and height")
-check(hud.shell.AnchorPoint.Y==0,"Mobile cluster sits above touch controls")
-hud:Update(kart,60,1/60,110,{X=390,Y=844},true,race)
-check(hud.scale.Scale*1040<=390*0.9+0.01,"Portrait cluster fits safe screen width")
-hud:Update(kart,60,1/60,110,{X=3440,Y=1440},false,race)
-check(hud.scale.Scale==1 and hud.shell.AnchorPoint.Y==1,"Large desktop displays anchor one full-size bottom cluster")
-for _=1,120 do tick(110,Config.GaugeMaxMPH/Config.StudsToMPH*2) end
-check(hud.needlePivot.Rotation<=495,"Needle stays within gauge range at high speed")
-for _=1,120 do tick(110,-30) end
-check(hud.speedText.Text=="000" and hud.needlePivot.Rotation>=225,"Speed and needle never go negative")
-local labels=0
-local mphLabels=0
+local playerGui=folder("PlayerGui")
+local state=folder("RaceState")
+state:SetAttribute("StandingsValid",true); state:SetAttribute("CourseValid",true); state:SetAttribute("PathPointCount",4); state:SetAttribute("PathRevision",1); state:SetAttribute("RoundId","round-a"); state:SetAttribute("TotalLaps",3)
+local path=folder("Path",state)
+-- Included demo checkpoint coordinates: this is actual course data, not a decorative circuit.
+for index,p in ipairs({{0,0,-35},{65,0,-35},{65,0,45},{0,0,45}}) do
+ local value=Instance.new("Vector3Value"); value.Name=string.format("%03d",index); value.Value=Vector3.new(table.unpack(p)); value:SetAttribute("PathRevision",1); value.Parent=path
+end
+local raceFolders=folder("Racers",state)
+local records={}
+for index=1,6 do
+ local record=folder(tostring(100+index),raceFolders); records[index]=record
+ for key,value in pairs({UserId=100+index,Place=index,Position=Vector3.new(4+index*8,0,-35),Lap=index==3 and 1 or 2,TotalLaps=3,Coins=index*2,Wins=20-index*2,Active=true}) do record:SetAttribute(key,value) end
+end
+local player={UserId=103,GetAttribute=function() return nil end}
+local thumbnailCalls={}
+local players={GetUserThumbnailAsync=function(_,userId,kind,size)
+ table.insert(thumbnailCalls,{userId=userId,kind=kind,size=size})
+ return "rbxthumb://type=AvatarHeadShot&id="..userId.."&w=100&h=100",true
+end}
+local context={player=player,players=players,raceState=state}
+local hud=HUD.new(playerGui,Config,context)
+local function tick(dt,snapshot,touch,viewport)
+ hud:Update({},0,dt or 0.11,100,viewport or {X=1280,Y=720},touch or false,snapshot)
+end
+check(not hud.gui.Enabled,"HUD hidden before entry")
+hud:SetVisible(true); tick()
+check(hud.gui.Enabled,"HUD visible while driving")
+check(#hud.rows==6 and #hud.markers==6,"Six prebuilt race rows and six map markers")
+check(hud.coinText.Text=="6" and hud.lapText.Text=="1/3","Top-left counts use actual local race record")
+check(hud.placeNumber.Text=="3" and hud.placeSuffix.Text=="RD","Prominent orange placement uses actual third place")
+check(#hud.racers==6,"All six actual admitted racers displayed")
+check(hud.rowsById[103].outline.Color.R>0.9 and hud.rowsById[103].dot.Visible,"Local row is highlighted gold")
+check(hud.rowsById[101].rank.Text=="1","First place comes from published race rank")
+check(hud.rowsById[103].wins.Text=="14","Career wins come from published career stat")
+check(hud.mapValid and hud.mapRoot.Visible,"Actual valid course map displayed")
+check(#hud.pathObjects==16,"Four actual path edges and joints built once")
+local aX,aY=hud:_project(Vector3.new(0,0,-35)); local bX,bY=hud:_project(Vector3.new(65,0,45))
+check(aX<bX and aY<bY,"World X/Z path bounds determine projection")
+check(math.abs((bX-aX)/(bY-aY)-65/80)<0.0001,"Map preserves actual track aspect ratio")
+local marker=hud.markers[hud.rowsById[103].slot]
+check(marker.valid and marker.frame.BackgroundColor3.R>0.9 and marker.frame.Size.ox==17,"Actual local marker is larger gold")
+local created=#objects
+for _=1,120 do tick(1/60) end
+check(#objects==created,"No per-frame row, icon or map rebuild")
+flushTasks()
+check(#thumbnailCalls==6,"Each real user headshot requested once")
+for _,call in ipairs(thumbnailCalls) do check(call.userId>=101 and call.userId<=106 and call.kind=="HeadShot","Headshots requested for actual racer IDs") end
+check(hud.rowsById[103].head.Image:find("id=103")~=nil and not hud.rowsById[103].pending.Visible,"Actual thumbnail applied to matching local racer")
+for _=1,60 do tick(1/60) end
+flushTasks(); check(#thumbnailCalls==6,"Cached headshots do not repeat every poll")
+records[3]:SetAttribute("Wins",nil); tick()
+check(hud.rowsById[103].wins.Text=="—","Unknown persistent career wins are not fabricated")
+records[3]:SetAttribute("Place",1); records[1]:SetAttribute("Place",3)
+tick(1/60); tick(0.1)
+check(hud.placeNumber.Text=="1" and hud.placeSuffix.Text=="ST","Placement updates from changed actual rank")
+local moving=hud.rowsById[103]
+check(moving.targetY==0 and moving.y>0 and moving.y<96,"Leaderboard row movement is interpolated")
+for _=1,120 do tick(1/60) end
+check(moving.y<0.001,"Reordered leaderboard row reaches correct slot")
+local oldX=marker.x
+records[3]:SetAttribute("Position",Vector3.new(55,0,40)); tick(0.1)
+check(marker.x>oldX and marker.x<marker.targetX,"Minimap marker interpolates actual racer movement")
+check(hud.markers[hud.rowsById[103].slot]==marker,"Marker identity survives leaderboard reorder")
+records[6]:SetAttribute("Active",false); tick()
+check(#hud.racers==5 and hud.rowsById[106]==nil,"Departed/inactive racer row is removed, not replaced with fake player")
+local visible=0; for _,row in ipairs(hud.rows) do if row.frame.Visible then visible+=1 end end
+check(visible==5,"Only real active race rows visible")
+local extra=folder("999",raceFolders); extra:SetAttribute("UserId",999); extra:SetAttribute("Active",true); extra:SetAttribute("Place",6)
+local overflow=folder("1000",raceFolders); overflow:SetAttribute("UserId",1000); overflow:SetAttribute("Active",true); overflow:SetAttribute("Place",6)
+tick(); check(#hud.racers==6,"Overflow does not create more than six rows")
+state:SetAttribute("CourseValid",false); tick()
+check(not hud.mapRoot.Visible and not hud.mapValid,"Unknown/invalid course hides minimap instead of unrelated circuit")
+check(#hud.pathObjects==0,"Old route is cleared on invalidation")
+state:SetAttribute("CourseValid",true); state:SetAttribute("PathRevision",2)
+for _,value in ipairs(path:GetChildren()) do value:SetAttribute("PathRevision",2) end
+path:FindFirstChild("002").Value=Vector3.new(130,0,-35); tick()
+check(hud.mapValid and hud.projection.minX==0 and math.abs(hud.projection.scale-204/130)<0.0001,"Map rebuilds from revised actual path bounds")
+local stable=#objects; tick(); check(#objects==stable,"Unchanged map revision reuses route geometry")
+state:SetAttribute("RoundId","round-b"); tick(); check(#objects>stable,"New round refreshes route cache")
+-- Replication can deliver revision/count attributes before points. The same
+-- revision must recover after zero -> partial -> complete children arrive.
+for _,value in ipairs(path:GetChildren()) do value:Destroy() end
+state:SetAttribute("PathRevision",3); state:SetAttribute("PathPointCount",nil)
+tick(); check(not hud.mapValid and hud.pathVersion==nil,"Missing replicated point count cannot commit a map cache")
+state:SetAttribute("PathPointCount",4)
+tick(); check(not hud.mapValid and hud.pathVersion==nil,"Revision before zero children stays retryable")
+local incoming={}
+local pointData={{0,0,-35},{65,0,-35},{65,0,45},{0,0,45}}
+for index=1,2 do
+ local value=Instance.new("Vector3Value"); value.Name=string.format("%03d",index); value.Value=Vector3.new(table.unpack(pointData[index])); value:SetAttribute("PathRevision",3); value.Parent=path; incoming[index]=value
+end
+tick(); check(not hud.mapValid and #hud.pathObjects==0 and hud.pathVersion==nil,"Partial children cannot become a cached unrelated closed circuit")
+for index=3,4 do
+ local value=Instance.new("Vector3Value"); value.Name=string.format("%03d",index); value.Value=Vector3.new(table.unpack(pointData[index])); value:SetAttribute("PathRevision",3); value.Parent=path; incoming[index]=value
+end
+incoming[4].Value=Vector3.new(0/0,0,45)
+tick(); check(not hud.mapValid and hud.pathVersion==nil,"Full count with invalid point data is not committed")
+incoming[4].Value=Vector3.new(table.unpack(pointData[4]))
+tick(); check(hud.mapValid and hud.pathVersion~=nil and #hud.pathObjects==16,"Complete valid data recovers under the same published revision")
+local built=#objects; tick(); check(#objects==built,"Complete point set is cached after successful build")
+state:SetAttribute("PathRevision",4)
+tick(); check(not hud.mapValid and hud.pathVersion==nil,"Stale same-count old points cannot masquerade as a new revision")
+for _,value in ipairs(incoming) do value:SetAttribute("PathRevision",4) end
+tick(); check(hud.mapValid and hud.pathVersion~=nil,"Matching child revisions restore map without another folder version bump")
+incoming[4].Name="003"; state:SetAttribute("PathRevision",5)
+for _,value in ipairs(incoming) do value:SetAttribute("PathRevision",5) end
+tick(); check(not hud.mapValid,"Duplicate or incomplete ordered point names are rejected")
+incoming[4].Name="004"
+tick(); check(hud.mapValid,"Corrected ordered point names recover at the same revision")
+tick(0.1,{lap=2,totalLaps=4,coins=99,place=2})
+check(hud.coinText.Text=="99" and hud.lapText.Text=="2/4" and hud.placeSuffix.Text=="ND","Canonical live snapshot overrides cached rows")
+tick(0.1,{lap=0/0,totalLaps=math.huge,coins=-1,place=9})
+check(hud.coinText.Text=="—" and hud.lapText.Text=="—/—" and hud.placeNumber.Text=="—","Invalid values do not invent stats or places")
+tick(0.1,nil,true,{X=844,Y=390})
+check(hud.mapRoot.Position.oy==-208 and hud.placement.Position.oy==-208,"Mobile lower elements lift above touch controls")
+check(hud.mapScale.Scale<1 and hud.boardScale.Scale<1,"Mobile elements scale down")
+tick(0.1,nil,false,{X=1920,Y=1080})
+check(hud.mapRoot.AnchorPoint.X==1 and hud.mapRoot.AnchorPoint.Y==1,"Desktop minimap stays fixed bottom-right")
+check(hud.placement.AnchorPoint.X==0 and hud.placement.AnchorPoint.Y==1,"Desktop placement stays bottom-left")
 for _,object in ipairs(objects) do
- if object.ClassName=="TextLabel" then
-  labels+=1
-  local value=object.Text:lower()
-  check(not value:find("studs") and not value:find("wasd") and not value:find("space") and not value:find("exit") and not value:find("shift") and not value:find("drift"),"No control instructions, drift bar or studs in HUD")
-  if object.Text=="MPH" then mphLabels+=1 end
+ if not object.destroyed and (object.ClassName=="TextLabel" or object.ClassName=="Frame") then
+  local name=(object.Name or ""):lower(); local value=(object.Text or ""):lower()
+  check(not name:find("speedometer") and not name:find("turbo") and value~="mph","Old speedometer/MPH/turbo GUI is absent")
  end
 end
-check(labels>=19 and mphLabels==1,"Gauge, race labels and exactly one MPH unit label exist")
-hud:SetVisible(false); check(not hud.gui.Enabled,"HUD hides on cleanup")
-print(string.format("PASS: %d HUD graph/state assertions; API property-name fixture enforced (no Roblox rendering/engine)",count))
+state:SetAttribute("StandingsValid",false); tick(0.1,{place=2})
+check(hud.placeNumber.Text=="—","Explicit invalid standings override stale snapshot placement")
+check(hud.rowsById[103].rank.Text=="—" and hud.mapValid,"Unranked racers retain the real course/map without invented places")
+state:SetAttribute("StandingsValid",true); tick()
+check(hud.placeNumber.Text=="1","Standings recovery returns actual placement")
+local studioState=folder("StudioRaceState"); studioState:SetAttribute("CourseValid",false)
+local studioRacers=folder("Racers",studioState); local studioRecord=folder("-1",studioRacers)
+for key,value in pairs({UserId=-1,Place=1,Active=true}) do studioRecord:SetAttribute(key,value) end
+local studioCalls=0
+local studioPlayers={GetUserThumbnailAsync=function() studioCalls+=1; error("Synthetic Studio ID must not call public avatar service") end}
+local studioGui=folder("StudioPlayerGui")
+local studioHUD=HUD.new(studioGui,Config,{player={UserId=-1,GetAttribute=function() return nil end},players=studioPlayers,raceState=studioState})
+studioHUD:SetVisible(true); studioHUD:Update({},0,0.1,100,{X=1280,Y=720},false)
+check(#studioHUD.racers==1 and studioHUD.rowsById[-1]~=nil,"Negative Studio test ID is a real admitted participant")
+check(studioHUD.rowsById[-1].dot.Visible and studioHUD.placeNumber.Text=="1","Synthetic Studio local player receives real place and local highlight")
+flushTasks(); check(studioCalls==0,"Non-positive Studio IDs never hit public thumbnail service")
+studioHUD:Destroy()
+hud:SetVisible(false); check(not hud.gui.Enabled,"HUD hides on lifecycle cleanup")
+local priorGui=hud.gui
+hud=HUD.new(playerGui,Config,context)
+check(priorGui.destroyed and #playerGui:GetChildren()==1,"Recreation destroys old ScreenGui and prevents respawn duplicates")
+hud:SetVisible(true); tick(); hud:Destroy(); local callsBefore=#thumbnailCalls; flushTasks()
+check(hud.destroyed and hud.gui.destroyed,"Destroy removes entire HUD")
+check(#thumbnailCalls==callsBefore,"Delayed headshot work is cancelled after destroy")
+-- Failure retries are bounded; no repeated service calls from per-frame polling.
+local failures=0
+local badPlayers={GetUserThumbnailAsync=function() failures+=1; error("temporary thumbnail outage") end}
+hud=HUD.new(playerGui,Config,{player=player,players=badPlayers,raceState=state})
+hud:SetVisible(true); tick(); flushTasks()
+check(failures==#hud.racers*3,"Thumbnail service failures retry at most three times per real user")
+local failureCount=failures
+for _=1,60 do tick(1/60) end
+flushTasks(); check(failures==failureCount,"Failed thumbnail cache does not spam service forever")
+hud:Destroy()
+print(string.format("PASS: %d racing HUD graph/state assertions; actual race data, map and async lifecycle (not Roblox rendering)",count))

@@ -17,6 +17,9 @@ SOURCES = {
     "KartHUD": ROOT / "src/ReplicatedStorage/KartSystem/KartHUD.luau",
     "KartRace": ROOT / "src/ReplicatedStorage/KartSystem/KartRace.luau",
     "KartRaceRules": ROOT / "src/ReplicatedStorage/KartSystem/KartRaceRules.luau",
+    "KartCareerWins": ROOT / "src/ReplicatedStorage/KartSystem/KartCareerWins.luau",
+    "KartMeshVisuals": ROOT / "src/ReplicatedStorage/KartSystem/KartMeshVisuals.luau",
+    "KartPresentation": ROOT / "src/ReplicatedStorage/KartSystem/KartPresentation.luau",
     "KartServer": ROOT / "src/ServerScriptService/KartServer.server.luau",
     "KartController": ROOT / "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau",
 }
@@ -40,7 +43,7 @@ def code(parent, name, disabled=False):
 
 def system(parent):
     folder, _ = item(parent, "Folder", "KartSystem")
-    for name in ("KartConfig", "KartDynamics", "KartBuilder", "KartSeatLock", "KartHUD", "KartRace", "KartRaceRules"):
+    for name in ("KartConfig", "KartDynamics", "KartBuilder", "KartSeatLock", "KartHUD", "KartRace", "KartRaceRules", "KartCareerWins", "KartMeshVisuals", "KartPresentation"):
         code(folder, name)
 
 
@@ -57,6 +60,12 @@ def vector(props, name, xyz):
     prop = ET.SubElement(props, "Vector3", {"name": name})
     for axis, value in zip("XYZ", xyz):
         ET.SubElement(prop, axis).text = str(value)
+
+
+def color(props, rgb):
+    prop = ET.SubElement(props, "Color3", {"name": "Color"})
+    for axis, value in zip("RGB", rgb):
+        ET.SubElement(prop, axis).text = str(value / 255)
 
 
 def frame(props, xyz):
@@ -83,7 +92,34 @@ def main():
     vector(props, "Size", (600, 1, 600))
     frame(props, (0, -0.5, 0))
     ET.SubElement(props, "bool", {"name": "Anchored"}).text = "true"
+    # A real, intentionally simple test route. The minimap uses these exact
+    # waypoints, not an unrelated decorative outline.
     course, _ = item(workspace, "Folder", "KartRace")
+    path_folder, _ = item(course, "Folder", "Path")
+    route = ((0, -35), (32.5, -35), (65, -35), (65, 5), (65, 45), (32.5, 45), (0, 45), (0, 5))
+    road_folder, _ = item(workspace, "Folder", "DemoRoad")
+    for index, (x, z) in enumerate(route, 1):
+        node, node_props = item(path_folder, "Part", str(index))
+        vector(node_props, "Size", (1, 1, 1))
+        frame(node_props, (x, 0, z))
+        ET.SubElement(node_props, "bool", {"name": "Anchored"}).text = "true"
+        ET.SubElement(node_props, "bool", {"name": "CanCollide"}).text = "false"
+        ET.SubElement(node_props, "float", {"name": "Transparency"}).text = "1"
+        nx, nz = route[index % len(route)]
+        # Axis-aligned route legs keep this XML test course asset-free.
+        road, road_props = item(road_folder, "Part", f"Road{index}")
+        vector(road_props, "Size", (abs(nx-x)+18 if nx != x else 18, 0.04, abs(nz-z)+18 if nz != z else 18))
+        frame(road_props, ((x+nx)/2, 0.02, (z+nz)/2))
+        color(road_props, (48, 52, 59))
+        ET.SubElement(road_props, "bool", {"name": "Anchored"}).text = "true"
+    markers, _ = item(workspace, "Folder", "KartSpawns")
+    for index, name in enumerate(("Red", "Blue", "Green", "Yellow", "Purple", "Black")):
+        marker, marker_props = item(markers, "Part", name)
+        vector(marker_props, "Size", (1, 1, 1))
+        frame(marker_props, (((index % 3)-1)*6, 4, 4+(index//3)*8))
+        ET.SubElement(marker_props, "bool", {"name": "Anchored"}).text = "true"
+        ET.SubElement(marker_props, "bool", {"name": "CanCollide"}).text = "false"
+        ET.SubElement(marker_props, "float", {"name": "Transparency"}).text = "1"
     checkpoints, _ = item(course, "Folder", "Checkpoints")
     for index, position in enumerate(((0, 3, -35), (65, 3, -35), (65, 3, 45), (0, 3, 45)), 1):
         gate, gate_props = item(checkpoints, "Part", str(index))
@@ -124,7 +160,7 @@ def main():
         assert len(refs) == len(set(refs)), path
     with zipfile.ZipFile(ROOT / "dist/KartRelease.zip", "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(ROOT.rglob("*")):
-            if path.is_file() and path.suffix != ".zip" and "__pycache__" not in path.parts:
+            if path.is_file() and path.suffix not in (".zip", ".blend1") and "__pycache__" not in path.parts:
                 archive.write(path, Path("kart") / path.relative_to(ROOT))
     print(f"Built KartPackage.rbxmx and KartDemo.rbxlx; {len(SOURCES)} scripts round-tripped in each.")
 

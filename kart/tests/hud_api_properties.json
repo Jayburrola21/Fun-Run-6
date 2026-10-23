@@ -1,5 +1,5 @@
 {
-  "source": "Roblox public API-Dump.json, inherited properties restricted to names used by KartHUD",
+  "source": "Roblox public API-Dump.json; inherited property names used by new race HUD and its data doubles",
   "classes": {
     "ScreenGui": [
       "DisplayOrder",
@@ -46,6 +46,22 @@
       "Visible",
       "ZIndex"
     ],
+    "ImageLabel": [
+      "AnchorPoint",
+      "BackgroundColor3",
+      "BackgroundTransparency",
+      "BorderSizePixel",
+      "Image",
+      "Name",
+      "Parent",
+      "Position",
+      "Rotation",
+      "ScaleType",
+      "Size",
+      "Transparency",
+      "Visible",
+      "ZIndex"
+    ],
     "UICorner": [
       "CornerRadius",
       "Name",
@@ -77,6 +93,11 @@
     "Folder": [
       "Name",
       "Parent"
+    ],
+    "Vector3Value": [
+      "Name",
+      "Parent",
+      "Value"
     ]
   }
 }

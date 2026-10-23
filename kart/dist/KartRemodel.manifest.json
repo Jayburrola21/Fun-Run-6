@@ -1,0 +1,3022 @@
+{
+  "version": 1,
+  "coordinate_system": "Roblox canonical: X right, Y up, -Z forward",
+  "blender_conversion": "(x,y,z) -> (x,-z,y)",
+  "model_scale_runtime": 0.84,
+  "wheel_track": 4.4,
+  "wheelbase": 4.32,
+  "wheel_radius": 0.96,
+  "wheel_width": 0.76,
+  "wheel_pivots": {
+    "FrontLeftWheel": [
+      -2.2,
+      0.4,
+      -2.16
+    ],
+    "FrontRightWheel": [
+      2.2,
+      0.4,
+      -2.16
+    ],
+    "RearLeftWheel": [
+      -2.2,
+      0.4,
+      2.16
+    ],
+    "RearRightWheel": [
+      2.2,
+      0.4,
+      2.16
+    ]
+  },
+  "steering_pivot": {
+    "position": [
+      0,
+      1.95,
+      -1.05
+    ],
+    "rotation_x_degrees": -24
+  },
+  "alignment_markers": {
+    "KartOrigin": [
+      0,
+      0,
+      0
+    ],
+    "KartForward": [
+      0,
+      0,
+      -4
+    ],
+    "KartUp": [
+      0,
+      4,
+      0
+    ]
+  },
+  "blender_version": "4.3.2",
+  "objects": [
+    {
+      "name": "Chassis__TaperedSkid__MatBlack",
+      "group": "Chassis",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 316,
+      "vertices": 160,
+      "bounds": {
+        "min": [
+          -1.625648021697998,
+          -0.14000000059604645,
+          -3.2200000286102295
+        ],
+        "max": [
+          1.625648021697998,
+          0.25,
+          2.619999885559082
+        ]
+      }
+    },
+    {
+      "name": "MainBody__BlueLowerTub__MatBlue",
+      "group": "MainBody",
+      "material_role": "blue",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 316,
+      "vertices": 160,
+      "bounds": {
+        "min": [
+          -1.6355687379837036,
+          0.03999999910593033,
+          -3.180000066757202
+        ],
+        "max": [
+          1.6355687379837036,
+          0.4300000071525574,
+          2.5799999237060547
+        ]
+      }
+    },
+    {
+      "name": "MainBody__CockpitFloor__MatBlack",
+      "group": "MainBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -1.0700000524520874,
+          0.25,
+          -1.0499999523162842
+        ],
+        "max": [
+          1.0700000524520874,
+          0.3700000047683716,
+          1.25
+        ]
+      }
+    },
+    {
+      "name": "LeftSidePod__PaintRed_Shell__MatPaint",
+      "group": "LeftSidePod",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 416,
+      "vertices": 210,
+      "bounds": {
+        "min": [
+          -1.7000000476837158,
+          0.11999999731779099,
+          -1.0399999618530273
+        ],
+        "max": [
+          -1.0420535802841187,
+          1.1387848854064941,
+          1.600000023841858
+        ]
+      }
+    },
+    {
+      "name": "LeftSidePod__BlueBelt__MatBlue",
+      "group": "LeftSidePod",
+      "material_role": "blue",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 204,
+      "vertices": 104,
+      "bounds": {
+        "min": [
+          -1.7089999914169312,
+          0.17000000178813934,
+          -1.035570740699768
+        ],
+        "max": [
+          -1.500104546546936,
+          0.3700000047683716,
+          1.5958935022354126
+        ]
+      }
+    },
+    {
+      "name": "LeftSidePod__WhiteBelt__MatWhite",
+      "group": "LeftSidePod",
+      "material_role": "white",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 204,
+      "vertices": 104,
+      "bounds": {
+        "min": [
+          -1.7139999866485596,
+          0.38999998569488525,
+          -1.035570740699768
+        ],
+        "max": [
+          -1.5051045417785645,
+          0.5400000214576721,
+          1.5958935022354126
+        ]
+      }
+    },
+    {
+      "name": "LeftSidePod__WhiteRoundel__MatWhite",
+      "group": "LeftSidePod",
+      "material_role": "white",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 476,
+      "vertices": 240,
+      "bounds": {
+        "min": [
+          -1.722000002861023,
+          0.4699999988079071,
+          0.009999990463256836
+        ],
+        "max": [
+          -1.709999918937683,
+          1.0099999904632568,
+          0.550000011920929
+        ]
+      }
+    },
+    {
+      "name": "LeftSidePod__PaintRed_Emblem__MatPaint",
+      "group": "LeftSidePod",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 32,
+      "vertices": 16,
+      "bounds": {
+        "min": [
+          -1.7269999980926514,
+          0.5927757024765015,
+          0.13277567923069
+        ],
+        "max": [
+          -1.7209999561309814,
+          0.8872243165969849,
+          0.4272243082523346
+        ]
+      }
+    },
+    {
+      "name": "LeftSidePod__CockpitEdge__MatBlack",
+      "group": "LeftSidePod",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 60,
+      "vertices": 32,
+      "bounds": {
+        "min": [
+          -1.1469999551773071,
+          0.9129564762115479,
+          -0.6578875780105591
+        ],
+        "max": [
+          -1.0502228736877441,
+          1.1377981901168823,
+          1.268538236618042
+        ]
+      }
+    },
+    {
+      "name": "RightSidePod__PaintRed_Shell__MatPaint",
+      "group": "RightSidePod",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 422,
+      "vertices": 213,
+      "bounds": {
+        "min": [
+          1.042055606842041,
+          0.11999999731779099,
+          -1.0399999618530273
+        ],
+        "max": [
+          1.7000000476837158,
+          1.1387770175933838,
+          1.600000023841858
+        ]
+      }
+    },
+    {
+      "name": "RightSidePod__BlueBelt__MatBlue",
+      "group": "RightSidePod",
+      "material_role": "blue",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 204,
+      "vertices": 104,
+      "bounds": {
+        "min": [
+          1.500104546546936,
+          0.17000000178813934,
+          -1.035570740699768
+        ],
+        "max": [
+          1.7089999914169312,
+          0.3700000047683716,
+          1.5958935022354126
+        ]
+      }
+    },
+    {
+      "name": "RightSidePod__WhiteBelt__MatWhite",
+      "group": "RightSidePod",
+      "material_role": "white",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 204,
+      "vertices": 104,
+      "bounds": {
+        "min": [
+          1.5051045417785645,
+          0.38999998569488525,
+          -1.035570740699768
+        ],
+        "max": [
+          1.7139999866485596,
+          0.5400000214576721,
+          1.5958935022354126
+        ]
+      }
+    },
+    {
+      "name": "RightSidePod__WhiteRoundel__MatWhite",
+      "group": "RightSidePod",
+      "material_role": "white",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 476,
+      "vertices": 240,
+      "bounds": {
+        "min": [
+          1.709999918937683,
+          0.4699999988079071,
+          0.009999990463256836
+        ],
+        "max": [
+          1.722000002861023,
+          1.0099999904632568,
+          0.550000011920929
+        ]
+      }
+    },
+    {
+      "name": "RightSidePod__PaintRed_Emblem__MatPaint",
+      "group": "RightSidePod",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 32,
+      "vertices": 16,
+      "bounds": {
+        "min": [
+          1.7209999561309814,
+          0.5927757024765015,
+          0.13277567923069
+        ],
+        "max": [
+          1.7269999980926514,
+          0.8872243165969849,
+          0.4272243082523346
+        ]
+      }
+    },
+    {
+      "name": "RightSidePod__CockpitEdge__MatBlack",
+      "group": "RightSidePod",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 60,
+      "vertices": 32,
+      "bounds": {
+        "min": [
+          1.0502228736877441,
+          0.9129564762115479,
+          -0.6578875780105591
+        ],
+        "max": [
+          1.1469999551773071,
+          1.1377981901168823,
+          1.268538236618042
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__PaintRed_LeftPaintRed__MatPaint",
+      "group": "FrontNose",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 884,
+      "vertices": 444,
+      "bounds": {
+        "min": [
+          -1.0893157720565796,
+          0.26903754472732544,
+          -3.1882236003875732
+        ],
+        "max": [
+          -0.2792493999004364,
+          1.4021493196487427,
+          -0.8323744535446167
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__PearlCenterStripe__MatWhite",
+      "group": "FrontNose",
+      "material_role": "white",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 884,
+      "vertices": 444,
+      "bounds": {
+        "min": [
+          -0.3270241320133209,
+          0.33391672372817993,
+          -3.2090301513671875
+        ],
+        "max": [
+          0.3270241320133209,
+          1.426355242729187,
+          -0.8315882086753845
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__PaintRed_RightPaintRed__MatPaint",
+      "group": "FrontNose",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 884,
+      "vertices": 444,
+      "bounds": {
+        "min": [
+          0.2792494297027588,
+          0.2690375745296478,
+          -3.1882240772247314
+        ],
+        "max": [
+          1.0893158912658691,
+          1.4021492004394531,
+          -0.8323745131492615
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__PaintRed_Brand__MatPaint",
+      "group": "FrontNose",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 224,
+      "vertices": 112,
+      "bounds": {
+        "min": [
+          -0.24561072885990143,
+          1.0359983444213867,
+          -2.29418683052063
+        ],
+        "max": [
+          0.24562133848667145,
+          1.2549203634262085,
+          -1.80284583568573
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__PaintRed_Shoulder-1__MatPaint",
+      "group": "FrontNose",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 292,
+      "vertices": 148,
+      "bounds": {
+        "min": [
+          -1.617300033569336,
+          0.23000000417232513,
+          -1.100000023841858
+        ],
+        "max": [
+          -0.8418943881988525,
+          0.9243044853210449,
+          -0.6700000166893005
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__PaintRed_Shoulder1__MatPaint",
+      "group": "FrontNose",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 292,
+      "vertices": 148,
+      "bounds": {
+        "min": [
+          0.8419273495674133,
+          0.23000000417232513,
+          -1.100000023841858
+        ],
+        "max": [
+          1.6172866821289062,
+          0.9241474866867065,
+          -0.6700000166893005
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__WhiteBumper__MatWhite",
+      "group": "FrontNose",
+      "material_role": "white",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 404,
+      "vertices": 204,
+      "bounds": {
+        "min": [
+          -1.47780179977417,
+          0.06999999284744263,
+          -3.630000114440918
+        ],
+        "max": [
+          1.47780179977417,
+          0.3700000047683716,
+          -3.1348414421081543
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__BlueBumperLip__MatBlue",
+      "group": "FrontNose",
+      "material_role": "blue",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 336,
+      "vertices": 170,
+      "bounds": {
+        "min": [
+          -1.461421012878418,
+          -0.025839805603027344,
+          -3.5399999618530273
+        ],
+        "max": [
+          1.461421012878418,
+          0.1358398050069809,
+          -3.172743558883667
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__LampHousing-1__MatBlack",
+      "group": "FrontNose",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -1.3499999046325684,
+          0.3100000023841858,
+          -3.299999952316284
+        ],
+        "max": [
+          -1.0099999904632568,
+          0.4699999690055847,
+          -3.200000047683716
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__LampLens-1__MatLamp",
+      "group": "FrontNose",
+      "material_role": "lamp",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -1.3049999475479126,
+          0.36250001192092896,
+          -3.3294999599456787
+        ],
+        "max": [
+          -1.0549999475479126,
+          0.4375,
+          -3.2945001125335693
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__LampHousing1__MatBlack",
+      "group": "FrontNose",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          1.0099999904632568,
+          0.3100000023841858,
+          -3.299999952316284
+        ],
+        "max": [
+          1.3499999046325684,
+          0.4699999690055847,
+          -3.200000047683716
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__LampLens1__MatLamp",
+      "group": "FrontNose",
+      "material_role": "lamp",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          1.0549999475479126,
+          0.36250001192092896,
+          -3.3294999599456787
+        ],
+        "max": [
+          1.3049999475479126,
+          0.4375,
+          -3.2945001125335693
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__BumperVent-0.72__MatBlue",
+      "group": "FrontNose",
+      "material_role": "blue",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.7850000262260437,
+          0.17000000178813934,
+          -3.5625
+        ],
+        "max": [
+          -0.6550000309944153,
+          0.28999999165534973,
+          -3.5374999046325684
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__BumperVent-0.36__MatBlue",
+      "group": "FrontNose",
+      "material_role": "blue",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.42500001192092896,
+          0.17000000178813934,
+          -3.5625
+        ],
+        "max": [
+          -0.29500001668930054,
+          0.28999999165534973,
+          -3.5374999046325684
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__BumperVent0.36__MatBlue",
+      "group": "FrontNose",
+      "material_role": "blue",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          0.29500001668930054,
+          0.17000000178813934,
+          -3.5625
+        ],
+        "max": [
+          0.42500001192092896,
+          0.28999999165534973,
+          -3.5374999046325684
+        ]
+      }
+    },
+    {
+      "name": "FrontNose__BumperVent0.72__MatBlue",
+      "group": "FrontNose",
+      "material_role": "blue",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          0.6550000309944153,
+          0.17000000178813934,
+          -3.5625
+        ],
+        "max": [
+          0.7850000262260437,
+          0.28999999165534973,
+          -3.5374999046325684
+        ]
+      }
+    },
+    {
+      "name": "RearBody__PaintRed_EngineCowl__MatPaint",
+      "group": "RearBody",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 220,
+      "vertices": 112,
+      "bounds": {
+        "min": [
+          -1.5428855419158936,
+          0.1899999976158142,
+          1.2200000286102295
+        ],
+        "max": [
+          1.5428855419158936,
+          1.003600001335144,
+          2.6700000762939453
+        ]
+      }
+    },
+    {
+      "name": "RearBody__EngineVentInset__MatBlack",
+      "group": "RearBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.6000000238418579,
+          0.871448814868927,
+          1.6174225807189941
+        ],
+        "max": [
+          0.6000000238418579,
+          0.9985511898994446,
+          2.262577533721924
+        ]
+      }
+    },
+    {
+      "name": "RearBody__EngineVentFin-0.44__MatMetal",
+      "group": "RearBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.4724999964237213,
+          0.9424999952316284,
+          1.6850000619888306
+        ],
+        "max": [
+          -0.4074999988079071,
+          1.0075000524520874,
+          2.195000171661377
+        ]
+      }
+    },
+    {
+      "name": "RearBody__EngineVentFin-0.22__MatMetal",
+      "group": "RearBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.2524999976158142,
+          0.9424999952316284,
+          1.6850000619888306
+        ],
+        "max": [
+          -0.1875,
+          1.0075000524520874,
+          2.195000171661377
+        ]
+      }
+    },
+    {
+      "name": "RearBody__EngineVentFin0__MatMetal",
+      "group": "RearBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.032499998807907104,
+          0.9424999952316284,
+          1.6850000619888306
+        ],
+        "max": [
+          0.032499998807907104,
+          1.0075000524520874,
+          2.195000171661377
+        ]
+      }
+    },
+    {
+      "name": "RearBody__EngineVentFin0.22__MatMetal",
+      "group": "RearBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          0.1875,
+          0.9424999952316284,
+          1.6850000619888306
+        ],
+        "max": [
+          0.2524999976158142,
+          1.0075000524520874,
+          2.195000171661377
+        ]
+      }
+    },
+    {
+      "name": "RearBody__EngineVentFin0.44__MatMetal",
+      "group": "RearBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          0.4074999988079071,
+          0.9424999952316284,
+          1.6850000619888306
+        ],
+        "max": [
+          0.4724999964237213,
+          1.0075000524520874,
+          2.195000171661377
+        ]
+      }
+    },
+    {
+      "name": "RearBumper__BlackRubber__MatBlack",
+      "group": "RearBumper",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 164,
+      "vertices": 84,
+      "bounds": {
+        "min": [
+          -1.6095749139785767,
+          0.03500001132488251,
+          2.7150349617004395
+        ],
+        "max": [
+          1.6095749139785767,
+          0.32499998807907104,
+          3.2049999237060547
+        ]
+      }
+    },
+    {
+      "name": "RearBumper__WhiteHighlight__MatWhite",
+      "group": "RearBumper",
+      "material_role": "white",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 76,
+      "vertices": 40,
+      "bounds": {
+        "min": [
+          -1.3750085830688477,
+          0.2759999930858612,
+          2.9083707332611084
+        ],
+        "max": [
+          1.3750085830688477,
+          0.3440000116825104,
+          3.0759999752044678
+        ]
+      }
+    },
+    {
+      "name": "RearBody__BrakeHousing-1__MatBlack",
+      "group": "RearBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -1.3300000429153442,
+          0.4700000286102295,
+          2.6700000762939453
+        ],
+        "max": [
+          -0.9100000262260437,
+          0.6299999952316284,
+          2.7699999809265137
+        ]
+      }
+    },
+    {
+      "name": "RearBody__BrakeLens-1__MatBrake",
+      "group": "RearBody",
+      "material_role": "brake",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -1.274999976158142,
+          0.5199999809265137,
+          2.7664999961853027
+        ],
+        "max": [
+          -0.9650000333786011,
+          0.6000000238418579,
+          2.7915000915527344
+        ]
+      }
+    },
+    {
+      "name": "RearBody__BrakeHousing1__MatBlack",
+      "group": "RearBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          0.9100000262260437,
+          0.4700000286102295,
+          2.6700000762939453
+        ],
+        "max": [
+          1.3300000429153442,
+          0.6299999952316284,
+          2.7699999809265137
+        ]
+      }
+    },
+    {
+      "name": "RearBody__BrakeLens1__MatBrake",
+      "group": "RearBody",
+      "material_role": "brake",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          0.9650000333786011,
+          0.5199999809265137,
+          2.7664999961853027
+        ],
+        "max": [
+          1.274999976158142,
+          0.6000000238418579,
+          2.7915000915527344
+        ]
+      }
+    },
+    {
+      "name": "RearBody__WhiteRearBadge__MatWhite",
+      "group": "RearBody",
+      "material_role": "white",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 332,
+      "vertices": 168,
+      "bounds": {
+        "min": [
+          -0.3400000035762787,
+          0.28999999165534973,
+          2.671999931335449
+        ],
+        "max": [
+          0.3400000035762787,
+          0.5399999618530273,
+          2.685999870300293
+        ]
+      }
+    },
+    {
+      "name": "RearBody__PaintRed_RearEmblem__MatPaint",
+      "group": "RearBody",
+      "material_role": "red",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 32,
+      "vertices": 16,
+      "bounds": {
+        "min": [
+          -0.10998522490262985,
+          0.3050147593021393,
+          2.687000036239624
+        ],
+        "max": [
+          0.10998522490262985,
+          0.5249852538108826,
+          2.693000078201294
+        ]
+      }
+    },
+    {
+      "name": "Seat__LowerBucket__MatSeat",
+      "group": "Seat",
+      "material_role": "seat",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.9700000286102295,
+          0.6499999761581421,
+          -0.24000000953674316
+        ],
+        "max": [
+          0.9700000286102295,
+          0.9500000476837158,
+          1.340000033378601
+        ]
+      }
+    },
+    {
+      "name": "Seat__Cushion__MatSeat",
+      "group": "Seat",
+      "material_role": "seatInset",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.7900000214576721,
+          0.9150000214576721,
+          -0.1499999761581421
+        ],
+        "max": [
+          0.7900000214576721,
+          1.0450000762939453,
+          1.1299999952316284
+        ]
+      }
+    },
+    {
+      "name": "Seat__SculptedBack__MatSeat",
+      "group": "Seat",
+      "material_role": "seat",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 252,
+      "vertices": 128,
+      "bounds": {
+        "min": [
+          -0.9850000143051147,
+          0.8787806034088135,
+          0.9800000190734863
+        ],
+        "max": [
+          0.9850000143051147,
+          2.467829704284668,
+          1.4500000476837158
+        ]
+      }
+    },
+    {
+      "name": "Seat__BackPad__MatSeat",
+      "group": "Seat",
+      "material_role": "seatInset",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 332,
+      "vertices": 168,
+      "bounds": {
+        "min": [
+          -0.7400000095367432,
+          1.0379149913787842,
+          0.9321643114089966
+        ],
+        "max": [
+          0.7400000095367432,
+          2.322084903717041,
+          1.3078356981277466
+        ]
+      }
+    },
+    {
+      "name": "Seat__RaisedBolster-1__MatSeat",
+      "group": "Seat",
+      "material_role": "seat",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 92,
+      "vertices": 48,
+      "bounds": {
+        "min": [
+          -1.0696297883987427,
+          0.9362362623214722,
+          -0.10381083190441132
+        ],
+        "max": [
+          -0.7014954686164856,
+          2.189096212387085,
+          1.4070998430252075
+        ]
+      }
+    },
+    {
+      "name": "Seat__RaisedBolster1__MatSeat",
+      "group": "Seat",
+      "material_role": "seat",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 92,
+      "vertices": 48,
+      "bounds": {
+        "min": [
+          0.7014954686164856,
+          0.9362362623214722,
+          -0.10381083190441132
+        ],
+        "max": [
+          1.0696297883987427,
+          2.189096212387085,
+          1.4070998430252075
+        ]
+      }
+    },
+    {
+      "name": "Seat__HeadrestInset__MatBlack",
+      "group": "Seat",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 332,
+      "vertices": 168,
+      "bounds": {
+        "min": [
+          -0.3449999988079071,
+          1.988759160041809,
+          1.0842097997665405
+        ],
+        "max": [
+          0.3449999988079071,
+          2.3912408351898193,
+          1.2757900953292847
+        ]
+      }
+    },
+    {
+      "name": "MainBody__Dashboard__MatBlack",
+      "group": "MainBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.8700000047683716,
+          1.208703875541687,
+          -0.8387206792831421
+        ],
+        "max": [
+          0.8700000047683716,
+          1.4912961721420288,
+          -0.36127933859825134
+        ]
+      }
+    },
+    {
+      "name": "MainBody__DisplayGlass__MatGlass",
+      "group": "MainBody",
+      "material_role": "glass",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.3050000071525574,
+          1.4427629709243774,
+          -0.7220525741577148
+        ],
+        "max": [
+          0.3050000071525574,
+          1.5132371187210083,
+          -0.49794745445251465
+        ]
+      }
+    },
+    {
+      "name": "MainBody__DashboardButton-1__MatYellow",
+      "group": "MainBody",
+      "material_role": "yellow",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -0.5600000023841858,
+          1.462499976158142,
+          -0.6500000357627869
+        ],
+        "max": [
+          -0.4599999785423279,
+          1.4975000619888306,
+          -0.550000011920929
+        ]
+      }
+    },
+    {
+      "name": "MainBody__DashboardButton1__MatYellow",
+      "group": "MainBody",
+      "material_role": "yellow",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          0.4599999785423279,
+          1.462499976158142,
+          -0.6500000357627869
+        ],
+        "max": [
+          0.5600000023841858,
+          1.4975000619888306,
+          -0.550000011920929
+        ]
+      }
+    },
+    {
+      "name": "SteeringWheel__RubberRim__MatBlack",
+      "group": "SteeringWheel",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        1.95,
+        -1.05
+      ],
+      "triangles": 780,
+      "vertices": 392,
+      "bounds": {
+        "min": [
+          -0.675000011920929,
+          1.326872706413269,
+          -1.3690420389175415
+        ],
+        "max": [
+          0.674839437007904,
+          2.573127508163452,
+          -0.7309579849243164
+        ]
+      }
+    },
+    {
+      "name": "SteeringWheel__AlloySpoke0__MatMetal",
+      "group": "SteeringWheel",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        1.95,
+        -1.05
+      ],
+      "triangles": 28,
+      "vertices": 16,
+      "bounds": {
+        "min": [
+          -0.04500000178813934,
+          2.032186985015869,
+          -1.3107472658157349
+        ],
+        "max": [
+          0.04500000178813934,
+          2.4616177082061768,
+          -1.0536314249038696
+        ]
+      }
+    },
+    {
+      "name": "SteeringWheel__AlloySpoke1__MatMetal",
+      "group": "SteeringWheel",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        1.95,
+        -1.05
+      ],
+      "triangles": 28,
+      "vertices": 16,
+      "bounds": {
+        "min": [
+          -0.4890775978565216,
+          1.66331148147583,
+          -1.0714378356933594
+        ],
+        "max": [
+          -0.07383892685174942,
+          1.9397863149642944,
+          -0.8963727951049805
+        ]
+      }
+    },
+    {
+      "name": "SteeringWheel__AlloySpoke2__MatMetal",
+      "group": "SteeringWheel",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        1.95,
+        -1.05
+      ],
+      "triangles": 28,
+      "vertices": 16,
+      "bounds": {
+        "min": [
+          0.07383892685174942,
+          1.66331148147583,
+          -1.0714378356933594
+        ],
+        "max": [
+          0.4890775978565216,
+          1.9397863149642944,
+          -0.8963727951049805
+        ]
+      }
+    },
+    {
+      "name": "SteeringWheel__CenterHub__MatBlack",
+      "group": "SteeringWheel",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        1.95,
+        -1.05
+      ],
+      "triangles": 284,
+      "vertices": 144,
+      "bounds": {
+        "min": [
+          -0.14000000059604645,
+          1.803534746170044,
+          -1.1559398174285889
+        ],
+        "max": [
+          0.14000000059604645,
+          2.096465587615967,
+          -0.9440600275993347
+        ]
+      }
+    },
+    {
+      "name": "MainBody__SteeringColumn__MatMetal",
+      "group": "MainBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 36,
+      "vertices": 20,
+      "bounds": {
+        "min": [
+          -0.061818674206733704,
+          0.4326719045639038,
+          -1.092647671699524
+        ],
+        "max": [
+          0.061818674206733704,
+          1.8773281574249268,
+          -0.5773522853851318
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__RoundedTire__MatRubber",
+      "group": "FrontLeftWheel",
+      "material_role": "rubber",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 800,
+      "vertices": 400,
+      "bounds": {
+        "min": [
+          -2.5799999237060547,
+          -0.5600000619888306,
+          -3.119999885559082
+        ],
+        "max": [
+          -1.8200000524520874,
+          1.3600000143051147,
+          -1.2000000476837158
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__InnerBrakeCover__MatBlack",
+      "group": "FrontLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          -1.875,
+          -0.14500001072883606,
+          -2.705000162124634
+        ],
+        "max": [
+          -1.8250000476837158,
+          0.9450000524520874,
+          -1.6150000095367432
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__InnerAxleBoss__MatMetal",
+      "group": "FrontLeftWheel",
+      "material_role": "metal",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 236,
+      "vertices": 120,
+      "bounds": {
+        "min": [
+          -1.8565000295639038,
+          0.27000001072883606,
+          -2.2899999618530273
+        ],
+        "max": [
+          -1.7914999723434448,
+          0.5299999713897705,
+          -2.0300002098083496
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__ChevronTread__MatRubber",
+      "group": "FrontLeftWheel",
+      "material_role": "groove",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 320,
+      "vertices": 400,
+      "bounds": {
+        "min": [
+          -2.48799991607666,
+          -0.5608710050582886,
+          -3.120871067047119
+        ],
+        "max": [
+          -1.9119999408721924,
+          1.3608710765838623,
+          -1.1991289854049683
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__RimOuter__MatYellow",
+      "group": "FrontLeftWheel",
+      "material_role": "yellow",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 476,
+      "vertices": 240,
+      "bounds": {
+        "min": [
+          -2.6070001125335693,
+          -0.2199999988079071,
+          -2.7800002098083496
+        ],
+        "max": [
+          -2.5369999408721924,
+          1.0199999809265137,
+          -1.540000081062317
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__RimInset__MatYellow",
+      "group": "FrontLeftWheel",
+      "material_role": "yellow",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          -2.625499963760376,
+          -0.07999998331069946,
+          -2.640000104904175
+        ],
+        "max": [
+          -2.570500135421753,
+          0.8799999952316284,
+          -1.6800000667572021
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__AxleHub__MatBlack",
+      "group": "FrontLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 284,
+      "vertices": 144,
+      "bounds": {
+        "min": [
+          -2.6579999923706055,
+          0.24000000953674316,
+          -2.320000171661377
+        ],
+        "max": [
+          -2.5879998207092285,
+          0.5600000023841858,
+          -2.0
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__RimVent0__MatBlack",
+      "group": "FrontLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -2.636500120162964,
+          0.5802673101425171,
+          -2.1096718311309814
+        ],
+        "max": [
+          -2.623500108718872,
+          0.7739889621734619,
+          -1.890328288078308
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__RimVent1__MatBlack",
+      "group": "FrontLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -2.636500120162964,
+          0.02601093053817749,
+          -2.1096718311309814
+        ],
+        "max": [
+          -2.623500108718872,
+          0.21973273158073425,
+          -1.890328288078308
+        ]
+      }
+    },
+    {
+      "name": "FrontLeftWheel__RimVent2__MatBlack",
+      "group": "FrontLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -2.636500120162964,
+          0.3050000071525574,
+          -2.5399999618530273
+        ],
+        "max": [
+          -2.623500108718872,
+          0.4950000047683716,
+          -2.4200000762939453
+        ]
+      }
+    },
+    {
+      "name": "MainBody__FrontWishbone-10.11__MatBlack",
+      "group": "MainBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 44,
+      "vertices": 24,
+      "bounds": {
+        "min": [
+          -1.5929999351501465,
+          0.07273826003074646,
+          -2.4666736125946045
+        ],
+        "max": [
+          -1.0694423913955688,
+          0.44300001859664917,
+          -1.7241283655166626
+        ]
+      }
+    },
+    {
+      "name": "MainBody__FrontWishbone-10.28__MatBlack",
+      "group": "MainBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 44,
+      "vertices": 24,
+      "bounds": {
+        "min": [
+          -1.5929999351501465,
+          0.23932433128356934,
+          -2.463348388671875
+        ],
+        "max": [
+          -1.072690486907959,
+          0.44300001859664917,
+          -1.7279222011566162
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__RoundedTire__MatRubber",
+      "group": "FrontRightWheel",
+      "material_role": "rubber",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 800,
+      "vertices": 400,
+      "bounds": {
+        "min": [
+          1.8200000524520874,
+          -0.5600000619888306,
+          -3.119999885559082
+        ],
+        "max": [
+          2.5799999237060547,
+          1.3600000143051147,
+          -1.2000000476837158
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__InnerBrakeCover__MatBlack",
+      "group": "FrontRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          1.8250000476837158,
+          -0.14500001072883606,
+          -2.705000162124634
+        ],
+        "max": [
+          1.875,
+          0.9450000524520874,
+          -1.6150000095367432
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__InnerAxleBoss__MatMetal",
+      "group": "FrontRightWheel",
+      "material_role": "metal",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 236,
+      "vertices": 120,
+      "bounds": {
+        "min": [
+          1.7914999723434448,
+          0.27000001072883606,
+          -2.2899999618530273
+        ],
+        "max": [
+          1.8565000295639038,
+          0.5299999713897705,
+          -2.0300002098083496
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__ChevronTread__MatRubber",
+      "group": "FrontRightWheel",
+      "material_role": "groove",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 320,
+      "vertices": 400,
+      "bounds": {
+        "min": [
+          1.9119999408721924,
+          -0.5608710050582886,
+          -3.120871067047119
+        ],
+        "max": [
+          2.48799991607666,
+          1.3608710765838623,
+          -1.1991289854049683
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__RimOuter__MatYellow",
+      "group": "FrontRightWheel",
+      "material_role": "yellow",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 476,
+      "vertices": 240,
+      "bounds": {
+        "min": [
+          2.5369999408721924,
+          -0.2199999988079071,
+          -2.7800002098083496
+        ],
+        "max": [
+          2.6070001125335693,
+          1.0199999809265137,
+          -1.540000081062317
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__RimInset__MatYellow",
+      "group": "FrontRightWheel",
+      "material_role": "yellow",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          2.570500135421753,
+          -0.07999998331069946,
+          -2.640000104904175
+        ],
+        "max": [
+          2.625499963760376,
+          0.8799999952316284,
+          -1.6800000667572021
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__AxleHub__MatBlack",
+      "group": "FrontRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 284,
+      "vertices": 144,
+      "bounds": {
+        "min": [
+          2.5879998207092285,
+          0.24000000953674316,
+          -2.320000171661377
+        ],
+        "max": [
+          2.6579999923706055,
+          0.5600000023841858,
+          -2.0
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__RimVent0__MatBlack",
+      "group": "FrontRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          2.623500108718872,
+          0.5802673101425171,
+          -2.1096718311309814
+        ],
+        "max": [
+          2.636500120162964,
+          0.7739889621734619,
+          -1.890328288078308
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__RimVent1__MatBlack",
+      "group": "FrontRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          2.623500108718872,
+          0.02601093053817749,
+          -2.1096718311309814
+        ],
+        "max": [
+          2.636500120162964,
+          0.21973273158073425,
+          -1.890328288078308
+        ]
+      }
+    },
+    {
+      "name": "FrontRightWheel__RimVent2__MatBlack",
+      "group": "FrontRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        -2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          2.623500108718872,
+          0.3050000071525574,
+          -2.5399999618530273
+        ],
+        "max": [
+          2.636500120162964,
+          0.4950000047683716,
+          -2.4200000762939453
+        ]
+      }
+    },
+    {
+      "name": "MainBody__FrontWishbone10.11__MatBlack",
+      "group": "MainBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 44,
+      "vertices": 24,
+      "bounds": {
+        "min": [
+          1.0694423913955688,
+          0.07273826003074646,
+          -2.4666736125946045
+        ],
+        "max": [
+          1.5929999351501465,
+          0.44300001859664917,
+          -1.7241283655166626
+        ]
+      }
+    },
+    {
+      "name": "MainBody__FrontWishbone10.28__MatBlack",
+      "group": "MainBody",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 44,
+      "vertices": 24,
+      "bounds": {
+        "min": [
+          1.072690486907959,
+          0.23932433128356934,
+          -2.463348388671875
+        ],
+        "max": [
+          1.5929999351501465,
+          0.44300001859664917,
+          -1.7279222011566162
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__RoundedTire__MatRubber",
+      "group": "RearLeftWheel",
+      "material_role": "rubber",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 800,
+      "vertices": 400,
+      "bounds": {
+        "min": [
+          -2.5799999237060547,
+          -0.5600000619888306,
+          1.2000000476837158
+        ],
+        "max": [
+          -1.8200000524520874,
+          1.3600000143051147,
+          3.119999885559082
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__InnerBrakeCover__MatBlack",
+      "group": "RearLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          -1.875,
+          -0.14500001072883606,
+          1.6150000095367432
+        ],
+        "max": [
+          -1.8250000476837158,
+          0.9450000524520874,
+          2.705000162124634
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__InnerAxleBoss__MatMetal",
+      "group": "RearLeftWheel",
+      "material_role": "metal",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 236,
+      "vertices": 120,
+      "bounds": {
+        "min": [
+          -1.8565000295639038,
+          0.27000001072883606,
+          2.0300002098083496
+        ],
+        "max": [
+          -1.7914999723434448,
+          0.5299999713897705,
+          2.2899999618530273
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__ChevronTread__MatRubber",
+      "group": "RearLeftWheel",
+      "material_role": "groove",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 320,
+      "vertices": 400,
+      "bounds": {
+        "min": [
+          -2.48799991607666,
+          -0.5608710050582886,
+          1.1991289854049683
+        ],
+        "max": [
+          -1.9119999408721924,
+          1.3608710765838623,
+          3.120871067047119
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__RimOuter__MatYellow",
+      "group": "RearLeftWheel",
+      "material_role": "yellow",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 476,
+      "vertices": 240,
+      "bounds": {
+        "min": [
+          -2.6070001125335693,
+          -0.2199999988079071,
+          1.540000081062317
+        ],
+        "max": [
+          -2.5369999408721924,
+          1.0199999809265137,
+          2.7800002098083496
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__RimInset__MatYellow",
+      "group": "RearLeftWheel",
+      "material_role": "yellow",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          -2.625499963760376,
+          -0.07999998331069946,
+          1.6800000667572021
+        ],
+        "max": [
+          -2.570500135421753,
+          0.8799999952316284,
+          2.640000104904175
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__AxleHub__MatBlack",
+      "group": "RearLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 284,
+      "vertices": 144,
+      "bounds": {
+        "min": [
+          -2.6579999923706055,
+          0.24000000953674316,
+          2.0
+        ],
+        "max": [
+          -2.5879998207092285,
+          0.5600000023841858,
+          2.320000171661377
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__RimVent0__MatBlack",
+      "group": "RearLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -2.636500120162964,
+          0.5802673101425171,
+          2.2103281021118164
+        ],
+        "max": [
+          -2.623500108718872,
+          0.7739889621734619,
+          2.4296717643737793
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__RimVent1__MatBlack",
+      "group": "RearLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -2.636500120162964,
+          0.02601093053817749,
+          2.2103281021118164
+        ],
+        "max": [
+          -2.623500108718872,
+          0.21973273158073425,
+          2.4296717643737793
+        ]
+      }
+    },
+    {
+      "name": "RearLeftWheel__RimVent2__MatBlack",
+      "group": "RearLeftWheel",
+      "material_role": "black",
+      "pivot": [
+        -2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          -2.636500120162964,
+          0.3050000071525574,
+          1.7799999713897705
+        ],
+        "max": [
+          -2.623500108718872,
+          0.4950000047683716,
+          1.9000000953674316
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__RoundedTire__MatRubber",
+      "group": "RearRightWheel",
+      "material_role": "rubber",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 800,
+      "vertices": 400,
+      "bounds": {
+        "min": [
+          1.8200000524520874,
+          -0.5600000619888306,
+          1.2000000476837158
+        ],
+        "max": [
+          2.5799999237060547,
+          1.3600000143051147,
+          3.119999885559082
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__InnerBrakeCover__MatBlack",
+      "group": "RearRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          1.8250000476837158,
+          -0.14500001072883606,
+          1.6150000095367432
+        ],
+        "max": [
+          1.875,
+          0.9450000524520874,
+          2.705000162124634
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__InnerAxleBoss__MatMetal",
+      "group": "RearRightWheel",
+      "material_role": "metal",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 236,
+      "vertices": 120,
+      "bounds": {
+        "min": [
+          1.7914999723434448,
+          0.27000001072883606,
+          2.0300002098083496
+        ],
+        "max": [
+          1.8565000295639038,
+          0.5299999713897705,
+          2.2899999618530273
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__ChevronTread__MatRubber",
+      "group": "RearRightWheel",
+      "material_role": "groove",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 320,
+      "vertices": 400,
+      "bounds": {
+        "min": [
+          1.9119999408721924,
+          -0.5608710050582886,
+          1.1991289854049683
+        ],
+        "max": [
+          2.48799991607666,
+          1.3608710765838623,
+          3.120871067047119
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__RimOuter__MatYellow",
+      "group": "RearRightWheel",
+      "material_role": "yellow",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 476,
+      "vertices": 240,
+      "bounds": {
+        "min": [
+          2.5369999408721924,
+          -0.2199999988079071,
+          1.540000081062317
+        ],
+        "max": [
+          2.6070001125335693,
+          1.0199999809265137,
+          2.7800002098083496
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__RimInset__MatYellow",
+      "group": "RearRightWheel",
+      "material_role": "yellow",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          2.570500135421753,
+          -0.07999998331069946,
+          1.6800000667572021
+        ],
+        "max": [
+          2.625499963760376,
+          0.8799999952316284,
+          2.640000104904175
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__AxleHub__MatBlack",
+      "group": "RearRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 284,
+      "vertices": 144,
+      "bounds": {
+        "min": [
+          2.5879998207092285,
+          0.24000000953674316,
+          2.0
+        ],
+        "max": [
+          2.6579999923706055,
+          0.5600000023841858,
+          2.320000171661377
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__RimVent0__MatBlack",
+      "group": "RearRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          2.623500108718872,
+          0.5802673101425171,
+          2.2103281021118164
+        ],
+        "max": [
+          2.636500120162964,
+          0.7739889621734619,
+          2.4296717643737793
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__RimVent1__MatBlack",
+      "group": "RearRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          2.623500108718872,
+          0.02601093053817749,
+          2.2103281021118164
+        ],
+        "max": [
+          2.636500120162964,
+          0.21973273158073425,
+          2.4296717643737793
+        ]
+      }
+    },
+    {
+      "name": "RearRightWheel__RimVent2__MatBlack",
+      "group": "RearRightWheel",
+      "material_role": "black",
+      "pivot": [
+        2.2,
+        0.4,
+        2.16
+      ],
+      "triangles": 108,
+      "vertices": 56,
+      "bounds": {
+        "min": [
+          2.623500108718872,
+          0.3050000071525574,
+          1.7799999713897705
+        ],
+        "max": [
+          2.636500120162964,
+          0.4950000047683716,
+          1.9000000953674316
+        ]
+      }
+    },
+    {
+      "name": "MainBody__DamperRod-1__MatMetal",
+      "group": "MainBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 36,
+      "vertices": 20,
+      "bounds": {
+        "min": [
+          -1.3335844278335571,
+          0.29771822690963745,
+          -1.334492564201355
+        ],
+        "max": [
+          -1.0864155292510986,
+          1.192281723022461,
+          -1.0055073499679565
+        ]
+      }
+    },
+    {
+      "name": "MainBody__DamperSleeve-1__MatMetal",
+      "group": "MainBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 44,
+      "vertices": 24,
+      "bounds": {
+        "min": [
+          -1.3735684156417847,
+          0.2844153046607971,
+          -1.3718596696853638
+        ],
+        "max": [
+          -1.1508314609527588,
+          0.7009846568107605,
+          -1.1189402341842651
+        ]
+      }
+    },
+    {
+      "name": "MainBody__BlueCoil-1__MatSpring",
+      "group": "MainBody",
+      "material_role": "spring",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 906,
+      "vertices": 455,
+      "bounds": {
+        "min": [
+          -1.3828494548797607,
+          0.35933810472488403,
+          -1.3782154321670532
+        ],
+        "max": [
+          -1.0240874290466309,
+          1.0730173587799072,
+          -0.9669671058654785
+        ]
+      }
+    },
+    {
+      "name": "MainBody__DamperRod1__MatMetal",
+      "group": "MainBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 36,
+      "vertices": 20,
+      "bounds": {
+        "min": [
+          1.0864155292510986,
+          0.29771822690963745,
+          -1.334492564201355
+        ],
+        "max": [
+          1.3335844278335571,
+          1.192281723022461,
+          -1.0055073499679565
+        ]
+      }
+    },
+    {
+      "name": "MainBody__DamperSleeve1__MatMetal",
+      "group": "MainBody",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 44,
+      "vertices": 24,
+      "bounds": {
+        "min": [
+          1.1508314609527588,
+          0.2844153046607971,
+          -1.3718596696853638
+        ],
+        "max": [
+          1.3735684156417847,
+          0.7009846568107605,
+          -1.1189402341842651
+        ]
+      }
+    },
+    {
+      "name": "MainBody__BlueCoil1__MatSpring",
+      "group": "MainBody",
+      "material_role": "spring",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 906,
+      "vertices": 455,
+      "bounds": {
+        "min": [
+          1.040750503540039,
+          0.3991236090660095,
+          -1.3782328367233276
+        ],
+        "max": [
+          1.399512529373169,
+          1.111925721168518,
+          -0.9669846296310425
+        ]
+      }
+    },
+    {
+      "name": "LeftExhaust__BlackCanister__MatBlack",
+      "group": "LeftExhaust",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          -1.0149999856948853,
+          0.7285367250442505,
+          2.15609073638916
+        ],
+        "max": [
+          -0.5449999570846558,
+          1.394529104232788,
+          3.0039920806884766
+        ]
+      }
+    },
+    {
+      "name": "LeftExhaust__GoldTip__MatYellow",
+      "group": "LeftExhaust",
+      "material_role": "yellow",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          -1.0260000228881836,
+          0.9424706697463989,
+          2.8303744792938232
+        ],
+        "max": [
+          -0.5339999794960022,
+          1.423661231994629,
+          3.049790620803833
+        ]
+      }
+    },
+    {
+      "name": "LeftExhaust__DarkOpening__MatBlack",
+      "group": "LeftExhaust",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          -0.9599999785423279,
+          1.0053240060806274,
+          2.856187582015991
+        ],
+        "max": [
+          -0.5999999642372131,
+          1.3672043085098267,
+          3.0429270267486572
+        ]
+      }
+    },
+    {
+      "name": "LeftExhaust__InnerBore__MatRubber",
+      "group": "LeftExhaust",
+      "material_role": "groove",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 284,
+      "vertices": 144,
+      "bounds": {
+        "min": [
+          -0.9049999713897705,
+          1.0575950145721436,
+          2.8755106925964355
+        ],
+        "max": [
+          -0.6549999713897705,
+          1.3174917697906494,
+          3.0311837196350098
+        ]
+      }
+    },
+    {
+      "name": "LeftExhaust__Mount__MatMetal",
+      "group": "LeftExhaust",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 28,
+      "vertices": 16,
+      "bounds": {
+        "min": [
+          -0.8317931890487671,
+          0.6767448782920837,
+          2.103489875793457
+        ],
+        "max": [
+          -0.6982067823410034,
+          1.0232551097869873,
+          2.346510171890259
+        ]
+      }
+    },
+    {
+      "name": "RightExhaust__BlackCanister__MatBlack",
+      "group": "RightExhaust",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          0.5449999570846558,
+          0.7285367250442505,
+          2.15609073638916
+        ],
+        "max": [
+          1.0149999856948853,
+          1.394529104232788,
+          3.0039920806884766
+        ]
+      }
+    },
+    {
+      "name": "RightExhaust__GoldTip__MatYellow",
+      "group": "RightExhaust",
+      "material_role": "yellow",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          0.5339999794960022,
+          0.9424706697463989,
+          2.8303744792938232
+        ],
+        "max": [
+          1.0260000228881836,
+          1.423661231994629,
+          3.049790620803833
+        ]
+      }
+    },
+    {
+      "name": "RightExhaust__DarkOpening__MatBlack",
+      "group": "RightExhaust",
+      "material_role": "black",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 380,
+      "vertices": 192,
+      "bounds": {
+        "min": [
+          0.5999999642372131,
+          1.0053240060806274,
+          2.856187582015991
+        ],
+        "max": [
+          0.9599999785423279,
+          1.3672043085098267,
+          3.0429270267486572
+        ]
+      }
+    },
+    {
+      "name": "RightExhaust__InnerBore__MatRubber",
+      "group": "RightExhaust",
+      "material_role": "groove",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 284,
+      "vertices": 144,
+      "bounds": {
+        "min": [
+          0.6549999713897705,
+          1.0575950145721436,
+          2.8755106925964355
+        ],
+        "max": [
+          0.9049999713897705,
+          1.3174917697906494,
+          3.0311837196350098
+        ]
+      }
+    },
+    {
+      "name": "RightExhaust__Mount__MatMetal",
+      "group": "RightExhaust",
+      "material_role": "metal",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "triangles": 28,
+      "vertices": 16,
+      "bounds": {
+        "min": [
+          0.6982067823410034,
+          0.6767448782920837,
+          2.103489875793457
+        ],
+        "max": [
+          0.8317931890487671,
+          1.0232551097869873,
+          2.346510171890259
+        ]
+      }
+    }
+  ],
+  "triangles": 31282,
+  "max_mesh_triangles": 906,
+  "source": {
+    "path": "tools/build_kart_blender.py",
+    "sha256": "8041ce62fb134e14f4e66e95b38b1b5b61a30afc1569b6c22d4b019382f27980"
+  },
+  "assets": {
+    "KartRemodel.blend": "672e8925132e894b7e8701fc2d13f6dc9b349ed5f928490217c8528151e979ba",
+    "KartRemodel.fbx": "5de2b413b0d231ac8c6df264c0722bfb397add01e3c7773a516ad22e65efd097"
+  }
+}

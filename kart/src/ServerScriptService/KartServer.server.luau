@@ -6,6 +6,7 @@ local System = ReplicatedStorage:WaitForChild("KartSystem")
 local Config = require(System.KartConfig)
 local Dynamics = require(System.KartDynamics)
 local Builder = require(System.KartBuilder)
+local MeshVisuals = require(System.KartMeshVisuals)
 local SeatLock = require(System.KartSeatLock)
 local Race = require(System.KartRace)
 local race = Race.new(Config)
@@ -57,7 +58,7 @@ local function attachDriver(s)
 	local humanoid=s.seat.Occupant
 	if not humanoid then return end
 	local player=Players:GetPlayerFromCharacter(humanoid.Parent)
-	if not player or humanoid.Health<=0 or playerStates[player] then humanoid.Sit=false; return end
+	if not player or humanoid.Health<=0 or playerStates[player] or not race:TryJoin(player) then humanoid.Sit=false; return end
 	s.player=player; playerStates[player]=s; s.humanoid=humanoid
 	s.seatLock=SeatLock.new(s.seat,humanoid,function()
 		return s.player==player and player.Parent==Players and player.Character==humanoid.Parent
@@ -112,7 +113,22 @@ local function attachDriver(s)
 end
 
 local function spawnKart(cf, colorName)
-	local s=Builder.build("RacingKart",cf,Config.Palette[colorName] or Config.Palette.Red)
+	local color=Config.Palette[colorName] or Config.Palette.Red
+	local s=Builder.build("RacingKart",cf,color)
+	MeshVisuals.apply(s,color)
+	s.brakeLights={}
+	for _,part in ipairs(s.model.Effects:GetChildren()) do
+		if part:IsA("BasePart") and part.Name=="BrakeLight" then
+			if #(s.meshBrakeLights or {})>0 then part.Transparency=1 end
+			table.insert(s.brakeLights,part)
+		end
+	end
+	for _,part in ipairs(s.meshBrakeLights or {}) do table.insert(s.brakeLights,part) end
+	for _,wheel in ipairs(s.wheels) do
+		wheel.motor:SetAttribute("WheelRadius",Config.WheelRadius)
+		wheel.motor:SetAttribute("ContactOrigin",wheel.origin)
+		wheel.motor:SetAttribute("SuspensionDistance",Config.SuspensionRest)
+	end
 	s.model:SetAttribute("ColorName",colorName)
 	s.model.Parent=world
 	CollectionService:AddTag(s.model,"RacingKart")
@@ -143,7 +159,7 @@ local function spawnKart(cf, colorName)
 		local humanoid=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 		local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		if not humanoid or humanoid.Health<=0 or not root or playerStates[player] or s.seat.Occupant or s.reserved then return end
-		if (root.Position-s.seat.Position).Magnitude>11 then return end
+		if (root.Position-s.seat.Position).Magnitude>11 or not race:CanJoin(player) then return end
 		s.reserved=true; s.prompt.Enabled=false
 		s.seat:Sit(humanoid)
 		task.delay(1,function()
@@ -164,7 +180,7 @@ if markers then
 	for _,marker in ipairs(markers:GetChildren()) do
 		if marker:IsA("BasePart") then
 			marker.CanCollide=false; marker.CanTouch=false; marker.CanQuery=false; marker.Transparency=1
-			spawnKart(marker.CFrame,marker:GetAttribute("ColorName") or "Red")
+			spawnKart(marker.CFrame,marker:GetAttribute("ColorName") or (Config.Palette[marker.Name] and marker.Name) or "Red")
 		end
 	end
 end
@@ -321,8 +337,8 @@ RunService.PreSimulation:Connect(function(delta)
 				trail.Enabled=s.turboEffect>0.1
 				trail.Transparency=NumberSequence.new(1-s.turboEffect*0.55,1)
 			end
-			for _,light in ipairs(s.model.Effects:GetChildren()) do
-				if light.Name=="BrakeLight" and light:IsA("BasePart") then
+			for _,light in ipairs(s.brakeLights) do
+				if light.Parent then
 					local braking=s.throttle<0 and speed>2
 					light.Material=braking and Enum.Material.Neon or Enum.Material.SmoothPlastic
 					light.Color=braking and Color3.fromRGB(255,30,35) or Color3.fromRGB(110,5,10)

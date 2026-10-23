@@ -1,11 +1,14 @@
 {
-  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "377c1b6f1ff04fc188e078b1147f23fb248699370790d121294fec0497271099",
+  "src/ReplicatedStorage/KartSystem/KartConfig.luau": "3228361a8efc214c2c7d52a14b7a57ec2947287e39b786ef0c703e991bfc9676",
   "src/ReplicatedStorage/KartSystem/KartDynamics.luau": "17cdc1780d745d71e153df6fdfdf395d1f4221e9946e5855724321c71e0e7d9c",
-  "src/ReplicatedStorage/KartSystem/KartBuilder.luau": "fd8427c1bceac55102b5698796b91e066af22a6bf939def08919fbfdee362a43",
+  "src/ReplicatedStorage/KartSystem/KartBuilder.luau": "f1474c6c3b149dedb71e729f2f0e8269c88831349d0960c557195f308f192b31",
   "src/ReplicatedStorage/KartSystem/KartSeatLock.luau": "49601375a16ed190ebebb6ee82c138e5aae123f8befc1e1e97885ccaf9423438",
-  "src/ReplicatedStorage/KartSystem/KartHUD.luau": "5fa20199d0eef227f5b3acc0c10f0ba250f0c49be01e0e195b7470e15880f004",
-  "src/ReplicatedStorage/KartSystem/KartRace.luau": "5c68452d2e649507b18e64dc30fbf50d90ae9c7328f351235bede920b547e001",
-  "src/ReplicatedStorage/KartSystem/KartRaceRules.luau": "156fe1dfde9ad105c04627b798566673d03086942ecf0bf7ff85790eae5c3913",
-  "src/ServerScriptService/KartServer.server.luau": "8fc836b752e696c5987952cecd90be9fe3927a738e8e27ce46fc1e0eecdf7265",
-  "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau": "3614597a521b69c41d6a79e7ca3023b80efc9bb8192b56ac08add6d3d32b6a64"
+  "src/ReplicatedStorage/KartSystem/KartHUD.luau": "df2f8c75d9d3bdc40b270a457d65809eaa3c19958d1643663826748416188acb",
+  "src/ReplicatedStorage/KartSystem/KartRace.luau": "ffa7f5731155de562a012564a603f665ff33c90880a5bfbd5103740fd834389d",
+  "src/ReplicatedStorage/KartSystem/KartRaceRules.luau": "c59b98d43e652a1e2f2d45d82ca4b76a469b4ab2206460574405e9c66ab5e0b3",
+  "src/ReplicatedStorage/KartSystem/KartCareerWins.luau": "90660da0a10d9f3525b679c3b274ec8a168732044e995c94cf67b2c1c5ecfa53",
+  "src/ReplicatedStorage/KartSystem/KartMeshVisuals.luau": "49dd252c8b9cc023424fcd9fd36bc14617dc65eb6d3c7835e4d13d61792e3f50",
+  "src/ReplicatedStorage/KartSystem/KartPresentation.luau": "5c278357952cd52ab3d2140cc04dcc210f8f1c62cfcc607618247c5cc2035e65",
+  "src/ServerScriptService/KartServer.server.luau": "9ae01ed060e46f887f2f9e557b91d2efc11705843c5034ed23b3947094b4c741",
+  "src/StarterPlayer/StarterPlayerScripts/KartController.client.luau": "c3a2fb21336a2a9fa7efbe8df1481531e5cb9446ef062df57a41df0039057b0a"
 }

@@ -42,7 +42,11 @@ if args.export_graph:
 with tempfile.TemporaryDirectory(prefix='kart-hud-test-') as directory:
     runner = Path(directory) / 'run.luau'
     runner.write_text(code)
-    result = subprocess.run([args.luau, str(runner)], check=True, capture_output=True, text=True)
+    result = subprocess.run([args.luau, str(runner)], capture_output=True, text=True)
+    if result.returncode:
+        print(result.stdout, end="")
+        print(result.stderr, end="")
+        result.check_returncode()
     for line in result.stdout.splitlines():
         if line.startswith('HUDGRAPH|'):
             args.export_graph.parent.mkdir(parents=True, exist_ok=True)
