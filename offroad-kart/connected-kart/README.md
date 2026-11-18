@@ -1,6 +1,6 @@
 # Connected off-road kart
 
-Import [OffroadKart_Connected.glb](OffroadKart_Connected.glb) with Studio's **3D Importer**. Keep the named meshes separate. The GLB includes black steel rims, black front and rear bumper rails, straight red side panels, and lens colors.
+Import [OffroadKart_Connected.glb](OffroadKart_Connected.glb) with Studio's **3D Importer**. Keep the named meshes separate. The GLB includes black steel rims, black front and rear bumper rails, red side panels with a triangular rise near the rear, and lens colors.
 
 [View the preview](OffroadKart_Connected_Preview.png) · [Open the Blender project](OffroadKart_Connected.blend)
 
