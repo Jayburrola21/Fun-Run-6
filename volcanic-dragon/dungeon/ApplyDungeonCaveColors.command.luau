@@ -1,18 +1,9 @@
--- Select the imported DragonDungeonCave model and run this in Studio Edit mode.
+-- Select the cave shell or the full cave model in Studio Edit mode.
 local RunService = game:GetService("RunService")
 local Selection = game:GetService("Selection")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 
-assert(RunService:IsStudio() and not RunService:IsRunning(), "Run the cave color fix in Studio Edit mode.")
-local selected = Selection:Get()
-assert(#selected == 1, "Select the whole imported cave model in Explorer.")
-local model = selected[1]
-if model:IsA("MeshPart") then
-	model = model:FindFirstAncestorOfClass("Model")
-end
-assert(model and model:IsA("Model"), "Select the whole imported cave model in Explorer.")
-
-local shellColor = Color3.fromRGB(121, 121, 121)
+local shellColor = Color3.fromRGB(84, 84, 84)
 local gateColor = Color3.fromRGB(61, 61, 61)
 local roles = {
 	dungeoncavegrayshell = "Shell",
@@ -22,31 +13,40 @@ local roles = {
 	gatetornbars = "TornBars",
 }
 
-local meshes, matches, found = {}, {}, {}
-for _, part in model:GetDescendants() do
-	if part:IsA("MeshPart") then
-		table.insert(meshes, part)
-		-- The importer can sanitize punctuation, use mesh names, or add
-		-- a numeric suffix to names that already exist in the place.
-		local key = part.Name:lower():gsub("[^%w]", ""):gsub("%d+$", "")
-		local role = roles[key]
-		if role then
-			matches[part] = if role == "Shell" then shellColor else gateColor
-			found[role] = true
-		end
-	end
+local function getRole(part)
+	-- Studio may sanitize punctuation, use mesh names, or add a numeric suffix.
+	local key = part.Name:lower():gsub("[^%w]", ""):gsub("%d+$", "")
+	return roles[key]
 end
 
-if not (found.Shell and found.Frame and found.Sides and found.TornBars) then
+local function thickness(part)
+	local size = part.Size
+	return math.min(size.X, size.Y, size.Z) / math.max(size.X, size.Y, size.Z)
+end
+
+local function modelColors(model)
+	local meshes, matches, found = {}, {}, {}
+	for _, part in model:GetDescendants() do
+		if part:IsA("MeshPart") then
+			table.insert(meshes, part)
+			local role = getRole(part)
+			if role then
+				matches[part] = if role == "Shell" then shellColor else gateColor
+				found[role] = true
+			end
+		end
+	end
+	if found.Shell and found.Frame and found.Sides and found.TornBars then
+		return matches
+	end
+
 	local message = "Select the full cave with its four separate meshes. If import merged them, reimport with Merge Meshes turned off."
 	assert(#meshes == 4, message)
-	-- A renamed import still has one deep cave shell and three thin iron
-	-- assemblies. Check the proportions before editing any of the meshes.
+	-- A renamed import has one deep shell and three thin iron assemblies.
 	matches = {}
 	local shellCount = 0
 	for _, part in meshes do
-		local size = part.Size
-		local ratio = math.min(size.X, size.Y, size.Z) / math.max(size.X, size.Y, size.Z)
+		local ratio = thickness(part)
 		if ratio > 0.5 then
 			matches[part] = shellColor
 			shellCount += 1
@@ -56,6 +56,22 @@ if not (found.Shell and found.Frame and found.Sides and found.TornBars) then
 		end
 	end
 	assert(shellCount == 1, message)
+	return matches
+end
+
+assert(RunService:IsStudio() and not RunService:IsRunning(), "Run the cave color fix in Studio Edit mode.")
+local selected = Selection:Get()
+local message = "Select the cave shell MeshPart or the whole imported cave model in Explorer."
+assert(#selected == 1, message)
+local target = selected[1]
+local matches
+if target:IsA("MeshPart") then
+	local role = getRole(target)
+	assert(role == "Shell" or (not role and thickness(target) > 0.5), message)
+	matches = {[target] = shellColor}
+else
+	assert(target:IsA("Model"), message)
+	matches = modelColors(target)
 end
 
 local recording = ChangeHistoryService:TryBeginRecording("DungeonCaveColors", "Apply dungeon cave colors")
@@ -68,4 +84,4 @@ end
 if recording then
 	ChangeHistoryService:FinishRecording(recording, Enum.FinishRecordingOperation.Commit)
 end
-print("Dungeon cave colors applied. Click off the model to see the gray shell and dark gray gate.")
+print("Dungeon cave colors applied. Click off the selection to see the new shade.")

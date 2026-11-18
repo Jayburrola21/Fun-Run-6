@@ -149,7 +149,8 @@ def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     options.output.parent.mkdir(parents=True, exist_ok=True)
 
-    cave = build_cave(material("Plain matte gray cave", .19, .86))
+    # The exported linear value matches the Studio shell color of RGB 84.
+    cave = build_cave(material("Plain matte gray cave", .088656, .86))
     gate = build_gate(material("Plain dark gray iron", .047, .68, .21))
     assert gate, "Expected gate meshes"
     print(f"Exporting plain-gray cave and {len(gate)} gate meshes ({len(cave.data.polygons)} shell faces).")
