@@ -1,6 +1,6 @@
 # Volcanic Dragon Idle and Fire Breath
 
-The dragon starts in a relaxed idle pose. Its chest and neck rise and fall as it breathes, with occasional blinks and a slight head tilt and lean. The original fire breath starts 20 seconds after the dragon loads and repeats on that cadence. After each recovery, the dragon blends back into its idle loop.
+The dragon starts in a relaxed idle pose. Its chest and neck rise and fall as it breathes, with occasional blinks and a slight head tilt and lean. The fire-breath attack starts 20 seconds after the dragon loads and repeats on that cadence. The black crown and facial horn tips heat to bright red just before ignition and cool as the dragon returns to idle.
 
 ## Test it in Roblox Studio
 
@@ -8,7 +8,7 @@ The dragon starts in a relaxed idle pose. Its chest and neck rise and fall as it
 2. Open [InstallVolcanicDragon.command.luau](InstallVolcanicDragon.command.luau), copy the entire file into Studio's **Command Bar** while editing, and run it once. Save any custom `Config` values first so you can reapply them after the installer updates the module. The [Rojo project](default.project.json) is an alternative if you already sync your game with Rojo.
 3. Press **Play**. The eyelids open when the idle starts, then blink at varying intervals. Watch the chest and neck rise and settle, then wait for the attacks at 20 and 40 seconds. Each attack should return smoothly to idle.
 
-If you already imported the rig with the animated eyelids, rerun the updated installer in Edit mode. Press **Play** and wait 20 seconds for the first attack. The server shares its timestamps with every client. Scripts can also trigger an attack through the server-only `ServerStorage.PlayVolcanicDragon` event. The scheduler skips a slot if another attack would overlap it.
+For an existing installation, import the latest rig and rerun the installer in Edit mode to get the horn-tip effect. The server shares its timestamps with every client. Scripts can also trigger an attack through the server-only `ServerStorage.PlayVolcanicDragon` event. The scheduler skips a slot if another attack would overlap it.
 
 ### If Studio reports a Command Bar syntax error
 
@@ -16,7 +16,7 @@ Open the installer in a plain text editor, select the entire file, and copy it. 
 
 ## Place it relative to the track
 
-In the unscaled asset on level ground the default sweep lands roughly **5 studs in front of the mouth**. Mount the dragon higher for a longer throw, or adjust `FireDepression` as you line up the track. Increase `FireRange` if the track lies outside the ray's current reach. The stream follows a narrow, bright core to the first eligible surface, where it kicks up a large plume of flames, sparks, and smoke and leaves short-lived molten marks. A missed ray produces no ground impact.
+In the unscaled asset on level ground the default sweep lands roughly **5 studs in front of the mouth**. Mount the dragon higher for a longer throw, or adjust `FireDepression` as you line up the track. Increase `FireRange` if the track lies outside the ray's current reach. The stream follows a narrow, bright core to the first eligible surface. The beam widths, particle sizes, and scorch dimensions are twice the previous version's default. A missed ray produces no ground impact.
 
 Set `TrackName` to the name of a direct Workspace child if you want to limit hits to a specific track model or part. Its track parts need `CanQuery` enabled. For the default sweep, the unscaled horns rise to about 6 studs above the dragon’s floor, and the widest part of the moving head reaches about 2.6 studs on either side of its centerline. With the default empty name the ray uses queryable world geometry, excluding the dragon and its effects.
 

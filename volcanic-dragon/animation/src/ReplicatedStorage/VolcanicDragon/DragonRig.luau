@@ -9,6 +9,13 @@ local NAMES = {
 	Head = true, Jaw = true, MouthOrigin = true, Chest = false,
 }
 local UP = Vector3.yAxis
+local HORN_TIP_PREFIX = "DragonHornHeat"
+local WARM_RED = Color3.fromRGB(156, 5, 3)
+local HOT_RED = Color3.fromRGB(255, 24, 9)
+
+function DragonRig.isHornTip(instance)
+	return instance:IsA("MeshPart") and instance.Name:sub(1, #HORN_TIP_PREFIX) == HORN_TIP_PREFIX
+end
 
 local function jointName(name)
 	return name:match("^(.-)[%._]%d+$") or name
@@ -53,6 +60,7 @@ function DragonRig.new(model)
 		groups[name] = {}
 	end
 	local lidGroups = {}
+	local hornTips = {}
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("Bone") then
 			local list = groups[jointName(descendant.Name)]
@@ -61,6 +69,8 @@ function DragonRig.new(model)
 			else
 				bindLidEdge(descendant, lidGroups)
 			end
+		elseif DragonRig.isHornTip(descendant) then
+			table.insert(hornTips, descendant)
 		end
 	end
 	for name, list in pairs(groups) do
@@ -116,6 +126,7 @@ function DragonRig.new(model)
 	return setmetatable({
 		bind = bind,
 		lids = lids,
+		hornTips = hornTips,
 		scale = horizontal.Magnitude / 2.51, -- Head-to-mouth distance in the authored GLB.
 		mouth = mouth,
 		mouthForward = mouth.TransformedWorldCFrame:VectorToObjectSpace(forward),
@@ -155,6 +166,18 @@ function DragonRig:SetBlink(blink)
 	end
 end
 
+function DragonRig:SetHornHeat(heat)
+	if heat == self.hornHeat or #self.hornTips == 0 then
+		return
+	end
+	self.hornHeat = heat
+	local color = WARM_RED:Lerp(HOT_RED, heat)
+	for _, tip in self.hornTips do
+		tip.Color = color
+		tip.Transparency = 1 - heat
+	end
+end
+
 function DragonRig:Apply(sample)
 	local bind = self.bind
 	raiseChest(bind.Chest, (sample.chestRise or 0) * self.scale)
@@ -167,6 +190,7 @@ function DragonRig:Apply(sample)
 	pose(bind.Head, headYaw, sample.headPitch, sample.headRoll)
 	pose(bind.Jaw, 0, -sample.jawOpen)
 	self:SetBlink(sample.blink or 0)
+	self:SetHornHeat(sample.hornHeat or 0)
 end
 
 function DragonRig:GetMouth(depression)
@@ -181,6 +205,7 @@ function DragonRig:Reset()
 	end
 	raiseChest(self.bind.Chest, 0)
 	self:SetBlink(0)
+	self:SetHornHeat(0)
 end
 
 return DragonRig

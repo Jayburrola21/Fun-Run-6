@@ -12,15 +12,17 @@ local UP = Vector3.yAxis
 local TAU = math.pi * 2
 local FADE_STEPS = 16
 local SCORCH_POOL_SIZE = 12
+local VISUAL_SCALE = 2
 
 local function color(r, g, b)
     return Color3.fromRGB(r, g, b)
 end
 
-local function numberSequence(pairs)
+local function numberSequence(pairs, scale)
     local keys = {}
+    scale = scale or 1
     for _, pair in ipairs(pairs) do
-        table.insert(keys, NumberSequenceKeypoint.new(pair[1], pair[2]))
+        table.insert(keys, NumberSequenceKeypoint.new(pair[1], pair[2] * scale))
     end
     return NumberSequence.new(keys)
 end
@@ -100,7 +102,7 @@ local function emitter(parent, spec)
     particle.Drag = spec.drag or 0
     particle.Rotation = NumberRange.new(-180, 180)
     particle.RotSpeed = NumberRange.new(-spec.spin, spec.spin)
-    particle.Size = numberSequence(spec.size)
+    particle.Size = numberSequence(spec.size, VISUAL_SCALE)
     particle.Transparency = numberSequence(spec.transparency)
     particle.Color = colorSequence(spec.color)
     particle.Parent = parent
@@ -325,7 +327,7 @@ function FireEffects:_setScorch(position, normal, forward, intensity)
     local angle = (self._scorchIndex * 1.27 + self._time * .7) % TAU
     local across = normal:Cross(forward).Unit
     local long = forward * math.cos(angle) + across * math.sin(angle)
-    local size = self._size * (.65 + .37 * intensity)
+    local size = VISUAL_SCALE * self._size * (.65 + .37 * intensity)
     local hotSize = size * (.45 + .09 * math.sin(self._scorchIndex * 2))
     spot.rim.Size = Vector3.new(.022, size * 1.68, size * .87)
     spot.rim.CFrame = CFrame.fromMatrix(position + normal * .030, normal, long)
@@ -388,7 +390,7 @@ function FireEffects:Update(origin, direction, intensity, dt)
 
     local flicker = 1 + .065 * math.sin(self._time * 33) + .045 * math.sin(self._time * 57)
     local level = intensity * flicker
-    local scale = (.44 + .56 * intensity) * self._size
+    local scale = VISUAL_SCALE * (.44 + .56 * intensity) * self._size
     -- Give longer jets room to flare without making close hits fan outward.
     local expansion = math.clamp(length / 18, .60, 1)
     local bin = math.clamp(math.floor(level * FADE_STEPS + .5), 0, FADE_STEPS)

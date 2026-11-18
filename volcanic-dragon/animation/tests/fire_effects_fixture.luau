@@ -139,6 +139,10 @@ local function loadEffects()
 end
 
 local FireEffects = loadEffects()
+local function assertDoubled(actual, previous, name)
+    assert(math.abs(actual - 2 * previous) < .000001, name .. " should be twice its previous size")
+end
+
 local dragon = Instance.new("Model")
 local effect = FireEffects.new(dragon, {FireRange = 90, TrackName = "Course", Effects = {
     Quality = .6,
@@ -162,13 +166,25 @@ assert(lastCast.filter.IncludeInstances[1] == track, "A late track must be resol
 assert(effect._mouthLight.Enabled and effect._impactLight.Enabled)
 local strike = effect._impact[1]
 assert(strike.item.Rate > 0 and strike.item.Rate < strike.rate, "Quality scales the particle rate")
-assert(strike.item.Size[1][2][2] >= 3.5, "The track strike blooms into a larger plume")
+for index, previous in ipairs({3.85, .18, 2.5}) do
+    local emitter = effect._impact[index].item
+    assertDoubled(emitter.Size[1][2][2], previous, emitter.Name)
+end
+for index, previous in ipairs({1.34, 2.7, 3.75, 1.6}) do
+    local emitter = effect._stream[index].item
+    assertDoubled(emitter.Size[1][2][2], previous, emitter.Name)
+end
 assert(effect._endpoint.CFrame.point == hit.Position and effect._ground.CFrame.point.Y > 0)
 assert(scheduledFades == 2)
+local scorchRim = effect._scorch[effect._scorchIndex].rim.Size
+assertDoubled(scorchRim.Y, (.65 + .37 * .9) * 1.68, "Scorch length")
+assertDoubled(scorchRim.Z, (.65 + .37 * .9) * .87, "Scorch width")
 
 local fringe = effect._bands[1].item
 local core = effect._bands[3].item
-assert(fringe.Width1 > 7 and fringe.Width0 < 1.7, "The jet grows beyond the narrow mouth")
+local previousFringeScale = (.44 + .56 * .9) * (1 + .096 * math.sin(22 * (2 / 30)))
+assertDoubled(fringe.Width0, 1.48 * previousFringeScale, "Beam width at the mouth")
+assertDoubled(fringe.Width1, 8.6 * previousFringeScale, "Beam width at the end of a long jet")
 assert(core.Width1 < fringe.Width1 / 2, "The jet retains its narrow hot core")
 assert(effect._stream[3].item.SpreadAngle[1] <= 5, "Flame particles stay close to the ray")
 
@@ -180,7 +196,7 @@ assert(createdCount == initialCount, "Sustained fire must reuse its effect insta
 assert(scheduledFades == 62 and canceledFades > 0 and effect._scorchIndex <= 12)
 
 local closeHit = effect:Update(Vector3.new(0, 1, 0), facing, .9, 0)
-assert(effect._endpoint.CFrame.point == closeHit.Position and fringe.Width1 < 6.1,
+assert(effect._endpoint.CFrame.point == closeHit.Position and fringe.Width1 < 12.2,
     "The beam stays focused at its actual hit point during a short strike")
 
 forceMiss = true
@@ -196,4 +212,4 @@ effect:Destroy()
 assert(group.destroyed and effect._group == nil)
 effect:Destroy()
 assert(effect:Update(origin, facing, 1, 1 / 30) == nil)
-print("PASS focused fire, larger strike, raycast, late track, scorch pool, stop, and destroy")
+print("PASS doubled fire and impact dimensions, focused jet, raycast, late track, scorch pool, stop, and destroy")

@@ -29,7 +29,7 @@ local Timeline = {}
 local REST = table.freeze({
 	basePitch = 0, midPitch = 0, upperPitch = 0, headPitch = 0,
 	baseYaw = 0, midYaw = 0, upperYaw = 0, headYaw = 0,
-	jawOpen = 0, fire = 0, active = false,
+	jawOpen = 0, fire = 0, hornHeat = 0, active = false,
 })
 
 local ZERO = { 0, 0, 0, 0, 0 }
@@ -95,6 +95,9 @@ function Timeline.sample(elapsed, config)
 	local neckBaseYaw = 0.095 * heading(elapsed - 0.39 * followDelay, wakeEnd, fireStart, fireEnd, total, sweep)
 	local neckMidYaw = 0.165 * heading(elapsed - 0.28 * followDelay, wakeEnd, fireStart, fireEnd, total, sweep)
 	local neckUpperYaw = 0.25 * heading(elapsed - 0.17 * followDelay, wakeEnd, fireStart, fireEnd, total, sweep)
+	local heatUp = math.min(1, fireStart * 0.55)
+	local coolDown = math.min(1.25, recovery)
+	local hornHeat = ease((elapsed - fireStart + heatUp) / heatUp) * (1 - ease((elapsed - fireEnd) / coolDown))
 
 	local from, to, phase, fire = ZERO, WAKE, 0, 0
 	local settledBreath = 0
@@ -133,6 +136,7 @@ function Timeline.sample(elapsed, config)
 		headYaw = yaw,
 		jawOpen = math.rad(lerp(from[5], to[5], phase)),
 		fire = fire,
+		hornHeat = hornHeat,
 		active = true,
 	}
 end
@@ -200,6 +204,13 @@ local NAMES = {
 	Head = true, Jaw = true, MouthOrigin = true, Chest = false,
 }
 local UP = Vector3.yAxis
+local HORN_TIP_PREFIX = "DragonHornHeat"
+local WARM_RED = Color3.fromRGB(156, 5, 3)
+local HOT_RED = Color3.fromRGB(255, 24, 9)
+
+function DragonRig.isHornTip(instance)
+	return instance:IsA("MeshPart") and instance.Name:sub(1, #HORN_TIP_PREFIX) == HORN_TIP_PREFIX
+end
 
 local function jointName(name)
 	return name:match("^(.-)[%._]%d+$") or name
@@ -244,6 +255,7 @@ function DragonRig.new(model)
 		groups[name] = {}
 	end
 	local lidGroups = {}
+	local hornTips = {}
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("Bone") then
 			local list = groups[jointName(descendant.Name)]
@@ -252,6 +264,8 @@ function DragonRig.new(model)
 			else
 				bindLidEdge(descendant, lidGroups)
 			end
+		elseif DragonRig.isHornTip(descendant) then
+			table.insert(hornTips, descendant)
 		end
 	end
 	for name, list in pairs(groups) do
@@ -307,6 +321,7 @@ function DragonRig.new(model)
 	return setmetatable({
 		bind = bind,
 		lids = lids,
+		hornTips = hornTips,
 		scale = horizontal.Magnitude / 2.51, -- Head-to-mouth distance in the authored GLB.
 		mouth = mouth,
 		mouthForward = mouth.TransformedWorldCFrame:VectorToObjectSpace(forward),
@@ -346,6 +361,18 @@ function DragonRig:SetBlink(blink)
 	end
 end
 
+function DragonRig:SetHornHeat(heat)
+	if heat == self.hornHeat or #self.hornTips == 0 then
+		return
+	end
+	self.hornHeat = heat
+	local color = WARM_RED:Lerp(HOT_RED, heat)
+	for _, tip in self.hornTips do
+		tip.Color = color
+		tip.Transparency = 1 - heat
+	end
+end
+
 function DragonRig:Apply(sample)
 	local bind = self.bind
 	raiseChest(bind.Chest, (sample.chestRise or 0) * self.scale)
@@ -358,6 +385,7 @@ function DragonRig:Apply(sample)
 	pose(bind.Head, headYaw, sample.headPitch, sample.headRoll)
 	pose(bind.Jaw, 0, -sample.jawOpen)
 	self:SetBlink(sample.blink or 0)
+	self:SetHornHeat(sample.hornHeat or 0)
 end
 
 function DragonRig:GetMouth(depression)
@@ -372,6 +400,7 @@ function DragonRig:Reset()
 	end
 	raiseChest(self.bind.Chest, 0)
 	self:SetBlink(0)
+	self:SetHornHeat(0)
 end
 
 return DragonRig
@@ -390,15 +419,17 @@ local UP = Vector3.yAxis
 local TAU = math.pi * 2
 local FADE_STEPS = 16
 local SCORCH_POOL_SIZE = 12
+local VISUAL_SCALE = 2
 
 local function color(r, g, b)
     return Color3.fromRGB(r, g, b)
 end
 
-local function numberSequence(pairs)
+local function numberSequence(pairs, scale)
     local keys = {}
+    scale = scale or 1
     for _, pair in ipairs(pairs) do
-        table.insert(keys, NumberSequenceKeypoint.new(pair[1], pair[2]))
+        table.insert(keys, NumberSequenceKeypoint.new(pair[1], pair[2] * scale))
     end
     return NumberSequence.new(keys)
 end
@@ -478,7 +509,7 @@ local function emitter(parent, spec)
     particle.Drag = spec.drag or 0
     particle.Rotation = NumberRange.new(-180, 180)
     particle.RotSpeed = NumberRange.new(-spec.spin, spec.spin)
-    particle.Size = numberSequence(spec.size)
+    particle.Size = numberSequence(spec.size, VISUAL_SCALE)
     particle.Transparency = numberSequence(spec.transparency)
     particle.Color = colorSequence(spec.color)
     particle.Parent = parent
@@ -703,7 +734,7 @@ function FireEffects:_setScorch(position, normal, forward, intensity)
     local angle = (self._scorchIndex * 1.27 + self._time * .7) % TAU
     local across = normal:Cross(forward).Unit
     local long = forward * math.cos(angle) + across * math.sin(angle)
-    local size = self._size * (.65 + .37 * intensity)
+    local size = VISUAL_SCALE * self._size * (.65 + .37 * intensity)
     local hotSize = size * (.45 + .09 * math.sin(self._scorchIndex * 2))
     spot.rim.Size = Vector3.new(.022, size * 1.68, size * .87)
     spot.rim.CFrame = CFrame.fromMatrix(position + normal * .030, normal, long)
@@ -766,7 +797,7 @@ function FireEffects:Update(origin, direction, intensity, dt)
 
     local flicker = 1 + .065 * math.sin(self._time * 33) + .045 * math.sin(self._time * 57)
     local level = intensity * flicker
-    local scale = (.44 + .56 * intensity) * self._size
+    local scale = VISUAL_SCALE * (.44 + .56 * intensity) * self._size
     -- Give longer jets room to flare without making close hits fan outward.
     local expansion = math.clamp(length / 18, .60, 1)
     local bin = math.clamp(math.floor(level * FADE_STEPS + .5), 0, FADE_STEPS)
@@ -832,6 +863,7 @@ local Workspace = game:GetService("Workspace")
 local shared = ReplicatedStorage:WaitForChild("VolcanicDragon")
 local Config = require(shared.Config)
 local Timeline = require(shared.Timeline)
+local DragonRig = require(shared.DragonRig)
 
 local TAG = "VolcanicDragonAnimated"
 local LOADED_AT = "VolcanicDragonLoadedAt"
@@ -883,6 +915,15 @@ local function register(model)
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			descendant.Anchored = true
+			if DragonRig.isHornTip(descendant) then
+				-- Clients reveal the skinned glow as the horns heat up.
+				descendant.Transparency = 1
+				descendant.Material = Enum.Material.Neon
+				descendant.CastShadow = false
+				descendant.CanCollide = false
+				descendant.CanQuery = false
+				descendant.CanTouch = false
+			end
 		end
 	end
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic

@@ -10,6 +10,7 @@ import math
 from pathlib import Path
 import sys
 
+import bmesh
 import bpy
 from mathutils import Matrix, Vector
 from mathutils.geometry import convex_hull_2d
@@ -192,6 +193,97 @@ def create_eyelids():
     return lids, bones
 
 
+def horn_components(mesh):
+    visited = set()
+    for seed in mesh.verts:
+        if seed in visited:
+            continue
+        stack = [seed]
+        component = [seed]
+        visited.add(seed)
+        while stack:
+            vertex = stack.pop()
+            for edge in vertex.link_edges:
+                other = edge.other_vert(vertex)
+                if other not in visited:
+                    visited.add(other)
+                    stack.append(other)
+                    component.append(other)
+        yield component
+
+
+def clip_horn_tip(face, axis, cutoff, offset):
+    points = []
+    previous = face.verts[-1]
+    for vertex in face.verts:
+        a, b = previous.co[axis], vertex.co[axis]
+        start = previous.co + previous.normal * offset
+        stop = vertex.co + vertex.normal * offset
+        if (a < cutoff) != (b < cutoff):
+            points.append(start.lerp(stop, (cutoff - a) / (b - a)))
+        if b >= cutoff:
+            points.append(stop)
+        previous = vertex
+    return points
+
+
+def create_horn_heat(source):
+    # Join UV seam vertices for horn detection and a continuous shell offset.
+    mesh = bmesh.new()
+    mesh.from_mesh(source.data)
+    mesh.transform(source.matrix_world)
+    bmesh.ops.remove_doubles(mesh, verts=list(mesh.verts), dist=.00001)
+    bmesh.ops.triangulate(mesh, faces=list(mesh.faces))
+    mesh.normal_update()
+    mesh.faces.index_update()
+
+    material = bpy.data.materials.new("MAT_Dragon_HornHeat")
+    material.use_nodes = True
+    shader = material.node_tree.nodes.get("Principled BSDF")
+    shader.inputs["Base Color"].default_value = (.018, .012, .012, 1)
+    shader.inputs["Roughness"].default_value = .82
+    overlays = []
+    try:
+        components = list(horn_components(mesh))
+        crown = [part for part in components if max(v.co.y for v in part) - min(v.co.y for v in part) > 3]
+        face = [part for part in components if part not in crown]
+        if len(crown) != 2 or not face:
+            raise ValueError("Expected a pair of swept crown horns and separate facial spikes")
+        for kind, horns, axis, tip_fraction, offset in (
+            ("Crown", crown, 1, .28, .009),
+            ("Face", face, 2, .32, .005),
+        ):
+            points, faces, indices = [], [], {}
+            for horn in horns:
+                tip = max(v.co[axis] for v in horn)
+                root = min(v.co[axis] for v in horn)
+                cutoff = tip - (tip - root) * tip_fraction
+                source_faces = sorted({f for v in horn for f in v.link_faces}, key=lambda f: f.index)
+                for triangle in source_faces:
+                    face_indices = []
+                    for point in clip_horn_tip(triangle, axis, cutoff, offset):
+                        key = tuple(round(coordinate, 6) for coordinate in point)
+                        if key not in indices:
+                            indices[key] = len(points)
+                            points.append(point)
+                        face_indices.append(indices[key])
+                    face_indices = list(dict.fromkeys(face_indices))
+                    if len(face_indices) >= 3:
+                        faces.append(face_indices)
+
+            name = f"DragonHornHeat{kind}"
+            overlay_mesh = bpy.data.meshes.new(name)
+            overlay_mesh.from_pydata(points, [], faces)
+            overlay_mesh.materials.append(material)
+            overlay_mesh.update()
+            part = bpy.data.objects.new(name, overlay_mesh)
+            bpy.context.collection.objects.link(part)
+            overlays.append(part)
+    finally:
+        mesh.free()
+    return overlays
+
+
 def pose_owner(part, head, jaw):
     # Keep the attachment joint in importers that prune unused bones.
     # This inner glow stays rigid to the head through MouthOrigin.
@@ -290,6 +382,10 @@ def bind_dragon():
     bpy.context.view_layer.update()
     owners = {part: pose_owner(part, head, jaw) for part in parts}
     lids, lid_bones = create_eyelids()
+    horns = bpy.data.objects["Horns__Horns"]
+    for overlay in create_horn_heat(horns):
+        parts.append(overlay)
+        owners[overlay] = owners[horns]
     rig = create_armature(head.matrix_world.translation.copy(), jaw.matrix_world.translation.copy(), lid_bones)
     for part in parts:
         bind_part(part, rig, owners[part])

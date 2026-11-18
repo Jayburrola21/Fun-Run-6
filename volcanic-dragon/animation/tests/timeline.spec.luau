@@ -100,6 +100,16 @@ near(Timeline.sample(7.70, default).fire, 0, 1e-6, "Fire is off during recovery"
 
 local fireStart, fireEnd, firePeak = fireWindow(default, 10)
 near(fireStart, 2.5, .12, "Default fire starts around 2.5 seconds")
+near(Timeline.sample(1.25, default).hornHeat, 0, 1e-8, "Horn tips start dark")
+local heatUp = Timeline.sample(2, default)
+check(heatUp.hornHeat > 0 and heatUp.hornHeat < 1 and heatUp.fire == 0, "Horn tips heat up before ignition")
+near(Timeline.sample(2.5, default).hornHeat, 1, 1e-8, "Horn tips reach full heat at ignition")
+near(Timeline.sample(4, default).hornHeat, 1, 1e-8, "Horn tips stay hot during the fire")
+local coolDown = Timeline.sample(8.1, default)
+check(coolDown.hornHeat > 0 and coolDown.hornHeat < 1 and coolDown.fire == 0,
+    "Horn tips cool during recovery after the fire stops")
+near(Timeline.sample(8.75, default).hornHeat, 0, 1e-8, "Horn tips finish cooling before idle")
+near(Timeline.pose(20, math.huge, default).hornHeat, 0, 1e-8, "Horn tips stay dark in idle")
 near(fireEnd, 7.5, .12, "Default fire ends around 7.5 seconds")
 check(firePeak >= .9, "Breath has a sustained full-strength interval")
 

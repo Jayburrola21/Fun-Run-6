@@ -5,7 +5,7 @@ local Timeline = {}
 local REST = table.freeze({
 	basePitch = 0, midPitch = 0, upperPitch = 0, headPitch = 0,
 	baseYaw = 0, midYaw = 0, upperYaw = 0, headYaw = 0,
-	jawOpen = 0, fire = 0, active = false,
+	jawOpen = 0, fire = 0, hornHeat = 0, active = false,
 })
 
 local ZERO = { 0, 0, 0, 0, 0 }
@@ -71,6 +71,9 @@ function Timeline.sample(elapsed, config)
 	local neckBaseYaw = 0.095 * heading(elapsed - 0.39 * followDelay, wakeEnd, fireStart, fireEnd, total, sweep)
 	local neckMidYaw = 0.165 * heading(elapsed - 0.28 * followDelay, wakeEnd, fireStart, fireEnd, total, sweep)
 	local neckUpperYaw = 0.25 * heading(elapsed - 0.17 * followDelay, wakeEnd, fireStart, fireEnd, total, sweep)
+	local heatUp = math.min(1, fireStart * 0.55)
+	local coolDown = math.min(1.25, recovery)
+	local hornHeat = ease((elapsed - fireStart + heatUp) / heatUp) * (1 - ease((elapsed - fireEnd) / coolDown))
 
 	local from, to, phase, fire = ZERO, WAKE, 0, 0
 	local settledBreath = 0
@@ -109,6 +112,7 @@ function Timeline.sample(elapsed, config)
 		headYaw = yaw,
 		jawOpen = math.rad(lerp(from[5], to[5], phase)),
 		fire = fire,
+		hornHeat = hornHeat,
 		active = true,
 	}
 end

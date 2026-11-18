@@ -7,6 +7,7 @@ local Workspace = game:GetService("Workspace")
 local shared = ReplicatedStorage:WaitForChild("VolcanicDragon")
 local Config = require(shared.Config)
 local Timeline = require(shared.Timeline)
+local DragonRig = require(shared.DragonRig)
 
 local TAG = "VolcanicDragonAnimated"
 local LOADED_AT = "VolcanicDragonLoadedAt"
@@ -58,6 +59,15 @@ local function register(model)
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			descendant.Anchored = true
+			if DragonRig.isHornTip(descendant) then
+				-- Clients reveal the skinned glow as the horns heat up.
+				descendant.Transparency = 1
+				descendant.Material = Enum.Material.Neon
+				descendant.CastShadow = false
+				descendant.CanCollide = false
+				descendant.CanQuery = false
+				descendant.CanTouch = false
+			end
 		end
 	end
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
