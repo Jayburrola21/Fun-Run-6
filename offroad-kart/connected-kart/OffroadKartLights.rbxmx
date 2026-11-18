@@ -1,0 +1,316 @@
+<roblox version="4">
+  <External>null</External>
+  <External>nil</External>
+  <Item class="Script" referent="RBX0">
+    <Properties>
+      <string name="Name">OffroadKartLights</string>
+      <bool name="Disabled">false</bool>
+      <ProtectedString name="Source">-- Insert this Script directly under the imported kart Model.
+local BANKS = {
+    {
+        names = {"Left_Headlight_WarmLens", "Right_Headlight_WarmLens"},
+        attribute = "HeadlightsEnabled",
+        color = Color3.fromRGB(255, 244, 218),
+        range = 38,
+        angle = 70,
+        brightness = 5,
+        pitch = .16,
+        reverse = false,
+    },
+    {
+        names = {"Left_Taillight_LED", "Right_Taillight_LED"},
+        attribute = "TaillightsEnabled",
+        color = Color3.fromRGB(255, 43, 56),
+        range = 12,
+        angle = 105,
+        brightness = 1.15,
+        brakeBrightness = 4,
+        runningColor = Color3.fromRGB(205, 20, 31),
+        pitch = .04,
+        reverse = true,
+    },
+}
+
+local ATTACHMENT_NAME = "OffroadKartLightMount"
+local LIGHT_NAME = "OffroadKartBeam"
+local APPEARANCE_NAME = "OffroadKartImportedAppearance"
+local INSTALLER_TAG = "OffroadKartLightSetup"
+local CONTROLLER_NAME = "OffroadKartLightController"
+local CONTROLLER_VERSION = "OffroadKartConnectedLights"
+
+local TEXTURE_ATTRIBUTE = "OffroadKartOriginalTexture"
+local VARIANT_ATTRIBUTE = "OffroadKartOriginalMaterialVariant"
+
+local function findOwnedChild(parent, name, className)
+    local owned
+    for _, child in ipairs(parent:GetChildren()) do
+        if child.Name == name then
+            assert(not owned and child:IsA(className) and child:GetAttribute(INSTALLER_TAG) == true,
+                ("Conflicting %s on %s."):format(name, parent.Name))
+            owned = child
+        end
+    end
+    return owned
+end
+
+local function createOwnedChild(parent, name, className)
+    local child = Instance.new(className)
+    child.Name = name
+    child:SetAttribute(INSTALLER_TAG, true)
+    child.Parent = parent
+    return child
+end
+
+local function importName(name)
+    return name:lower():gsub("%.%d+$", ""):gsub("%s*%(%d+%)$", ""):gsub("[^%w]", "")
+end
+
+local expected = {}
+for _, bank in ipairs(BANKS) do
+    for _, name in ipairs(bank.names) do
+        expected[importName(name)] = name
+    end
+end
+
+local function collectLenses(kart)
+    local lenses, duplicates = {}, {}
+    local headrest
+    for _, object in ipairs(kart:GetDescendants()) do
+        if object:IsA("BasePart") then
+            local key = importName(object.Name)
+            local expectedName = expected[key]
+            if expectedName then
+                if lenses[expectedName] then
+                    table.insert(duplicates, expectedName)
+                end
+                lenses[expectedName] = object
+            elseif key == "bucketheadrest" then
+                headrest = object
+            end
+        end
+    end
+    return lenses, duplicates, headrest
+end
+
+local function lightingAxes(kart, lenses, headrest)
+    local leftFront = lenses[BANKS[1].names[1]].Position
+    local rightFront = lenses[BANKS[1].names[2]].Position
+    local nose = (leftFront + rightFront) / 2
+    local tail = (lenses[BANKS[2].names[1]].Position + lenses[BANKS[2].names[2]].Position) / 2
+    local crossKart = rightFront - leftFront
+    assert(crossKart.Magnitude &gt; .001, "The headlight positions coincide.")
+    local lateral = crossKart.Unit
+    local forward = nose - tail
+    forward -= lateral * forward:Dot(lateral)
+    assert(forward.Magnitude &gt; .001, "Could not determine the front and rear of this kart.")
+    forward = forward.Unit
+    local up = lateral:Cross(forward).Unit
+    local upHint = headrest and (headrest.Position - (nose + tail) / 2) or kart:GetPivot().UpVector
+    assert(math.abs(up:Dot(upHint)) &gt; .001, "Could not determine which side of the kart faces up.")
+    if up:Dot(upHint) &lt; 0 then
+        up = -up
+    end
+    return forward, up
+end
+
+local function setLensAppearance(lens, existing)
+    -- Keep the imported appearance nearby while giving the lens a clean Neon surface.
+    for _, child in ipairs(lens:GetChildren()) do
+        if child:IsA("SurfaceAppearance") or child:IsA("Decal") then
+            existing.appearance = existing.appearance or createOwnedChild(lens, APPEARANCE_NAME, "Folder")
+            child.Parent = existing.appearance
+        end
+    end
+    if lens:IsA("MeshPart") then
+        if lens.TextureID ~= "" and lens:GetAttribute(TEXTURE_ATTRIBUTE) == nil then
+            lens:SetAttribute(TEXTURE_ATTRIBUTE, lens.TextureID)
+        end
+        lens.TextureContent = Content.none
+    end
+    if lens.MaterialVariant ~= "" then
+        if lens:GetAttribute(VARIANT_ATTRIBUTE) == nil then
+            lens:SetAttribute(VARIANT_ATTRIBUTE, lens.MaterialVariant)
+        end
+        lens.MaterialVariant = ""
+    end
+    lens.Reflectance = 0
+    lens.Transparency = 0
+    lens.CastShadow = false
+end
+
+local function configureLights(kart, enableBoth)
+    local lenses, duplicates, headrest = collectLenses(kart)
+    local missing = {}
+    for _, bank in ipairs(BANKS) do
+        for _, name in ipairs(bank.names) do
+            if not lenses[name] then
+                table.insert(missing, name)
+            end
+        end
+    end
+    assert(#duplicates == 0, "Repeated lens names: " .. table.concat(duplicates, ", ") .. ". Select just one kart.")
+    assert(#missing == 0, "Missing separate lens parts: " .. table.concat(missing, ", ")
+        .. ". In the 3D Importer, keep each mesh separate.")
+
+    local installed = {}
+    for _, lens in pairs(lenses) do
+        local mount = findOwnedChild(lens, ATTACHMENT_NAME, "Attachment")
+        installed[lens] = {
+            mount = mount,
+            light = mount and findOwnedChild(mount, LIGHT_NAME, "SpotLight"),
+            appearance = findOwnedChild(lens, APPEARANCE_NAME, "Folder"),
+        }
+    end
+    local forward, up = lightingAxes(kart, lenses, headrest)
+    local braking = kart:GetAttribute("Braking") == true
+    local outputs = {}
+    for _, bank in ipairs(BANKS) do
+        if enableBoth then
+            kart:SetAttribute(bank.attribute, true)
+        end
+        local enabled = kart:GetAttribute(bank.attribute) ~= false
+        local outward = bank.reverse and -forward or forward
+        local direction = (outward - up * bank.pitch).Unit
+        for _, name in ipairs(bank.names) do
+            local lens = lenses[name]
+            local existing = installed[lens]
+            setLensAppearance(lens, existing)
+            local brakeOn = bank.reverse and enabled and braking
+            lens.Color = (not brakeOn and bank.runningColor) or bank.color
+            lens.Material = enabled and Enum.Material.Neon or Enum.Material.SmoothPlastic
+
+            -- Aim from beyond the lens bounds so the beam clears its housing.
+            local frame = lens.CFrame
+            local size = lens.Size
+            local halfDepth = .5 * (
+                math.abs(frame.RightVector:Dot(outward)) * size.X
+                + math.abs(frame.UpVector:Dot(outward)) * size.Y
+                + math.abs(frame.LookVector:Dot(outward)) * size.Z
+            )
+            local origin = lens.Position + outward * (halfDepth + math.max(.035, size.Magnitude * .15))
+            local mount = existing.mount or createOwnedChild(lens, ATTACHMENT_NAME, "Attachment")
+            mount.CFrame = frame:ToObjectSpace(CFrame.lookAt(origin, origin + direction, up))
+
+            local beam = existing.light or createOwnedChild(mount, LIGHT_NAME, "SpotLight")
+            beam.Face = Enum.NormalId.Front
+            beam.Color = bank.color
+            beam.Brightness = brakeOn and bank.brakeBrightness or bank.brightness
+            beam.Range = bank.range
+            beam.Angle = bank.angle
+            beam.Shadows = false
+            beam.Enabled = enabled
+            beam:SetAttribute("OffroadKartRearLamp", bank.reverse)
+            if bank.reverse then
+                beam:SetAttribute("RunningColor", bank.runningColor)
+                beam:SetAttribute("RunningBrightness", bank.brightness)
+                beam:SetAttribute("BrakeBrightness", bank.brakeBrightness)
+            end
+            assert(beam.Parent == mount and mount.Parent == lens and beam.Enabled == enabled
+                and (not enabled or lens.Material == Enum.Material.Neon), "Could not verify " .. lens.Name)
+            table.insert(outputs, lens.Name .. (enabled and " on" or " off"))
+        end
+    end
+    return ("Kart lights ready on %s (%s)"):format(kart.Name, table.concat(outputs, ", "))
+end
+
+local kart = script.Parent
+if not kart:IsA("Model") then
+    warn("Move the OffroadKartLights Script directly into the imported kart Model, then start Play.")
+    return
+end
+local oldController = kart:FindFirstChild(CONTROLLER_NAME)
+if oldController and oldController:IsA("Script") and oldController:GetAttribute(INSTALLER_TAG)
+    and oldController.Enabled and oldController:GetAttribute(CONTROLLER_VERSION) then
+    return
+end
+local success, result = pcall(configureLights, kart, false)
+if not success then
+    warn(result)
+    return
+end
+if oldController and oldController:IsA("Script") and oldController:GetAttribute(INSTALLER_TAG) then
+    oldController.Enabled = false
+end
+print(result)
+
+local headlights, taillights = {}, {}
+for _, beam in ipairs(kart:GetDescendants()) do
+    if beam:IsA("SpotLight") and beam.Name == "OffroadKartBeam" and beam:GetAttribute("OffroadKartLightSetup") then
+        local rear = beam:GetAttribute("OffroadKartRearLamp")
+        if typeof(rear) == "boolean" then
+            local bank = rear and taillights or headlights
+            table.insert(bank, {beam = beam, lens = beam.Parent.Parent})
+        end
+    end
+end
+if #headlights ~= 2 or #taillights ~= 2 then
+    warn("Kart lighting requires two installed headlamps and two taillamps.")
+    return
+end
+
+local seat = kart:FindFirstChildWhichIsA("VehicleSeat", true)
+kart.DescendantAdded:Connect(function(object)
+    if not seat and object:IsA("VehicleSeat") then
+        seat = object
+    end
+end)
+
+local function braking()
+    local override = kart:GetAttribute("Braking")
+    if typeof(override) == "boolean" then
+        return override
+    end
+    if seat and not seat:IsDescendantOf(kart) then
+        seat = kart:FindFirstChildWhichIsA("VehicleSeat", true)
+    end
+    if not seat or not seat.Occupant then
+        return false
+    end
+
+    -- Infer the chassis's forward direction from the moving lamp pairs.
+    local front = (headlights[1].lens.Position + headlights[2].lens.Position) / 2
+    local rear = (taillights[1].lens.Position + taillights[2].lens.Position) / 2
+    local direction = front - rear
+    if direction.Magnitude &lt; .001 then
+        return false
+    end
+    local speed = seat.AssemblyLinearVelocity:Dot(direction.Unit)
+    return math.abs(speed) &gt; 1 and math.sign(speed) * seat.ThrottleFloat &lt; -.05
+end
+
+local previousHeadlights, previousTailState
+local function refresh()
+    local headOn = kart:GetAttribute("HeadlightsEnabled") ~= false
+    if headOn ~= previousHeadlights then
+        for _, light in ipairs(headlights) do
+            light.beam.Enabled = headOn
+            light.lens.Material = headOn and Enum.Material.Neon or Enum.Material.SmoothPlastic
+        end
+        previousHeadlights = headOn
+    end
+
+    local tailOn = kart:GetAttribute("TaillightsEnabled") ~= false
+    local tailState = if not tailOn then "Off" elseif braking() then "Brake" else "Running"
+    if tailState ~= previousTailState then
+        for _, light in ipairs(taillights) do
+            local beam = light.beam
+            beam.Enabled = tailOn
+            beam.Brightness = beam:GetAttribute(tailState == "Brake" and "BrakeBrightness" or "RunningBrightness")
+            light.lens.Color = tailState == "Brake" and beam.Color or beam:GetAttribute("RunningColor")
+            light.lens.Material = tailOn and Enum.Material.Neon or Enum.Material.SmoothPlastic
+        end
+        previousTailState = tailState
+    end
+end
+
+for _, name in ipairs({"Braking", "HeadlightsEnabled", "TaillightsEnabled"}) do
+    kart:GetAttributeChangedSignal(name):Connect(refresh)
+end
+while kart.Parent do
+    refresh()
+    task.wait(.05)
+end
+</ProtectedString>
+    </Properties>
+  </Item>
+</roblox>
