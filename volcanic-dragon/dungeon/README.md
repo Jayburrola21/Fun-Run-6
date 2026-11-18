@@ -6,9 +6,15 @@ A plain gray cave with a tall, angular opening, a beveled entrance, and a shallo
 
 ## Place it in Roblox Studio
 
-1. In your test place, move the previous cave and gate aside. Use Studio's **3D Importer** to import `DragonDungeonCave.glb` as a model. The cave uses solid gray materials.
+1. In your test place, move the previous cave and gate aside. Use Studio's **3D Importer** to import `DragonDungeonCave.glb` as a model with **Merge Meshes** turned off. The cave uses solid gray materials.
 2. Match the cave's scale to the Volcanic Dragon. Set the floor just below the claws and slide the cave toward the dragon's body until both sets of claws project beneath the snapped side bars. At the original rig scale, the Blender preview places the doorway about 3.5 studs forward of the dragon's authored origin.
 3. Anchor the imported cave pieces. For a decorative cave, set `CanCollide` and `CanQuery` to false so the generated collision shape stays clear of the opening and the dragon's fire ray. Press **Play** in your test copy and watch the first sweep.
+
+### Apply the colors in Studio
+
+If the shell and gate import in the same color, select the cave model in Explorer. Copy the full [color fix](ApplyDungeonCaveColors.command.luau) into Studio's Command Bar in Edit mode and run it once. Click off the model to see the separate grays.
+
+You can also set **Color** in Properties to RGB `121, 121, 121` for the shell and `61, 61, 61` for all three gate meshes. Use **SmoothPlastic** for a plain finish.
 
 ## Rebuild in Blender
 
