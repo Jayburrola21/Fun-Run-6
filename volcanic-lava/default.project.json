@@ -1,0 +1,14 @@
+{
+  "name": "Volcanic Lava",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "VolcanicLava": { "$path": "src/ReplicatedStorage/VolcanicLava" }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "VolcanicLavaClient": { "$path": "src/StarterPlayer/StarterPlayerScripts/VolcanicLavaClient.client.luau" }
+      }
+    }
+  }
+}

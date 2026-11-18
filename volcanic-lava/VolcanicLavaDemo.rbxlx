@@ -1,0 +1,3563 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4">
+  <Item class="Workspace" referent="RBX1">
+    <Properties>
+      <string name="Name">Workspace</string>
+    </Properties>
+    <Item class="Model" referent="RBX2">
+      <Properties>
+        <string name="Name">VolcanicLavaDemo</string>
+      </Properties>
+      <Item class="Part" referent="RBX3">
+        <Properties>
+          <string name="Name">Volcanic floor</string>
+          <Vector3 name="size">
+            <X>250</X>
+            <Y>1</Y>
+            <Z>250</Z>
+          </Vector3>
+          <CoordinateFrame name="CFrame">
+            <X>0</X>
+            <Y>-1</Y>
+            <Z>0</Z>
+            <R00>1.0</R00>
+            <R01>0.0</R01>
+            <R02>0.0</R02>
+            <R10>0.0</R10>
+            <R11>1.0</R11>
+            <R12>0.0</R12>
+            <R20>-0.0</R20>
+            <R21>0.0</R21>
+            <R22>1.0</R22>
+          </CoordinateFrame>
+          <Color3uint8 name="Color3uint8">4279571224</Color3uint8>
+          <token name="Material">788</token>
+          <bool name="Anchored">true</bool>
+        </Properties>
+      </Item>
+      <Item class="Part" referent="RBX4">
+        <Properties>
+          <string name="Name">MainPool</string>
+          <Vector3 name="size">
+            <X>61</X>
+            <Y>0.6</Y>
+            <Z>34</Z>
+          </Vector3>
+          <CoordinateFrame name="CFrame">
+            <X>0</X>
+            <Y>-0.29</Y>
+            <Z>0</Z>
+            <R00>1.0</R00>
+            <R01>0.0</R01>
+            <R02>0.0</R02>
+            <R10>0.0</R10>
+            <R11>1.0</R11>
+            <R12>0.0</R12>
+            <R20>-0.0</R20>
+            <R21>0.0</R21>
+            <R22>1.0</R22>
+          </CoordinateFrame>
+          <Color3uint8 name="Color3uint8">4281800979</Color3uint8>
+          <token name="Material">804</token>
+          <bool name="Anchored">true</bool>
+        </Properties>
+      </Item>
+      <Item class="Part" referent="RBX5">
+        <Properties>
+          <string name="Name">SidePool</string>
+          <Vector3 name="size">
+            <X>11.5</X>
+            <Y>0.56</Y>
+            <Z>18</Z>
+          </Vector3>
+          <CoordinateFrame name="CFrame">
+            <X>38.1</X>
+            <Y>-0.27</Y>
+            <Z>-6</Z>
+            <R00>1.0</R00>
+            <R01>0.0</R01>
+            <R02>0.0</R02>
+            <R10>0.0</R10>
+            <R11>1.0</R11>
+            <R12>0.0</R12>
+            <R20>-0.0</R20>
+            <R21>0.0</R21>
+            <R22>1.0</R22>
+          </CoordinateFrame>
+          <Color3uint8 name="Color3uint8">4281143310</Color3uint8>
+          <token name="Material">804</token>
+          <bool name="Anchored">true</bool>
+        </Properties>
+      </Item>
+      <Item class="Part" referent="RBX6">
+        <Properties>
+          <string name="Name">Basalt walkway</string>
+          <Vector3 name="size">
+            <X>69</X>
+            <Y>0.65</Y>
+            <Z>12</Z>
+          </Vector3>
+          <CoordinateFrame name="CFrame">
+            <X>0</X>
+            <Y>-0.36</Y>
+            <Z>25</Z>
+            <R00>1.0</R00>
+            <R01>0.0</R01>
+            <R02>0.0</R02>
+            <R10>0.0</R10>
+            <R11>1.0</R11>
+            <R12>0.0</R12>
+            <R20>-0.0</R20>
+            <R21>0.0</R21>
+            <R22>1.0</R22>
+          </CoordinateFrame>
+          <Color3uint8 name="Color3uint8">4280426016</Color3uint8>
+          <token name="Material">788</token>
+          <bool name="Anchored">true</bool>
+        </Properties>
+      </Item>
+      <Item class="Folder" referent="RBX8">
+        <Properties>
+          <string name="Name">Cooling basalt shoreline</string>
+        </Properties>
+        <Item class="WedgePart" referent="RBX9">
+          <Properties>
+            <string name="Name">Slumped shore 1</string>
+            <Vector3 name="size">
+              <X>3.2183580083550645</X>
+              <Y>1.0759471939045384</Y>
+              <Z>2.2170137005871178</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-29.383028839072647</X>
+              <Y>-0.008734785706729198</Y>
+              <Z>17.64088579984899</Z>
+              <R00>0.9613711012621938</R00>
+              <R01>0.0</R01>
+              <R02>-0.2752555279334399</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.2752555279334399</R20>
+              <R21>0.0</R21>
+              <R22>0.9613711012621938</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX10">
+          <Properties>
+            <string name="Name">Slumped shore 2</string>
+            <Vector3 name="size">
+              <X>4.407261210038863</X>
+              <Y>0.9097925501371684</Y>
+              <Z>2.4105025211498674</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-26.21439598274042</X>
+              <Y>-0.05525808596159282</Y>
+              <Z>17.857903126691514</Z>
+              <R00>0.9882622015974518</R00>
+              <R01>0.0</R01>
+              <R02>0.15276721144852218</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.15276721144852218</R20>
+              <R21>0.0</R21>
+              <R22>0.9882622015974518</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX11">
+          <Properties>
+            <string name="Name">Slumped shore 3</string>
+            <Vector3 name="size">
+              <X>3.8549528447720673</X>
+              <Y>0.9541077511054776</Y>
+              <Z>2.128546131545191</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-23.10422766288861</X>
+              <Y>-0.042849829690466246</Y>
+              <Z>18.097155794842102</Z>
+              <R00>0.999888292224966</R00>
+              <R01>0.0</R01>
+              <R02>0.014946674260219296</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.014946674260219296</R20>
+              <R21>0.0</R21>
+              <R22>0.999888292224966</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX12">
+          <Properties>
+            <string name="Name">Slumped shore 4</string>
+            <Vector3 name="size">
+              <X>3.056456388095668</X>
+              <Y>0.9247648945583782</Y>
+              <Z>3.128718375334387</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-19.875434627137796</X>
+              <Y>-0.05106582952365407</Y>
+              <Z>18.09973249653045</Z>
+              <R00>0.9247234401270306</R00>
+              <R01>0.0</R01>
+              <R02>0.380639671184744</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.380639671184744</R20>
+              <R21>0.0</R21>
+              <R22>0.9247234401270306</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX13">
+          <Properties>
+            <string name="Name">Slumped shore 5</string>
+            <Vector3 name="size">
+              <X>3.6830831074386206</X>
+              <Y>0.505043936179122</Y>
+              <Z>2.016814249546959</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-16.75069331348968</X>
+              <Y>-0.16858769786984582</Y>
+              <Z>17.731319292575485</Z>
+              <R00>0.9961418202057102</R00>
+              <R01>0.0</R01>
+              <R02>0.0877580425787549</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.0877580425787549</R20>
+              <R21>0.0</R21>
+              <R22>0.9961418202057102</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX14">
+          <Properties>
+            <string name="Name">Slumped shore 6</string>
+            <Vector3 name="size">
+              <X>3.0479050462425623</X>
+              <Y>0.997780454242021</Y>
+              <Z>2.8926634133739695</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-13.114492869305105</X>
+              <Y>-0.030621472812234096</Y>
+              <Z>17.523415762462207</Z>
+              <R00>0.9933032594395934</R00>
+              <R01>0.0</R01>
+              <R02>0.11553629207603906</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.11553629207603906</R20>
+              <R21>0.0</R21>
+              <R22>0.9933032594395934</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX15">
+          <Properties>
+            <string name="Name">Slumped shore 7</string>
+            <Vector3 name="size">
+              <X>4.543078721940114</X>
+              <Y>0.5350093292732369</Y>
+              <Z>1.6240999808714376</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-9.821362318924242</X>
+              <Y>-0.16019738780349366</Y>
+              <Z>17.83126451138442</Z>
+              <R00>0.9259178012952523</R00>
+              <R01>0.0</R01>
+              <R02>0.3777250656821251</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.3777250656821251</R20>
+              <R21>0.0</R21>
+              <R22>0.9259178012952523</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX16">
+          <Properties>
+            <string name="Name">Slumped shore 8</string>
+            <Vector3 name="size">
+              <X>3.0057986948397564</X>
+              <Y>0.6774678389035487</Y>
+              <Z>2.96453735182859</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-6.434473319781447</X>
+              <Y>-0.12030900510700634</Y>
+              <Z>18.103136971386807</Z>
+              <R00>0.9835850100001211</R00>
+              <R01>0.0</R01>
+              <R02>0.18044536043650905</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.18044536043650905</R20>
+              <R21>0.0</R21>
+              <R22>0.9835850100001211</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX17">
+          <Properties>
+            <string name="Name">Slumped shore 9</string>
+            <Vector3 name="size">
+              <X>3.245744478681808</X>
+              <Y>0.4673886583093427</Y>
+              <Z>2.2883630018042416</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-3.365820659468954</X>
+              <Y>-0.17913117567338405</Y>
+              <Z>17.597403298578904</Z>
+              <R00>0.9925993216379028</R00>
+              <R01>0.0</R01>
+              <R02>-0.12143552480215693</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.12143552480215693</R20>
+              <R21>0.0</R21>
+              <R22>0.9925993216379028</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX18">
+          <Properties>
+            <string name="Name">Slumped shore 10</string>
+            <Vector3 name="size">
+              <X>3.094220097145929</X>
+              <Y>0.5506919949423743</Y>
+              <Z>2.329297083513521</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>0.28107510149018733</X>
+              <Y>-0.15580624141613517</Y>
+              <Z>17.68905623708384</Z>
+              <R00>0.9999186725989001</R00>
+              <R01>0.0</R01>
+              <R02>-0.012753359873133691</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.012753359873133691</R20>
+              <R21>0.0</R21>
+              <R22>0.9999186725989001</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX19">
+          <Properties>
+            <string name="Name">Slumped shore 11</string>
+            <Vector3 name="size">
+              <X>3.2792450102064525</X>
+              <Y>1.0569269737549636</Y>
+              <Z>1.7379269501582086</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>3.5920883848976035</X>
+              <Y>-0.014060447348610172</Y>
+              <Z>17.549054071350138</Z>
+              <R00>0.9753125524947203</R00>
+              <R01>0.0</R01>
+              <R02>-0.2208289495202873</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.2208289495202873</R20>
+              <R21>0.0</R21>
+              <R22>0.9753125524947203</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX20">
+          <Properties>
+            <string name="Name">Slumped shore 12</string>
+            <Vector3 name="size">
+              <X>4.480809111968798</X>
+              <Y>0.9980090843096956</Y>
+              <Z>3.0857123711951457</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>6.827920562432492</X>
+              <Y>-0.03055745639328522</Y>
+              <Z>17.966206737294968</Z>
+              <R00>0.9999014297985153</R00>
+              <R01>0.0</R01>
+              <R02>0.014040323603281396</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.014040323603281396</R20>
+              <R21>0.0</R21>
+              <R22>0.9999014297985153</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX21">
+          <Properties>
+            <string name="Name">Slumped shore 13</string>
+            <Vector3 name="size">
+              <X>3.7710747560091833</X>
+              <Y>0.7101309088290095</Y>
+              <Z>1.7754501295521363</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>9.786546889188264</X>
+              <Y>-0.11116334552787732</Y>
+              <Z>17.561472282425065</Z>
+              <R00>0.9997824370005125</R00>
+              <R01>0.0</R01>
+              <R02>-0.020858539385974408</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.020858539385974408</R20>
+              <R21>0.0</R21>
+              <R22>0.9997824370005125</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX22">
+          <Properties>
+            <string name="Name">Slumped shore 14</string>
+            <Vector3 name="size">
+              <X>3.941279920702883</X>
+              <Y>0.8425292578401898</Y>
+              <Z>2.1437205285239633</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>13.515612139699371</X>
+              <Y>-0.07409180780474683</Y>
+              <Z>18.10828343175261</Z>
+              <R00>0.9700629358307007</R00>
+              <R01>0.0</R01>
+              <R02>-0.24285366072497647</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.24285366072497647</R20>
+              <R21>0.0</R21>
+              <R22>0.9700629358307007</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX23">
+          <Properties>
+            <string name="Name">Slumped shore 15</string>
+            <Vector3 name="size">
+              <X>3.415017989250534</X>
+              <Y>0.8459256175363723</Y>
+              <Z>3.106823587604503</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>16.86602837950905</X>
+              <Y>-0.07314082708981573</Y>
+              <Z>17.497354017938758</Z>
+              <R00>0.9849903165188472</R00>
+              <R01>0.0</R01>
+              <R02>0.1726096068128925</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.1726096068128925</R20>
+              <R21>0.0</R21>
+              <R22>0.9849903165188472</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX24">
+          <Properties>
+            <string name="Name">Slumped shore 16</string>
+            <Vector3 name="size">
+              <X>3.3493990519197157</X>
+              <Y>0.618756637492301</Y>
+              <Z>1.8844068840042638</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>20.04661807215554</X>
+              <Y>-0.1367481415021557</Y>
+              <Z>17.89003294102357</Z>
+              <R00>0.9814349267832931</R00>
+              <R01>0.0</R01>
+              <R02>-0.19179542353735138</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.19179542353735138</R20>
+              <R21>0.0</R21>
+              <R22>0.9814349267832931</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX25">
+          <Properties>
+            <string name="Name">Slumped shore 17</string>
+            <Vector3 name="size">
+              <X>3.1051770296159344</X>
+              <Y>0.5886547499932484</Y>
+              <Z>2.787487591752969</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>23.012242758497575</X>
+              <Y>-0.14517667000189044</Y>
+              <Z>17.711273992935247</Z>
+              <R00>0.9644121823475528</R00>
+              <R01>0.0</R01>
+              <R02>0.2644033708930934</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.2644033708930934</R20>
+              <R21>0.0</R21>
+              <R22>0.9644121823475528</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX26">
+          <Properties>
+            <string name="Name">Slumped shore 18</string>
+            <Vector3 name="size">
+              <X>4.44289601025646</X>
+              <Y>0.8210107795248067</Y>
+              <Z>1.7165890250247944</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>26.59230126912618</X>
+              <Y>-0.0801169817330541</Y>
+              <Z>17.530326089465532</Z>
+              <R00>0.9657847889672032</R00>
+              <R01>0.0</R01>
+              <R02>0.2593448310639231</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.2593448310639231</R20>
+              <R21>0.0</R21>
+              <R22>0.9657847889672032</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX27">
+          <Properties>
+            <string name="Name">Slumped shore 19</string>
+            <Vector3 name="size">
+              <X>3.793258459677137</X>
+              <Y>1.0844604327424328</Y>
+              <Z>2.608231927695877</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>29.993683256146944</X>
+              <Y>-0.006351078832118773</Y>
+              <Z>17.553588415948944</Z>
+              <R00>0.969389369642212</R00>
+              <R01>0.0</R01>
+              <R02>0.24552851163291575</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.24552851163291575</R20>
+              <R21>0.0</R21>
+              <R22>0.969389369642212</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX28">
+          <Properties>
+            <string name="Name">Slumped shore 20</string>
+            <Vector3 name="size">
+              <X>3.9403784990184896</X>
+              <Y>0.535284191920538</Y>
+              <Z>3.117662292322351</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-29.702228911439192</X>
+              <Y>-0.16012042626224934</Y>
+              <Z>-17.725253447490463</Z>
+              <R00>0.9829642777774102</R00>
+              <R01>0.0</R01>
+              <R02>-0.18379670457746072</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.18379670457746072</R20>
+              <R21>0.0</R21>
+              <R22>0.9829642777774102</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX29">
+          <Properties>
+            <string name="Name">Slumped shore 21</string>
+            <Vector3 name="size">
+              <X>3.4503595464219834</X>
+              <Y>0.8974446956218426</Y>
+              <Z>2.0069841476209023</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-26.16726670584583</X>
+              <Y>-0.058715485225884045</Y>
+              <Z>-17.64713663737782</Z>
+              <R00>0.997509305883566</R00>
+              <R01>0.0</R01>
+              <R02>0.0705349890174111</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.0705349890174111</R20>
+              <R21>0.0</R21>
+              <R22>0.997509305883566</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX30">
+          <Properties>
+            <string name="Name">Slumped shore 22</string>
+            <Vector3 name="size">
+              <X>4.40719983514205</X>
+              <Y>0.6781737754965761</Y>
+              <Z>2.7870550393307756</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-22.95474868819525</X>
+              <Y>-0.12011134286095868</Y>
+              <Z>-18.048839271524137</Z>
+              <R00>0.9592468733996168</R00>
+              <R01>0.0</R01>
+              <R02>0.2825693470160192</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.2825693470160192</R20>
+              <R21>0.0</R21>
+              <R22>0.9592468733996168</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX31">
+          <Properties>
+            <string name="Name">Slumped shore 23</string>
+            <Vector3 name="size">
+              <X>4.120426268373698</X>
+              <Y>0.8214012568857254</Y>
+              <Z>2.414986534169279</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-19.442410146790383</X>
+              <Y>-0.08000764807199687</Y>
+              <Z>-17.716850870512115</Z>
+              <R00>0.9781291865821796</R00>
+              <R01>0.0</R01>
+              <R02>0.20799830373366912</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.20799830373366912</R20>
+              <R21>0.0</R21>
+              <R22>0.9781291865821796</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX32">
+          <Properties>
+            <string name="Name">Slumped shore 24</string>
+            <Vector3 name="size">
+              <X>4.3687594885619365</X>
+              <Y>0.9018376597420277</Y>
+              <Z>1.7817173904446435</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-16.59527393531796</X>
+              <Y>-0.0574854552722322</Y>
+              <Z>-18.12221741829412</Z>
+              <R00>0.9250247836781093</R00>
+              <R01>0.0</R01>
+              <R02>-0.379906764326811</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.379906764326811</R20>
+              <R21>0.0</R21>
+              <R22>0.9250247836781093</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX33">
+          <Properties>
+            <string name="Name">Slumped shore 25</string>
+            <Vector3 name="size">
+              <X>3.955858741201097</X>
+              <Y>0.595174038809412</Y>
+              <Z>2.7408821357439255</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-13.29233162967496</X>
+              <Y>-0.14335126913336463</Y>
+              <Z>-18.175741523706986</Z>
+              <R00>0.9880025740514288</R00>
+              <R01>0.0</R01>
+              <R02>-0.15443741019503998</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.15443741019503998</R20>
+              <R21>0.0</R21>
+              <R22>0.9880025740514288</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX34">
+          <Properties>
+            <string name="Name">Slumped shore 26</string>
+            <Vector3 name="size">
+              <X>4.1646556085262105</X>
+              <Y>0.5436602853206356</Y>
+              <Z>2.254540932884459</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-9.6060977798127</X>
+              <Y>-0.15777512011022202</Y>
+              <Z>-18.21389930086511</Z>
+              <R00>0.9724717789626719</R00>
+              <R01>0.0</R01>
+              <R02>0.23302068389131522</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.23302068389131522</R20>
+              <R21>0.0</R21>
+              <R22>0.9724717789626719</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX35">
+          <Properties>
+            <string name="Name">Slumped shore 27</string>
+            <Vector3 name="size">
+              <X>3.6827063072299957</X>
+              <Y>0.46167571494056714</Y>
+              <Z>2.1248557411122775</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-6.58759663010938</X>
+              <Y>-0.1807307998166412</Y>
+              <Z>-17.81778563554594</Z>
+              <R00>0.9646316197861324</R00>
+              <R01>0.0</R01>
+              <R02>0.26360166560320214</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.26360166560320214</R20>
+              <R21>0.0</R21>
+              <R22>0.9646316197861324</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX36">
+          <Properties>
+            <string name="Name">Slumped shore 28</string>
+            <Vector3 name="size">
+              <X>3.0645218106885177</X>
+              <Y>0.6750102546031254</Y>
+              <Z>2.3805793236622876</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-3.181012857089871</X>
+              <Y>-0.12099712871112489</Y>
+              <Z>-18.216889466874846</Z>
+              <R00>0.9897456981774146</R00>
+              <R01>0.0</R01>
+              <R02>0.1428406557647438</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.1428406557647438</R20>
+              <R21>0.0</R21>
+              <R22>0.9897456981774146</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX37">
+          <Properties>
+            <string name="Name">Slumped shore 29</string>
+            <Vector3 name="size">
+              <X>3.2942007927857797</X>
+              <Y>1.0838876982375791</Y>
+              <Z>2.392993492695725</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-0.36490782485401196</X>
+              <Y>-0.0065114444934777915</Y>
+              <Z>-18.18565209308904</Z>
+              <R00>0.9435385215335821</R00>
+              <R01>0.0</R01>
+              <R02>0.3312628237249422</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.3312628237249422</R20>
+              <R21>0.0</R21>
+              <R22>0.9435385215335821</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX38">
+          <Properties>
+            <string name="Name">Slumped shore 30</string>
+            <Vector3 name="size">
+              <X>4.231678376891997</X>
+              <Y>0.5669796646847888</Y>
+              <Z>1.725975623841169</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>3.6293859314956567</X>
+              <Y>-0.15124569388825912</Y>
+              <Z>-17.606966473889635</Z>
+              <R00>0.9996215232711647</R00>
+              <R01>0.0</R01>
+              <R02>0.027510183805933293</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.027510183805933293</R20>
+              <R21>0.0</R21>
+              <R22>0.9996215232711647</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX39">
+          <Properties>
+            <string name="Name">Slumped shore 31</string>
+            <Vector3 name="size">
+              <X>3.6483266721595538</X>
+              <Y>1.0239681058737713</Y>
+              <Z>1.8155516480967584</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>6.785411288213904</X>
+              <Y>-0.023288930355344017</Y>
+              <Z>-18.163907880426343</Z>
+              <R00>0.986710415547737</R00>
+              <R01>0.0</R01>
+              <R02>0.16248863298585617</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.16248863298585617</R20>
+              <R21>0.0</R21>
+              <R22>0.986710415547737</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX40">
+          <Properties>
+            <string name="Name">Slumped shore 32</string>
+            <Vector3 name="size">
+              <X>3.219913541104881</X>
+              <Y>0.6256141198030085</Y>
+              <Z>2.3835873851392524</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>9.869342181660082</X>
+              <Y>-0.13482804645515759</Y>
+              <Z>-17.707569487075695</Z>
+              <R00>0.9716783680503235</R00>
+              <R01>0.0</R01>
+              <R02>0.23630731910598998</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.23630731910598998</R20>
+              <R21>0.0</R21>
+              <R22>0.9716783680503235</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX41">
+          <Properties>
+            <string name="Name">Slumped shore 33</string>
+            <Vector3 name="size">
+              <X>3.5951606603745976</X>
+              <Y>0.7736778711794415</Y>
+              <Z>2.8416539247112356</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>13.507834779196726</X>
+              <Y>-0.09337019606975636</Y>
+              <Z>-18.112613220619824</Z>
+              <R00>0.9536911683919158</R00>
+              <R01>0.0</R01>
+              <R02>0.30078755847152744</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.30078755847152744</R20>
+              <R21>0.0</R21>
+              <R22>0.9536911683919158</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX42">
+          <Properties>
+            <string name="Name">Slumped shore 34</string>
+            <Vector3 name="size">
+              <X>3.617917541612007</X>
+              <Y>0.6283104122737317</Y>
+              <Z>3.101550121767387</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>16.594080836230635</X>
+              <Y>-0.1340730845633551</Y>
+              <Z>-17.983409888763717</Z>
+              <R00>0.9833471449266932</R00>
+              <R01>0.0</R01>
+              <R02>0.18173715240566804</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.18173715240566804</R20>
+              <R21>0.0</R21>
+              <R22>0.9833471449266932</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX43">
+          <Properties>
+            <string name="Name">Slumped shore 35</string>
+            <Vector3 name="size">
+              <X>3.305470621563168</X>
+              <Y>0.9125120172374674</Y>
+              <Z>2.739324569570784</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>19.798672202355313</X>
+              <Y>-0.05449663517350911</Y>
+              <Z>-18.147750924795382</Z>
+              <R00>0.9434549416637249</R00>
+              <R01>0.0</R01>
+              <R02>-0.3315007889135369</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.3315007889135369</R20>
+              <R21>0.0</R21>
+              <R22>0.9434549416637249</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX44">
+          <Properties>
+            <string name="Name">Slumped shore 36</string>
+            <Vector3 name="size">
+              <X>3.153568196709424</X>
+              <Y>0.4527550784074766</Y>
+              <Z>3.244670594137749</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>22.95967300851756</X>
+              <Y>-0.18322857804590653</Y>
+              <Z>-18.023925358897223</Z>
+              <R00>0.9970609735544036</R00>
+              <R01>0.0</R01>
+              <R02>-0.07661210749447396</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.07661210749447396</R20>
+              <R21>0.0</R21>
+              <R22>0.9970609735544036</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX45">
+          <Properties>
+            <string name="Name">Slumped shore 37</string>
+            <Vector3 name="size">
+              <X>3.4763425478687013</X>
+              <Y>0.9046077522449758</Y>
+              <Z>1.694786728592793</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>26.735978269536922</X>
+              <Y>-0.05670982937140673</Y>
+              <Z>-17.715421838141584</Z>
+              <R00>0.9972410342686991</R00>
+              <R01>0.0</R01>
+              <R02>-0.07423152679754898</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.07423152679754898</R20>
+              <R21>0.0</R21>
+              <R22>0.9972410342686991</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX46">
+          <Properties>
+            <string name="Name">Slumped shore 38</string>
+            <Vector3 name="size">
+              <X>3.43892589166843</X>
+              <Y>0.9115297579706968</Y>
+              <Z>1.750828002369068</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>29.461004057729284</X>
+              <Y>-0.05477166776820486</Y>
+              <Z>-18.288612850725038</Z>
+              <R00>0.9746845100468804</R00>
+              <R01>0.0</R01>
+              <R02>-0.22358467271857582</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.22358467271857582</R20>
+              <R21>0.0</R21>
+              <R22>0.9746845100468804</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX47">
+          <Properties>
+            <string name="Name">Slumped shore 39</string>
+            <Vector3 name="size">
+              <X>1.999401258231589</X>
+              <Y>0.7108353312745898</Y>
+              <Z>4.23385652520926</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-31.120864600170346</X>
+              <Y>-0.11096610724311484</Y>
+              <Z>-15.02556069869605</Z>
+              <R00>0.9627505808982413</R00>
+              <R01>0.0</R01>
+              <R02>-0.27039104826177013</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.27039104826177013</R20>
+              <R21>0.0</R21>
+              <R22>0.9627505808982413</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX48">
+          <Properties>
+            <string name="Name">Slumped shore 40</string>
+            <Vector3 name="size">
+              <X>2.8029870785658195</X>
+              <Y>0.9663462752440888</Y>
+              <Z>4.1932360687582735</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-31.04257947742681</X>
+              <Y>-0.039423042931655106</Y>
+              <Z>-11.812742642695289</Z>
+              <R00>0.9397061528243209</R00>
+              <R01>0.0</R01>
+              <R02>0.3419829620669927</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.3419829620669927</R20>
+              <R21>0.0</R21>
+              <R22>0.9397061528243209</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX49">
+          <Properties>
+            <string name="Name">Slumped shore 41</string>
+            <Vector3 name="size">
+              <X>2.759702631449391</X>
+              <Y>0.49713606433423624</Y>
+              <Z>3.0859614697950275</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-30.75181287136436</X>
+              <Y>-0.17080190198641385</Y>
+              <Z>-8.454801134260409</Z>
+              <R00>0.9740771017099835</R00>
+              <R01>0.0</R01>
+              <R02>-0.2262162680363162</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.2262162680363162</R20>
+              <R21>0.0</R21>
+              <R22>0.9740771017099835</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX50">
+          <Properties>
+            <string name="Name">Slumped shore 42</string>
+            <Vector3 name="size">
+              <X>1.8557077363771985</X>
+              <Y>0.7342196389298106</Y>
+              <Z>3.412148780794588</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-31.06812906024997</X>
+              <Y>-0.104418501099653</Y>
+              <Z>-5.029703940218144</Z>
+              <R00>0.9718324208086908</R00>
+              <R01>0.0</R01>
+              <R02>0.2356729637975464</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.2356729637975464</R20>
+              <R21>0.0</R21>
+              <R22>0.9718324208086908</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX51">
+          <Properties>
+            <string name="Name">Slumped shore 43</string>
+            <Vector3 name="size">
+              <X>2.632906501673374</X>
+              <Y>0.9775990790355995</Y>
+              <Z>3.2505110230008865</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-30.714288188812784</X>
+              <Y>-0.03627225787003213</Y>
+              <Z>-1.2673604761765773</Z>
+              <R00>0.9644946717910718</R00>
+              <R01>0.0</R01>
+              <R02>-0.2641023060986643</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.2641023060986643</R20>
+              <R21>0.0</R21>
+              <R22>0.9644946717910718</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX52">
+          <Properties>
+            <string name="Name">Slumped shore 44</string>
+            <Vector3 name="size">
+              <X>1.7712892033352845</X>
+              <Y>0.9583402425200318</Y>
+              <Z>2.6317206463793172</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-30.980575412235524</X>
+              <Y>-0.04166473209439109</Y>
+              <Z>1.9866496801304416</Z>
+              <R00>0.9839843389661671</R00>
+              <R01>0.0</R01>
+              <R02>0.17825493168301157</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.17825493168301157</R20>
+              <R21>0.0</R21>
+              <R22>0.9839843389661671</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX53">
+          <Properties>
+            <string name="Name">Slumped shore 45</string>
+            <Vector3 name="size">
+              <X>2.743702575309637</X>
+              <Y>0.6942626867332212</Y>
+              <Z>3.0771252495676893</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-30.837250091752516</X>
+              <Y>-0.11560644771469802</Y>
+              <Z>4.931458258073349</Z>
+              <R00>0.9492347096735446</R00>
+              <R01>0.0</R01>
+              <R02>0.3145686983013113</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.3145686983013113</R20>
+              <R21>0.0</R21>
+              <R22>0.9492347096735446</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX54">
+          <Properties>
+            <string name="Name">Slumped shore 46</string>
+            <Vector3 name="size">
+              <X>2.90524863273104</X>
+              <Y>0.9572226901205285</Y>
+              <Z>3.0607520318896504</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-31.381955392030534</X>
+              <Y>-0.041977646766251986</Y>
+              <Z>7.980323655944925</Z>
+              <R00>0.9694302851574759</R00>
+              <R01>0.0</R01>
+              <R02>-0.24536691345716324</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.24536691345716324</R20>
+              <R21>0.0</R21>
+              <R22>0.9694302851574759</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX55">
+          <Properties>
+            <string name="Name">Slumped shore 47</string>
+            <Vector3 name="size">
+              <X>1.988037622017438</X>
+              <Y>0.7796356396812276</Y>
+              <Z>3.822631052956017</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-30.934931452290066</X>
+              <Y>-0.09170202088925625</Y>
+              <Z>11.89313887165531</Z>
+              <R00>0.9772429725139474</R00>
+              <R01>0.0</R01>
+              <R02>-0.21212301306577783</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.21212301306577783</R20>
+              <R21>0.0</R21>
+              <R22>0.9772429725139474</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX56">
+          <Properties>
+            <string name="Name">Slumped shore 48</string>
+            <Vector3 name="size">
+              <X>2.1072200943563164</X>
+              <Y>1.0450423512167801</Y>
+              <Z>4.090706751323805</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-30.739195198850936</X>
+              <Y>-0.017388141659301526</Y>
+              <Z>14.968914912958676</Z>
+              <R00>0.9593784130526019</R00>
+              <R01>0.0</R01>
+              <R02>0.28212242124416714</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.28212242124416714</R20>
+              <R21>0.0</R21>
+              <R22>0.9593784130526019</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX57">
+          <Properties>
+            <string name="Name">Slumped shore 49</string>
+            <Vector3 name="size">
+              <X>3.055569280598531</X>
+              <Y>0.6191088824908477</Y>
+              <Z>3.370733733642701</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>30.53207975494811</X>
+              <Y>-0.1366495129025626</Y>
+              <Z>-14.912284311146262</Z>
+              <R00>0.9236939796118505</R00>
+              <R01>0.0</R01>
+              <R02>0.38313108987502226</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.38313108987502226</R20>
+              <R21>0.0</R21>
+              <R22>0.9236939796118505</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX58">
+          <Properties>
+            <string name="Name">Slumped shore 50</string>
+            <Vector3 name="size">
+              <X>1.8078789595172426</X>
+              <Y>0.6050073341654797</Y>
+              <Z>2.7896912501074427</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>31.07369538170563</X>
+              <Y>-0.14059794643366566</Y>
+              <Z>-11.607304248978352</Z>
+              <R00>0.9281992173325818</R00>
+              <R01>0.0</R01>
+              <R02>-0.3720836101512434</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.3720836101512434</R20>
+              <R21>0.0</R21>
+              <R22>0.9281992173325818</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX59">
+          <Properties>
+            <string name="Name">Slumped shore 51</string>
+            <Vector3 name="size">
+              <X>2.1488948764071933</X>
+              <Y>0.9668698796254507</Y>
+              <Z>3.3537361555199476</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>30.51258152640067</X>
+              <Y>-0.03927643370487377</Y>
+              <Z>-7.9863111153456465</Z>
+              <R00>0.9999571198169744</R00>
+              <R01>0.0</R01>
+              <R02>0.00926059001041127</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.00926059001041127</R20>
+              <R21>0.0</R21>
+              <R22>0.9999571198169744</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX60">
+          <Properties>
+            <string name="Name">Slumped shore 52</string>
+            <Vector3 name="size">
+              <X>2.5291808024821734</X>
+              <Y>0.8748213614566548</Y>
+              <Z>4.0941030482196075</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>30.62159695193012</X>
+              <Y>-0.06505001879213662</Y>
+              <Z>-4.780692759856402</Z>
+              <R00>0.9223362271292468</R00>
+              <R01>0.0</R01>
+              <R02>0.38638825567683416</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.38638825567683416</R20>
+              <R21>0.0</R21>
+              <R22>0.9223362271292468</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX61">
+          <Properties>
+            <string name="Name">Slumped shore 53</string>
+            <Vector3 name="size">
+              <X>2.858321882217476</X>
+              <Y>1.0765670091182378</Y>
+              <Z>2.8553863076568637</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>30.836261228458266</X>
+              <Y>-0.00856123744689341</Y>
+              <Z>-1.9891213140532493</Z>
+              <R00>0.9498886965524216</R00>
+              <R01>0.0</R01>
+              <R02>0.31258833017555476</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.31258833017555476</R20>
+              <R21>0.0</R21>
+              <R22>0.9498886965524216</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX62">
+          <Properties>
+            <string name="Name">Slumped shore 54</string>
+            <Vector3 name="size">
+              <X>2.988277633323894</X>
+              <Y>0.6997393520190107</Y>
+              <Z>3.640234691431208</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>30.81446672738832</X>
+              <Y>-0.11407298143467698</Y>
+              <Z>1.7361416220995538</Z>
+              <R00>0.9911286569203154</R00>
+              <R01>0.0</R01>
+              <R02>-0.1329059269985046</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.1329059269985046</R20>
+              <R21>0.0</R21>
+              <R22>0.9911286569203154</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX63">
+          <Properties>
+            <string name="Name">Slumped shore 55</string>
+            <Vector3 name="size">
+              <X>2.8488981707786123</X>
+              <Y>0.8049310680869537</Y>
+              <Z>3.452320930089255</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>30.906301359893604</X>
+              <Y>-0.08461930093565295</Y>
+              <Z>4.737835959722761</Z>
+              <R00>0.9994762633229004</R00>
+              <R01>0.0</R01>
+              <R02>-0.032360455097112</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.032360455097112</R20>
+              <R21>0.0</R21>
+              <R22>0.9994762633229004</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX64">
+          <Properties>
+            <string name="Name">Slumped shore 56</string>
+            <Vector3 name="size">
+              <X>2.5918857444881738</X>
+              <Y>1.0206294833012137</Y>
+              <Z>3.2771806879344134</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>30.56592813377533</X>
+              <Y>-0.02422374467566013</Y>
+              <Z>8.342916177572299</Z>
+              <R00>0.9213987092651345</R00>
+              <R01>0.0</R01>
+              <R02>0.3886186029573781</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.3886186029573781</R20>
+              <R21>0.0</R21>
+              <R22>0.9213987092651345</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX65">
+          <Properties>
+            <string name="Name">Slumped shore 57</string>
+            <Vector3 name="size">
+              <X>1.9644633683361459</X>
+              <Y>0.6468441370541689</Y>
+              <Z>4.280363325472694</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>31.07666163997155</X>
+              <Y>-0.1288836416248327</Y>
+              <Z>11.212260741669168</Z>
+              <R00>0.9711138962117888</R00>
+              <R01>0.0</R01>
+              <R02>0.23861642982904402</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.23861642982904402</R20>
+              <R21>0.0</R21>
+              <R22>0.9711138962117888</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="Part" referent="RBX66">
+          <Properties>
+            <string name="Name">Slumped shore 58</string>
+            <Vector3 name="size">
+              <X>2.126775199029878</X>
+              <Y>0.4688005416099951</Y>
+              <Z>3.408498081684995</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>30.522405796153006</X>
+              <Y>-0.17873584834920134</Y>
+              <Z>14.835288547230629</Z>
+              <R00>0.9372350538629185</R00>
+              <R01>0.0</R01>
+              <R02>-0.3486982274267713</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.3486982274267713</R20>
+              <R21>0.0</R21>
+              <R22>0.9372350538629185</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX67">
+          <Properties>
+            <string name="Name">Basalt spire 1</string>
+            <Vector3 name="size">
+              <X>7.054021861129588</X>
+              <Y>14.938274091226841</Y>
+              <Z>9.460953038056608</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-56.01409931340268</X>
+              <Y>6.470371563788883</Y>
+              <Z>-44.62987729261033</Z>
+              <R00>0.8396975710719999</R00>
+              <R01>0.0</R01>
+              <R02>-0.54305431508808</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.54305431508808</R20>
+              <R21>0.0</R21>
+              <R22>0.8396975710719999</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX68">
+          <Properties>
+            <string name="Name">Basalt spire 2</string>
+            <Vector3 name="size">
+              <X>7.104928345579101</X>
+              <Y>13.314445941869835</Y>
+              <Z>6.977360170832984</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-47.75848969700854</X>
+              <Y>5.6909340520975205</Y>
+              <Z>-38.84799100282306</Z>
+              <R00>0.9874472053106187</R00>
+              <R01>0.0</R01>
+              <R02>-0.1579494119148559</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.1579494119148559</R20>
+              <R21>0.0</R21>
+              <R22>0.9874472053106187</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX69">
+          <Properties>
+            <string name="Name">Basalt spire 3</string>
+            <Vector3 name="size">
+              <X>8.498268168871952</X>
+              <Y>10.899381418306263</Y>
+              <Z>6.450510901055306</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-41.58172674833037</X>
+              <Y>4.531703080787006</Y>
+              <Z>-32.34734316966051</Z>
+              <R00>0.8257558588217959</R00>
+              <R01>0.0</R01>
+              <R02>-0.5640277135225522</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.5640277135225522</R20>
+              <R21>0.0</R21>
+              <R22>0.8257558588217959</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX70">
+          <Properties>
+            <string name="Name">Basalt spire 4</string>
+            <Vector3 name="size">
+              <X>6.103793416113843</X>
+              <Y>15.844682602026683</Y>
+              <Z>8.250108468052323</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-36.22666028525837</X>
+              <Y>6.905447648972808</Y>
+              <Z>-40.63037204502668</Z>
+              <R00>0.849590342952018</R00>
+              <R01>0.0</R01>
+              <R02>0.5274431241021846</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.5274431241021846</R20>
+              <R21>0.0</R21>
+              <R22>0.849590342952018</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX71">
+          <Properties>
+            <string name="Name">Basalt spire 5</string>
+            <Vector3 name="size">
+              <X>6.24919665894163</X>
+              <Y>12.271224268514176</Y>
+              <Z>8.58002857225638</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-28.82296528840496</X>
+              <Y>5.190187648886805</Y>
+              <Z>-36.29271254940164</Z>
+              <R00>0.8979258447893376</R00>
+              <R01>0.0</R01>
+              <R02>-0.4401467678619876</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.4401467678619876</R20>
+              <R21>0.0</R21>
+              <R22>0.8979258447893376</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX72">
+          <Properties>
+            <string name="Name">Basalt spire 6</string>
+            <Vector3 name="size">
+              <X>7.972362069797906</X>
+              <Y>8.294149458004537</Y>
+              <Z>6.405033853230209</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-21.04111946463999</X>
+              <Y>3.2811917398421775</Y>
+              <Z>-41.88426933772825</Z>
+              <R00>0.9982334761481385</R00>
+              <R01>0.0</R01>
+              <R02>0.05941318958954908</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.05941318958954908</R20>
+              <R21>0.0</R21>
+              <R22>0.9982334761481385</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279637273</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX73">
+          <Properties>
+            <string name="Name">Basalt spire 7</string>
+            <Vector3 name="size">
+              <X>8.316509763898566</X>
+              <Y>7.5632334090607936</Y>
+              <Z>5.404210849383787</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-13.820014239305397</X>
+              <Y>2.9303520363491806</Y>
+              <Z>-45.86344247536372</Z>
+              <R00>0.9997738541576169</R00>
+              <R01>0.0</R01>
+              <R02>0.021265947964391376</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.021265947964391376</R20>
+              <R21>0.0</R21>
+              <R22>0.9997738541576169</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX74">
+          <Properties>
+            <string name="Name">Basalt spire 8</string>
+            <Vector3 name="size">
+              <X>4.593944601264104</X>
+              <Y>8.101862299491426</Y>
+              <Z>8.818995325166018</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-8.127207823715421</X>
+              <Y>3.1888939037558846</Y>
+              <Z>-32.21314900975548</Z>
+              <R00>0.48847602430788845</R00>
+              <R01>0.0</R01>
+              <R02>-0.8725773167326545</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.8725773167326545</R20>
+              <R21>0.0</R21>
+              <R22>0.48847602430788845</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX75">
+          <Properties>
+            <string name="Name">Basalt spire 9</string>
+            <Vector3 name="size">
+              <X>4.3532112595670025</X>
+              <Y>11.751347078443189</Y>
+              <Z>9.409205863129074</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>-2.7728225904171127</X>
+              <Y>4.94064659765273</Y>
+              <Z>-42.944357242868385</Z>
+              <R00>0.9580439457581499</R00>
+              <R01>0.0</R01>
+              <R02>-0.2866213495121311</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.2866213495121311</R20>
+              <R21>0.0</R21>
+              <R22>0.9580439457581499</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX76">
+          <Properties>
+            <string name="Name">Basalt spire 10</string>
+            <Vector3 name="size">
+              <X>6.840877653938911</X>
+              <Y>6.612549823828683</Y>
+              <Z>5.35956469466377</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>4.328787723045638</X>
+              <Y>2.474023915437768</Y>
+              <Z>-42.1116438315692</Z>
+              <R00>0.9870623785145232</R00>
+              <R01>0.0</R01>
+              <R02>0.16033671108405648</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.16033671108405648</R20>
+              <R21>0.0</R21>
+              <R22>0.9870623785145232</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX77">
+          <Properties>
+            <string name="Name">Basalt spire 11</string>
+            <Vector3 name="size">
+              <X>4.609025454968511</X>
+              <Y>8.928460551695029</Y>
+              <Z>6.109898066968611</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>9.291297456332032</X>
+              <Y>3.585661064813613</Y>
+              <Z>-44.2194183890168</Z>
+              <R00>0.9680945163616418</R00>
+              <R01>0.0</R01>
+              <R02>-0.25058532955965096</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.25058532955965096</R20>
+              <R21>0.0</R21>
+              <R22>0.9680945163616418</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280754210</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX78">
+          <Properties>
+            <string name="Name">Basalt spire 12</string>
+            <Vector3 name="size">
+              <X>7.28000888028483</X>
+              <Y>5.3290354684825925</Y>
+              <Z>5.326834206350408</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>19.585331192499385</X>
+              <Y>1.8579370248716442</Y>
+              <Z>-31.63594240448993</Z>
+              <R00>0.7845522741142934</R00>
+              <R01>0.0</R01>
+              <R02>0.6200626816557264</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.6200626816557264</R20>
+              <R21>0.0</R21>
+              <R22>0.7845522741142934</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX79">
+          <Properties>
+            <string name="Name">Basalt spire 13</string>
+            <Vector3 name="size">
+              <X>6.2545128547433535</X>
+              <Y>10.693173972189246</Y>
+              <Z>6.072019915610362</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>22.375033933772915</X>
+              <Y>4.432723506650838</Y>
+              <Z>-38.221794594248074</Z>
+              <R00>0.9381707236568918</R00>
+              <R01>0.0</R01>
+              <R02>0.3461729239456836</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.3461729239456836</R20>
+              <R21>0.0</R21>
+              <R22>0.9381707236568918</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX80">
+          <Properties>
+            <string name="Name">Basalt spire 14</string>
+            <Vector3 name="size">
+              <X>8.219262035677824</X>
+              <Y>9.507607080009906</Y>
+              <Z>5.820740629002487</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>31.30849768885244</X>
+              <Y>3.8636513984047545</Y>
+              <Z>-40.31979710316137</Z>
+              <R00>0.5190821886045721</R00>
+              <R01>0.0</R01>
+              <R02>-0.8547243306900111</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.8547243306900111</R20>
+              <R21>0.0</R21>
+              <R22>0.5190821886045721</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX81">
+          <Properties>
+            <string name="Name">Basalt spire 15</string>
+            <Vector3 name="size">
+              <X>6.033646977931689</X>
+              <Y>14.868066212377482</Y>
+              <Z>8.258994159812627</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>38.50036280950454</X>
+              <Y>6.4366717819411905</Y>
+              <Z>-35.59886776209766</Z>
+              <R00>0.7447623509127416</R00>
+              <R01>0.0</R01>
+              <R02>-0.6673297840370429</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.6673297840370429</R20>
+              <R21>0.0</R21>
+              <R22>0.7447623509127416</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280294174</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX82">
+          <Properties>
+            <string name="Name">Basalt spire 16</string>
+            <Vector3 name="size">
+              <X>6.018987304088347</X>
+              <Y>10.185774928294155</Y>
+              <Z>6.01472509884026</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>42.044813964118866</X>
+              <Y>4.189171965581194</Y>
+              <Z>-34.80742062783911</Z>
+              <R00>0.5139807183003001</R00>
+              <R01>0.0</R01>
+              <R02>-0.8578017377083749</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.8578017377083749</R20>
+              <R21>0.0</R21>
+              <R22>0.5139807183003001</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX83">
+          <Properties>
+            <string name="Name">Basalt spire 17</string>
+            <Vector3 name="size">
+              <X>7.246998157492407</X>
+              <Y>8.72642148244046</Y>
+              <Z>9.086539588941326</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>50.49732039717008</X>
+              <Y>3.48868231157142</Y>
+              <Z>-33.08967571038271</Z>
+              <R00>0.9845154184920222</R00>
+              <R01>0.0</R01>
+              <R02>-0.1752980055547648</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.1752980055547648</R20>
+              <R21>0.0</R21>
+              <R22>0.9845154184920222</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="CornerWedgePart" referent="RBX84">
+          <Properties>
+            <string name="Name">Basalt spire 18</string>
+            <Vector3 name="size">
+              <X>7.252346324309675</X>
+              <Y>12.304502311554828</Y>
+              <Z>8.278655448951952</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>58.24080002072447</X>
+              <Y>5.206161109546317</Y>
+              <Z>-35.01526126802663</Z>
+              <R00>0.9691030476649883</R00>
+              <R01>0.0</R01>
+              <R02>0.2466562040704252</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>-0.2466562040704252</R20>
+              <R21>0.0</R21>
+              <R22>0.9691030476649883</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4279899673</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+        <Item class="WedgePart" referent="RBX85">
+          <Properties>
+            <string name="Name">Basalt spire 19</string>
+            <Vector3 name="size">
+              <X>6.630739290392121</X>
+              <Y>11.127820495661773</Y>
+              <Z>8.261814152064328</Z>
+            </Vector3>
+            <CoordinateFrame name="CFrame">
+              <X>62.18566972075839</X>
+              <Y>4.64135383791765</Y>
+              <Z>-38.65799551258702</Z>
+              <R00>0.6624352368785326</R00>
+              <R01>0.0</R01>
+              <R02>-0.7491191874072393</R02>
+              <R10>0.0</R10>
+              <R11>1.0</R11>
+              <R12>0.0</R12>
+              <R20>0.7491191874072393</R20>
+              <R21>0.0</R21>
+              <R22>0.6624352368785326</R22>
+            </CoordinateFrame>
+            <Color3uint8 name="Color3uint8">4280622366</Color3uint8>
+            <token name="Material">788</token>
+            <bool name="Anchored">true</bool>
+          </Properties>
+        </Item>
+      </Item>
+    </Item>
+    <Item class="SpawnLocation" referent="RBX7">
+      <Properties>
+        <string name="Name">SpawnLocation</string>
+        <Vector3 name="size">
+          <X>9</X>
+          <Y>0.22</Y>
+          <Z>8</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>0.1</Y>
+          <Z>33</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>-0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4280820258</Color3uint8>
+        <token name="Material">788</token>
+        <bool name="Anchored">true</bool>
+        <float name="Transparency">1</float>
+        <int name="Duration">0</int>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="Lighting" referent="RBX86">
+    <Properties>
+      <string name="Name">Lighting</string>
+      <string name="TimeOfDay">18:51:00</string>
+      <float name="Brightness">1.35</float>
+      <float name="EnvironmentDiffuseScale">.48</float>
+      <float name="EnvironmentSpecularScale">.50</float>
+      <float name="ExposureCompensation">.02</float>
+      <Color3 name="Ambient">
+        <R>0.12156862745098039</R>
+        <G>0.11372549019607843</G>
+        <B>0.14901960784313725</B>
+      </Color3>
+      <Color3 name="OutdoorAmbient">
+        <R>0.22745098039215686</R>
+        <G>0.2</G>
+        <B>0.23137254901960785</B>
+      </Color3>
+    </Properties>
+    <Item class="Atmosphere" referent="RBX87">
+      <Properties>
+        <string name="Name">Caldera Atmosphere</string>
+        <float name="Density">.27</float>
+        <float name="Haze">1.18</float>
+        <Color3 name="Color">
+          <R>0.5882352941176471</R>
+          <G>0.48627450980392156</G>
+          <B>0.44313725490196076</B>
+        </Color3>
+        <Color3 name="Decay">
+          <R>0.2823529411764706</R>
+          <G>0.20784313725490197</G>
+          <B>0.2235294117647059</B>
+        </Color3>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="ReplicatedStorage" referent="RBX88">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="Folder" referent="RBX89">
+      <Properties>
+        <string name="Name">VolcanicLava</string>
+      </Properties>
+      <Item class="ModuleScript" referent="RBX93">
+        <Properties>
+          <string name="Name">Config</string>
+          <ProtectedString name="Source">local Config = {}
+
+Config.Tag = "VolcanicLava"
+
+Config.Defaults = table.freeze({
+	LavaFlowSpeed = .72,
+	GlowIntensity = .78,
+	SparkEmissionRate = 26,
+	BubbleFrequency = .48,
+	LavaBrightness = .96,
+	SmokeDensity = .34,
+	AnimationQuality = .85,
+	FlowAngle = 16,
+	UseEditableTexture = true,
+})
+
+Config.Budget = table.freeze({
+	NearDistance = 80,
+	AtmosphereDistance = 185,
+	MaxDistance = 480,
+	MaxVisualPools = 6,
+	MaxAtmospherePools = 3,
+	MobileVisualPools = 4,
+	MobileAtmospherePools = 2,
+})
+
+local limits = {
+	LavaFlowSpeed = {.05, 4},
+	GlowIntensity = {0, 2},
+	SparkEmissionRate = {0, 75},
+	BubbleFrequency = {0, 2.5},
+	LavaBrightness = {.26, 1.65},
+	SmokeDensity = {0, 1},
+	AnimationQuality = {.25, 1},
+	FlowAngle = {-360, 360},
+}
+
+local function finite(value)
+	return type(value) == "number" and math.abs(value) &lt; math.huge
+end
+
+function Config.forPart(part, mobile)
+	local settings = table.clone(Config.Defaults)
+	for field, bounds in pairs(limits) do
+		local value = part:GetAttribute(field)
+		if finite(value) then
+			settings[field] = math.clamp(value, bounds[1], bounds[2])
+		end
+	end
+
+	local imagePreference = part:GetAttribute("UseEditableTexture")
+	if type(imagePreference) == "boolean" then
+		settings.UseEditableTexture = imagePreference
+	end
+	if mobile then
+		settings.AnimationQuality = math.min(settings.AnimationQuality, .70)
+	end
+
+	local angle = math.rad(settings.FlowAngle)
+	settings.FlowDirection = Vector2.new(math.cos(angle), math.sin(angle))
+	return settings
+end
+
+return Config
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="RBX94">
+        <Properties>
+          <string name="Name">Surface</string>
+          <ProtectedString name="Source">-- Client-only visual surface. It fits over the source without touching its
+-- transform, visual properties, collisions, or gameplay scripts.
+local Workspace = game:GetService("Workspace")
+
+local Surface = {}
+Surface.__index = Surface
+
+local MOLTEN_LOW = Color3.fromRGB(143, 22, 8)
+local MOLTEN_HIGH = Color3.fromRGB(218, 48, 8)
+local CURRENT_EDGE = Color3.fromRGB(232, 50, 5)
+local CURRENT_CORE = Color3.fromRGB(255, 142, 19)
+local WHITE_HOT = Color3.fromRGB(255, 222, 101)
+local CRUST_DARK = Color3.fromRGB(23, 22, 22)
+local CRUST_LIGHT = Color3.fromRGB(56, 50, 47)
+local TAU = 2 * math.pi
+local BED_TOP = 0.034
+local BED_DEPTH = 0.027
+
+local function makePart(className, name, material, color, folder)
+	local part = Instance.new(className)
+	part.Name = name
+	part.Material = material
+	part.Color = color
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanTouch = false
+	part.CanQuery = false
+	part.CastShadow = false
+	part.Massless = true
+	part.Parent = folder
+	return part
+end
+
+local function clipCell(polygon, site, neighbor)
+	local direction = neighbor - site
+	local threshold = ((site + neighbor) * 0.5):Dot(direction)
+	local clipped = {}
+	local previous = polygon[#polygon]
+	local previousDistance = previous:Dot(direction) - threshold
+	for _, point in polygon do
+		local distance = point:Dot(direction) - threshold
+		if (previousDistance &lt;= 0) ~= (distance &lt;= 0) then
+			local t = previousDistance / (previousDistance - distance)
+			table.insert(clipped, previous:Lerp(point, t))
+		end
+		if distance &lt;= 0 then
+			table.insert(clipped, point)
+		end
+		previous = point
+		previousDistance = distance
+	end
+	return clipped
+end
+
+local function addTriangle(a, b, c, thickness, color, folder, wedges)
+	local ab, ac, bc = b - a, c - a, c - b
+	local ab2, ac2, bc2 = ab:Dot(ab), ac:Dot(ac), bc:Dot(bc)
+	-- Put the longest edge across B–C so the two right wedges stay in
+	-- the triangle. This works for both upward and downward sloping tops.
+	if ab2 &gt; ac2 and ab2 &gt; bc2 then
+		a, c = c, a
+	elseif ac2 &gt; bc2 and ac2 &gt;= ab2 then
+		a, b = b, a
+	end
+	ab, ac, bc = b - a, c - a, c - b
+	local axis = ac:Cross(ab)
+	if axis.Magnitude &lt; 0.0002 or bc.Magnitude &lt; 0.005 then
+		return
+	end
+	local right = axis.Unit
+	local back = bc.Unit
+	local up = back:Cross(right).Unit
+	local height = math.abs(ab:Dot(up))
+	if height &lt; 0.005 then
+		return
+	end
+
+	local function wedge(length, position, x, z)
+		if length &lt; 0.005 then
+			return
+		end
+		local part = makePart("WedgePart", "Basalt facet", Enum.Material.Basalt, color, folder)
+		part.Size = Vector3.new(thickness, height, length)
+		table.insert(wedges, {
+			part = part,
+			localFrame = CFrame.fromMatrix(position, x, up, z),
+		})
+	end
+	wedge(math.abs(ab:Dot(back)), (a + b) * 0.5, right, back)
+	wedge(math.abs(ac:Dot(back)), (a + c) * 0.5, -right, -back)
+end
+
+local function sitesFor(width, depth, quality, random)
+	local target = math.floor(8 + 8 * quality)
+	local columns = math.clamp(math.floor(math.sqrt(target * width / depth) + 0.5), 1, target)
+	local rows = math.max(1, math.floor(target / columns))
+	local tileX, tileZ = width / columns, depth / rows
+	local sites = {}
+	for row = 1, rows do
+		for column = 1, columns do
+			local x = (column - 0.5 + random:NextNumber(-0.28, 0.28)) * tileX - width * 0.5
+			local z = (row - 0.5 + random:NextNumber(-0.28, 0.28)) * tileZ - depth * 0.5
+			table.insert(sites, Vector2.new(x, z))
+		end
+	end
+	return sites
+end
+
+local function makeCrust(width, depth, quality, relief, random, folder)
+	local halfX, halfZ = width * 0.5, depth * 0.5
+	local bounds = {
+		Vector2.new(-halfX, -halfZ), Vector2.new(halfX, -halfZ),
+		Vector2.new(halfX, halfZ), Vector2.new(-halfX, halfZ),
+	}
+	local sites = sitesFor(width, depth, quality, random)
+	local plates = {}
+	local scale = math.min(width, depth)
+	local thickness = math.min(scale * .075, .043)
+	local clearance = thickness * .51
+	for index, site in sites do
+		local polygon = bounds
+		for neighborIndex, neighbor in sites do
+			if index ~= neighborIndex then
+				polygon = clipCell(polygon, site, neighbor)
+			end
+		end
+		local center = Vector2.zero
+		for _, point in polygon do
+			center += point
+		end
+		center /= #polygon
+		-- The dark plate contracts inside its Voronoi cell, leaving a
+		-- branching bed visible between irregular, non-overlapping shards.
+		local inset = random:NextNumber(0.83, 0.91)
+		local altitude = (0.111 + random:NextNumber(-0.009, 0.012)) * relief
+		local points = {}
+		local edge = math.huge
+		for _, point in polygon do
+			local sample = center:Lerp(point, inset)
+			local position = Vector2.new(
+				math.clamp(sample.X, -halfX + clearance, halfX - clearance),
+				math.clamp(sample.Y, -halfZ + clearance, halfZ - clearance)
+			)
+			edge = math.min(edge, halfX - math.abs(position.X), halfZ - math.abs(position.Y))
+			table.insert(points, Vector3.new(
+				position.X,
+				altitude + random:NextNumber(-0.009, 0.011) * relief,
+				position.Y
+			))
+		end
+		local base = random:NextNumber(0.05, 0.82)
+		local wedges = {}
+		for i = 2, #points - 1 do
+			local variation = math.clamp(base + random:NextNumber(-0.10, 0.15), 0, 1)
+			local color = CRUST_DARK:Lerp(CRUST_LIGHT, variation)
+			addTriangle(points[1], points[i], points[i + 1], thickness, color, folder, wedges)
+		end
+		table.insert(plates, {
+			wedges = wedges,
+			phase = random:NextNumber(0, TAU),
+			period = random:NextNumber(9, 16),
+			travel = math.min(math.max(0, edge - clearance), 0.32, scale * 0.020),
+		})
+	end
+	return plates
+end
+
+local function lineBounds(crossPoint, direction, halfX, halfZ)
+	local start, finish = -math.huge, math.huge
+	local function cut(offset, rate, half)
+		if math.abs(rate) &lt; 0.0001 then
+			return math.abs(offset) &lt;= half
+		end
+		local a, b = (-half - offset) / rate, (half - offset) / rate
+		start = math.max(start, math.min(a, b))
+		finish = math.min(finish, math.max(a, b))
+		return start &lt; finish
+	end
+	if cut(crossPoint.X, direction.X, halfX) and cut(crossPoint.Y, direction.Y, halfZ) then
+		return start, finish
+	end
+	return nil, nil
+end
+
+local function makeCurrent(width, depth, direction, quality, relief, random, folder)
+	local halfX, halfZ = width * 0.5, depth * 0.5
+	local perpendicular = Vector2.new(-direction.Y, direction.X)
+	local crossHalf = math.abs(perpendicular.X) * halfX + math.abs(perpendicular.Y) * halfZ
+	local size = math.min(width, depth)
+	local count = math.floor(4 + 8 * quality)
+	local streaks = {}
+	for i = 1, count do
+		local long = size * random:NextNumber(0.059, 0.142)
+		local wide = size * random:NextNumber(0.012, 0.032)
+		local paddingX = (math.abs(direction.X) * long + math.abs(perpendicular.X) * wide) * 0.5
+		local paddingZ = (math.abs(direction.Y) * long + math.abs(perpendicular.Y) * wide) * 0.5
+		local p = ((i - 0.5) / count * 2 - 1) * 0.82 + random:NextNumber(-0.07, 0.07)
+		local origin = perpendicular * (p * crossHalf)
+		local start, finish = lineBounds(origin, direction, halfX - paddingX, halfZ - paddingZ)
+		if start == nil or finish == nil then
+			continue
+		end
+
+		local band = makePart("Part", "Molten flow pulse", Enum.Material.Neon, CURRENT_EDGE, folder)
+		band.Shape = Enum.PartType.Cylinder
+		band.Size = Vector3.new(0.013 * relief, wide, long)
+		local core
+		if i % 2 == 1 then
+			core = makePart("Part", "Hot vein", Enum.Material.Neon, CURRENT_CORE, folder)
+			core.Shape = Enum.PartType.Cylinder
+			core.Size = Vector3.new(0.010 * relief, wide * 0.46, long * 0.69)
+		end
+		table.insert(streaks, {
+			band = band,
+			core = core,
+			origin = origin,
+			start = start,
+			distance = finish - start,
+			phase = random:NextNumber(),
+			speed = random:NextNumber(0.69, 1.67),
+		})
+	end
+	return streaks
+end
+
+function Surface.new(part, parent, config)
+	local width, depth = part.Size.X, part.Size.Z
+	local quality = math.clamp(config.AnimationQuality or 0.85, 0.25, 1)
+	local relief = math.clamp(math.min(width, depth) / .67, .06, 1)
+	local direction = config.FlowDirection or Vector2.new(0.96, 0.28)
+	direction = if direction.Magnitude &gt; 0.0001 then direction.Unit else Vector2.new(1, 0)
+	-- Repeatable across clients, with variation between pools.
+	local seed = math.floor((part.Position.X * 197 + part.Position.Y * 73 + part.Position.Z * 133
+		+ width * 157 + depth * 331) * 97) % 2147483647
+	local random = Random.new(seed)
+	local folder = Instance.new("Folder")
+	folder.Name = "Animated lava surface"
+	folder.Parent = parent
+
+	local bed = makePart("Part", "Molten bed", Enum.Material.Neon, MOLTEN_LOW, folder)
+	bed.Size = Vector3.new(width, BED_DEPTH * relief, depth)
+	local plates = makeCrust(width, depth, quality, relief, random, folder)
+	local flow = makeCurrent(width, depth, direction, quality, relief, random, folder)
+	local parts = {}
+	local frames = {}
+	for _, plate in plates do
+		for _, wedge in plate.wedges do
+			table.insert(parts, wedge.part)
+			table.insert(frames, CFrame.identity)
+		end
+	end
+	local self = setmetatable({
+		TextureCarrier = bed,
+		relief = relief,
+		source = part,
+		folder = folder,
+		plates = plates,
+		flow = flow,
+		direction = direction,
+		cross = Vector2.new(-direction.Y, direction.X),
+		speed = math.max(0, config.LavaFlowSpeed or 0.72),
+		glow = math.clamp(config.GlowIntensity or 0.78, 0, 2),
+		brightness = math.clamp(config.LavaBrightness or 0.96, 0, 2),
+		phase = random:NextNumber(0, TAU),
+		lastCrust = -math.huge,
+		lastFrame = nil,
+		parts = parts,
+		frames = frames,
+	}, Surface)
+	self:Update(0, 1)
+	return self
+end
+
+function Surface:Update(time, lod)
+	local frame = self.source.CFrame * CFrame.new(0, self.source.Size.Y * 0.5, 0)
+	local moved = frame ~= self.lastFrame
+	local weight = math.clamp(lod, 0, 1)
+	local shimmer = 0.5 + 0.25 * math.sin(time * 0.51 + self.phase)
+		+ 0.17 * math.sin(time * 1.37 - self.phase)
+	local heat = math.clamp(self.brightness * (0.18 + 0.34 * self.glow + shimmer * 0.14), 0, 1)
+	self.TextureCarrier.Color = MOLTEN_LOW:Lerp(MOLTEN_HIGH, heat)
+	if moved then
+		self.TextureCarrier.CFrame = frame * CFrame.new(0, (BED_TOP - BED_DEPTH * 0.5) * self.relief, 0)
+	end
+
+	local minInterval = if weight &lt; 0.22 then 0.19 else 0
+	if moved or time &lt; self.lastCrust or time - self.lastCrust &gt;= minInterval then
+		local index = 0
+		for _, plate in self.plates do
+			local phase = time * self.speed * TAU / plate.period + plate.phase
+			local offset = self.direction * (plate.travel * 0.74 * math.sin(phase))
+				+ self.cross * (plate.travel * 0.26 * math.sin(phase * 0.69 + 1.5))
+			local base = frame * CFrame.new(offset.X, 0.007 * self.relief * math.sin(phase * 0.82), offset.Y)
+			for _, wedge in plate.wedges do
+				index += 1
+				self.frames[index] = base * wedge.localFrame
+			end
+		end
+		if #self.parts &gt; 0 then
+			Workspace:BulkMoveTo(self.parts, self.frames, Enum.BulkMoveMode.FireCFrameChanged)
+		end
+		self.lastCrust = time
+	end
+
+	local activity = 0.34 + weight * 0.66
+	local pulseColor = CURRENT_EDGE:Lerp(CURRENT_CORE, math.clamp(self.glow * 0.43, 0, 0.78))
+	local veinColor = CURRENT_CORE:Lerp(WHITE_HOT, math.clamp(self.glow * 0.36, 0, 1))
+	local direction = Vector3.new(self.direction.X, 0, self.direction.Y)
+	local cross = Vector3.new(self.cross.X, 0, self.cross.Y)
+	for _, streak in self.flow do
+		local progress = (time * self.speed * streak.speed / streak.distance + streak.phase) % 1
+		local center = streak.origin + self.direction * (streak.start + progress * streak.distance)
+		local fade = math.min(progress * 8, (1 - progress) * 8, 1)
+		local turbulence = 0.78 + 0.22 * math.sin(time * 1.32 + streak.phase * TAU)
+		local alpha = math.clamp(fade * turbulence * activity * self.brightness, 0, 1)
+		-- Cylinder axis is local X; local Z follows the stream.
+		local bedPosition = Vector3.new(center.X, (BED_TOP + 0.012) * self.relief, center.Y)
+		local pose = CFrame.fromMatrix(bedPosition, Vector3.yAxis, cross, direction)
+		streak.band.CFrame = frame * pose
+		streak.band.Color = pulseColor
+		streak.band.Transparency = 1 - alpha * 0.96
+		if streak.core then
+			streak.core.CFrame = frame * (pose + Vector3.new(0, 0.007 * self.relief, 0))
+			streak.core.Color = veinColor
+			streak.core.Transparency = 1 - alpha * math.clamp(self.glow * 0.82, 0, 0.98)
+		end
+	end
+	self.lastFrame = frame
+end
+
+function Surface:Destroy()
+	self.folder:Destroy()
+end
+
+return Surface
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="RBX95">
+        <Properties>
+          <string name="Name">MoltenTexture</string>
+          <ProtectedString name="Source">-- Optional detail pass. The same editable image is shared by every local pool.
+local AssetService = game:GetService("AssetService")
+
+local MoltenTexture = {}
+MoltenTexture.__index = MoltenTexture
+
+local RESOLUTION = 192
+local TAU = math.pi * 2
+local COLOR_STOPS = {
+    { 0.00, 55, 7, 4 },
+    { 0.26, 107, 18, 5 },
+    { 0.47, 186, 36, 4 },
+    { 0.62, 236, 68, 8 },
+    { 0.78, 255, 126, 16 },
+    { 0.92, 255, 189, 37 },
+    { 1.00, 255, 230, 116 },
+}
+
+local image
+local whiteMask
+local users = 0
+local unavailable = false
+
+local function smooth(t)
+    return t * t * (3 - 2 * t)
+end
+
+local function mix(a, b, t)
+    return a + (b - a) * t
+end
+
+local function grid(random, width, height)
+    local values = table.create(width * height)
+    for index = 1, width * height do
+        values[index] = random:NextNumber()
+    end
+    return { width = width, height = height, values = values }
+end
+
+local function noise(field, u, v)
+    -- Wrap both axes so the gradients meet exactly at every tile edge.
+    local width, height, values = field.width, field.height, field.values
+    local x, y = (u % 1) * width, (v % 1) * height
+    local x0, y0 = math.floor(x), math.floor(y)
+    local x1, y1 = (x0 + 1) % width, ((y0 + 1) % height) * width
+    local tx, ty = smooth(x - x0), smooth(y - y0)
+    y0 *= width
+    return mix(
+        mix(values[y0 + x0 + 1], values[y0 + x1 + 1], tx),
+        mix(values[y1 + x0 + 1], values[y1 + x1 + 1], tx),
+        ty
+    )
+end
+
+local function byte(value)
+    return math.clamp(math.floor(value + .5), 0, 255)
+end
+
+local function color(heat)
+    for index = 2, #COLOR_STOPS do
+        local a, b = COLOR_STOPS[index - 1], COLOR_STOPS[index]
+        if heat &lt;= b[1] then
+            local t = (heat - a[1]) / (b[1] - a[1])
+            return byte(mix(a[2], b[2], t)), byte(mix(a[3], b[3], t)), byte(mix(a[4], b[4], t))
+        end
+    end
+    return 255, 230, 116
+end
+
+local function makePixels()
+    local random = Random.new(745981)
+    local warpU, warpV = grid(random, 4, 6), grid(random, 6, 4)
+    local pools, streams = grid(random, 5, 6), grid(random, 5, 13)
+    local detail, flecks = grid(random, 12, 21), grid(random, 36, 40)
+    local pixels = buffer.create(RESOLUTION * RESOLUTION * 4)
+
+    for y = 0, RESOLUTION - 1 do
+        local v = (y + .5) / RESOLUTION
+        for x = 0, RESOLUTION - 1 do
+            local u = (x + .5) / RESOLUTION
+            local a = u + .18 * (noise(warpU, u, v) - .5) + .033 * math.sin(TAU * (v + .3 * math.sin(TAU * u)))
+            local b = v + .23 * (noise(warpV, u, v) - .5) + .055 * math.sin(TAU * (u + .14 * math.sin(TAU * v)))
+            local broad = noise(pools, a, b)
+            local stream = noise(streams, a, b)
+            local core = math.max(0, 1 - math.abs(stream - .49) * 5.8) ^ 2
+            local shoulder = math.max(0, 1 - math.abs(stream - .46) * 2.6)
+            local grain = .62 * noise(detail, a, b) + .38 * noise(flecks, a, b)
+            local heat = math.clamp(.075 + .57 * broad + .32 * core + .135 * shoulder + .11 * grain, 0, 1)
+            local r, g, blue = color(heat)
+            local opacity = byte(138 + 105 * math.min(1, broad * .57 + core * .43 + shoulder * .25))
+            local pixel = (y * RESOLUTION + x) * 4
+            buffer.writeu32(pixels, pixel, r + g * 256 + blue * 65536 + opacity * 16777216)
+        end
+    end
+
+    return pixels
+end
+
+local function destroyImage(object)
+    if object ~= nil then
+        object:Destroy()
+    end
+end
+
+local function ensureImage()
+    if image or unavailable then
+        return image
+    end
+
+    local created
+    local ok, result = pcall(function()
+        local size = Vector2.new(RESOLUTION, RESOLUTION)
+        created = AssetService:CreateEditableImage({ Size = size })
+        if created then
+            created:WritePixelsBuffer(Vector2.zero, size, makePixels())
+        end
+        return created
+    end)
+    if not ok or not result then
+        destroyImage(created)
+        unavailable = true
+        return nil
+    end
+    image = result
+
+    -- Optional leased four-pixel emission mask. If no budget remains, color
+    -- still scrolls over the illuminated molten bed.
+    local createdMask
+    local maskOk, mask = pcall(function()
+        local size = Vector2.new(2, 2)
+        createdMask = AssetService:CreateEditableImage({ Size = size })
+        if createdMask then
+            local pixels = buffer.create(16)
+            buffer.fill(pixels, 0, 255)
+            createdMask:WritePixelsBuffer(Vector2.zero, size, pixels)
+        end
+        return createdMask
+    end)
+    if maskOk then
+        whiteMask = mask
+    else
+        destroyImage(createdMask)
+    end
+    return image
+end
+
+local function release()
+    if users == 0 then
+        destroyImage(image)
+        destroyImage(whiteMask)
+        image = nil
+        whiteMask = nil
+    end
+end
+
+local function amount(value, default, minimum, maximum)
+    if type(value) ~= "number" or value ~= value then
+        return default
+    end
+    return math.clamp(value, minimum, maximum)
+end
+
+-- carrier is the visible BasePart under the crust, so Texture clips
+-- to its true top face with no extra overlay part.
+function MoltenTexture.new(carrier, _folder, config)
+    if config.UseEditableTexture == false or not ensureImage() then
+        return nil
+    end
+
+    local detail = Instance.new("Texture")
+    local studsU = math.clamp(carrier.Size.X * .64, 12, 30)
+    local studsV = math.clamp(carrier.Size.Z * .71, 11, 24)
+    local brightness = amount(config.LavaBrightness, .96, 0, 2)
+    local glow = amount(config.GlowIntensity, .78, 0, 2)
+    local strength = .5 + glow * .46
+    local ok = pcall(function()
+        detail.Name = "Molten Detail"
+        detail.Face = Enum.NormalId.Top
+        detail.AutoLocalize = false
+        detail.StudsPerTileU = studsU
+        detail.StudsPerTileV = studsV
+        detail.Transparency = .39
+        detail.ColorMapContent = Content.fromObject(image)
+        detail.Parent = carrier
+    end)
+    if not ok then
+        detail:Destroy()
+        release()
+        unavailable = true
+        return nil
+    end
+
+    local emission = false
+    if whiteMask then
+        emission = pcall(function()
+            detail.EmissiveStrength = strength
+            detail.EmissiveMaskContent = Content.fromObject(whiteMask)
+        end)
+    end
+
+    local flow = if typeof(config.FlowDirection) == "Vector2" then config.FlowDirection else Vector2.new(1, .25)
+    if flow.Magnitude &lt; .0001 then
+        flow = Vector2.new(1, .25)
+    end
+    flow = flow.Unit
+    local origin = carrier.Position
+    local phase = (origin.X * .63 + origin.Z * .57) % TAU
+
+    users += 1
+    return setmetatable({
+        _detail = detail,
+        _flow = flow,
+        _speed = amount(config.LavaFlowSpeed, .72, 0, 12) * 1.38,
+        _studsU = studsU,
+        _studsV = studsV,
+        _phase = phase,
+        _transparency = math.clamp(.38 + .08 * (1 - brightness), .23, .59),
+        _emission = if emission then strength else nil,
+    }, MoltenTexture)
+end
+
+function MoltenTexture:Update(time, lod)
+    local detail = self._detail
+    if not detail then
+        return
+    end
+
+    local distance = time * self._speed + self._phase
+    local drift = .42 * math.sin(time * .61 + self._phase)
+    -- Top-face U and V follow local X and Z respectively.
+    local flow = self._flow
+    detail.OffsetStudsU = (flow.X * distance - flow.Y * drift) % self._studsU
+    detail.OffsetStudsV = (flow.Y * distance + flow.X * drift) % self._studsV
+    local quality = math.clamp(lod or 1, 0, 1)
+    local flicker = math.sin(time * 1.33 + self._phase) * .036 + math.sin(time * .53) * .028
+    detail.Transparency = math.clamp(self._transparency + (1 - quality) * .22 + flicker, .22, .82)
+    if self._emission then
+        detail.EmissiveStrength = self._emission * (.96 + flicker * 2)
+    end
+end
+
+function MoltenTexture:Destroy()
+    if self._detail then
+        self._detail:Destroy()
+        self._detail = nil
+        users -= 1
+        release()
+    end
+end
+
+return MoltenTexture
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="RBX96">
+        <Properties>
+          <string name="Name">Emissions</string>
+          <ProtectedString name="Source">-- Local particles, molten blisters, and surface lighting for a lava Part.
+local Emissions = {}
+Emissions.__index = Emissions
+
+local COLUMN_OFFSET = .18
+local MOLTEN_TOP = .038
+local HALO_OFFSET = .065
+local SPARKS = "rbxasset://textures/particles/sparkles_main.dds"
+local SMOKE = "rbxasset://textures/particles/smoke_main.dds"
+local COOL_SKIN = Color3.fromRGB(48, 18, 11)
+local HOT_SKIN = Color3.fromRGB(146, 53, 13)
+local HALO_RED = Color3.fromRGB(218, 51, 6)
+local HALO_GOLD = Color3.fromRGB(255, 142, 20)
+local TAU = math.pi * 2
+
+local function setting(value, fallback, low, high)
+    if typeof(value) ~= "number" or value ~= value then
+        return fallback
+    end
+    return math.clamp(value, low, high)
+end
+
+local function part(name, parent, shape, material)
+    local result = Instance.new("Part")
+    result.Name = name
+    result.Shape = shape
+    result.Material = material
+    result.Transparency = 1
+    result.Anchored = true
+    result.CanCollide = false
+    result.CanTouch = false
+    result.CanQuery = false
+    result.CastShadow = false
+    result.Parent = parent
+    return result
+end
+
+local function attach(name, parent)
+    local attachment = Instance.new("Attachment")
+    attachment.Name = name
+    attachment.Parent = parent
+    return attachment
+end
+
+local function values(points)
+    local keys = {}
+    for index, point in ipairs(points) do
+        keys[index] = NumberSequenceKeypoint.new(point[1], point[2], point[3] or 0)
+    end
+    return NumberSequence.new(keys)
+end
+
+local function colors(points)
+    local keys = {}
+    for index, point in ipairs(points) do
+        keys[index] = ColorSequenceKeypoint.new(point[1], Color3.fromRGB(point[2], point[3], point[4]))
+    end
+    return ColorSequence.new(keys)
+end
+
+local function emitter(parent, name, texture, spec)
+    local object = Instance.new("ParticleEmitter")
+    object.Name = name
+    object.Texture = texture
+    object.EmissionDirection = Enum.NormalId.Top
+    object.Enabled = false
+    object.Rate = 0
+    object.Lifetime = NumberRange.new(spec.life[1], spec.life[2])
+    object.Speed = NumberRange.new(spec.speed[1], spec.speed[2])
+    object.SpreadAngle = Vector2.new(spec.spread, spec.spread)
+    object.Drag = spec.drag
+    object.Acceleration = spec.acceleration
+    object.LightEmission = spec.emission
+    object.LightInfluence = spec.influence
+    object.Rotation = NumberRange.new(-180, 180)
+    object.RotSpeed = NumberRange.new(-spec.spin, spec.spin)
+    object.LockedToPart = false
+    object.Size = values(spec.size)
+    object.Transparency = values(spec.transparency)
+    object.Color = colors(spec.color)
+    object.Parent = parent
+    return object
+end
+
+local function cinderSpec(burst)
+    return {
+        life = burst and {.48, 1.05} or {.65, 1.45},
+        speed = burst and {4.8, 9.2} or {1.8, 4.5},
+        spread = burst and 43 or 21,
+        drag = burst and .72 or .44,
+        acceleration = Vector3.new(0, burst and -9 or -3.4, 0),
+        emission = .98,
+        influence = .02,
+        spin = 27,
+        size = {{0, .103, .035}, {.26, .087, .025}, {1, .024}},
+        transparency = {{0, .12}, {.35, .14}, {.78, .58}, {1, 1}},
+        color = {{0, 255, 226, 121}, {.32, 255, 136, 39}, {1, 195, 28, 8}},
+    }
+end
+
+local function smokeSpec()
+    return {
+        life = {1.45, 2.85}, speed = {.92, 2.2}, spread = 22, drag = .57,
+        acceleration = Vector3.new(.24, .80, -.15), emission = 0, influence = .85, spin = 17,
+        size = {{0, .28, .10}, {.52, 1.05, .34}, {1, 1.60, .38}},
+        transparency = {{0, .97}, {.25, .79}, {.63, .86}, {1, 1}},
+        color = {{0, 67, 46, 36}, {.5, 54, 46, 43}, {1, 44, 40, 41}},
+    }
+end
+
+local function schedule(random, time, rate)
+    return if rate &gt; .001 then time + random:NextNumber(.58, 1.54) / rate else math.huge
+end
+
+local function rate(emitterObject, value)
+    emitterObject.Enabled = value &gt; .01
+    emitterObject.Rate = value
+end
+
+local function lightMount(parent)
+    local mount = attach("Heat light position", parent)
+    local light = Instance.new("PointLight")
+    light.Name = "Soft lava bounce"
+    light.Color = Color3.fromRGB(255, 106, 35)
+    light.Brightness = 0
+    light.Enabled = false
+    light.Shadows = false
+    light.Parent = mount
+    return {item = light, mount = mount}
+end
+
+local function blister(parent)
+    local skin = part("Magma bubble", parent, Enum.PartType.Ball, Enum.Material.SmoothPlastic)
+    local halo = part("Bubble disturbance", parent, Enum.PartType.Cylinder, Enum.Material.Neon)
+    return {skin = skin, halo = halo, active = false}
+end
+
+function Emissions.new(source, folder, config)
+    config = config or {}
+    local self = setmetatable({}, Emissions)
+    self._source = source
+    self._quality = setting(config.AnimationQuality, .85, 0, 1)
+    self._sparkRate = setting(config.SparkEmissionRate, 26, 0, 75)
+    self._bubbleRate = setting(config.BubbleFrequency, .48, 0, 2.5)
+    self._smoke = setting(config.SmokeDensity, .34, 0, 1)
+    self._glow = setting(config.GlowIntensity, .78, 0, 2)
+    self._brightness = setting(config.LavaBrightness, .96, 0, 2)
+    self._flow = setting(config.LavaFlowSpeed, .72, 0, 5)
+    local direction = config.FlowDirection
+    self._flowDirection = if typeof(direction) == "Vector2" and direction.Magnitude &gt; .001
+        then direction.Unit else Vector2.new(.961, .276)
+    self._lightGrant = true
+    self._lights = {}
+    self._bubbles = {}
+
+    local container = Instance.new("Folder")
+    container.Name = "LavaEmissions"
+    container.Parent = folder
+    self._container = container
+    self._carrier = part("Surface emitter", container, Enum.PartType.Block, Enum.Material.SmoothPlastic)
+    self._cinders = emitter(self._carrier, "Floating cinders", SPARKS, cinderSpec(false))
+    self._cinders.Shape = Enum.ParticleEmitterShape.Box
+    self._cinders.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
+    self._vapor = emitter(self._carrier, "Volcanic wisps", SMOKE, smokeSpec())
+    self._vapor.Shape = Enum.ParticleEmitterShape.Box
+    self._vapor.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
+    self._popAt = attach("Random lava pop", self._carrier)
+    self._pop = emitter(self._popAt, "Molten droplets", SPARKS, cinderSpec(true))
+
+    local size = source.Size
+    local position = source.Position
+    local seed = math.floor(position.X * 2971 + position.Y * 383 + position.Z * 733 + size.X * 47) % 2147483647
+    self._random = Random.new(seed)
+    self._phase = self._random:NextNumber(0, TAU)
+    local area = size.X * size.Z
+    local lightCount = if config.EnableLights ~= false and self._glow &gt; 0 then (if area &gt; 180 then 2 else 1) else 0
+    for index = 1, lightCount do
+        self._lights[index] = lightMount(self._carrier)
+    end
+    local capacity = if self._bubbleRate &gt; 0 and self._quality &gt; 0 then math.clamp(math.ceil(self._quality * 4), 1, 4) else 0
+    for index = 1, capacity do
+        self._bubbles[index] = blister(container)
+    end
+    return self
+end
+
+function Emissions:_align()
+    local frame = self._source.CFrame
+    local size = self._source.Size
+    if self._frame == frame and self._size == size then
+        return
+    end
+    self._frame, self._size = frame, size
+    self._surface = frame * CFrame.new(0, size.Y * .5, 0)
+    self._carrier.CFrame = self._surface * CFrame.new(0, COLUMN_OFFSET, 0)
+    self._carrier.Size = Vector3.new(size.X * .91, .028, size.Z * .91)
+    local range = math.clamp(math.sqrt(size.X * size.Z) * .88, 7, 19)
+    for index, record in ipairs(self._lights) do
+        local sign = if #self._lights == 1 then 0 elseif index == 1 then -1 else 1
+        record.mount.Position = Vector3.new(sign * size.X * .23, .09, sign * -size.Z * .14)
+        record.item.Range = range
+    end
+end
+
+function Emissions:SetLightsEnabled(enabled)
+    if not self._container then
+        return
+    end
+    self._lightGrant = enabled
+    if not enabled then
+        for _, record in ipairs(self._lights) do
+            record.item.Enabled = false
+        end
+    end
+end
+
+function Emissions:_spot(margin)
+    local random = self._random
+    local x = math.max(0, self._size.X * .5 - margin)
+    local z = math.max(0, self._size.Z * .5 - margin)
+    return random:NextNumber(-x, x), random:NextNumber(-z, z)
+end
+
+function Emissions:_burst(x, z, strength, density)
+    if self._sparkRate &lt;= 0 or density &lt; .12 then
+        return
+    end
+    self._popAt.Position = Vector3.new(x, 0, z)
+    local count = math.clamp(math.floor(self._random:NextNumber(4, 8) * strength * density + .5), 1, 9)
+    self._pop:Emit(count)
+end
+
+function Emissions:_formBubble(time)
+    local random = self._random
+    for _, bubble in ipairs(self._bubbles) do
+        if not bubble.active then
+            local limit = math.min(self._size.X, self._size.Z) * .13
+            local radius = math.min(limit, random:NextNumber(.27, .71))
+            if radius &lt; .055 then
+                return
+            end
+            bubble.x, bubble.z = self:_spot(radius * 1.6)
+            bubble.radius = radius
+            bubble.angle = random:NextNumber(0, TAU)
+            bubble.start = time
+            bubble.growth = random:NextNumber(.74, 1.86)
+            bubble.popped = false
+            bubble.active = true
+            return
+        end
+    end
+end
+
+function Emissions:_animateBubble(bubble, time, density)
+    local age = time - bubble.start
+    local fade = (age - bubble.growth) / .27
+    if fade &gt;= 1 or density &lt;= .01 then
+        bubble.skin.Transparency = 1
+        bubble.halo.Transparency = 1
+        bubble.active = false
+        return
+    end
+    local border = bubble.radius * 1.6
+    local limitX = math.max(0, self._size.X * .5 - border)
+    local limitZ = math.max(0, self._size.Z * .5 - border)
+    local drift = self._flow * age * .035
+    local x = math.clamp(bubble.x + drift * self._flowDirection.X, -limitX, limitX)
+    local z = math.clamp(bubble.z + drift * self._flowDirection.Y, -limitZ, limitZ)
+    if fade &gt;= 0 and not bubble.popped then
+        self:_burst(x, z, 1, density)
+        bubble.popped = true
+    end
+    local progress = math.clamp(age / bubble.growth, 0, 1)
+    local growth = progress * progress * (3 - 2 * progress)
+    local collapse = 1 - math.max(0, fade)
+    local radius = bubble.radius * (.17 + .83 * growth) * (.34 + .66 * collapse)
+    local rise = MOLTEN_TOP - radius * (.91 - .39 * growth)
+    bubble.skin.Size = Vector3.new(radius * 2, radius * 2, radius * 2)
+    bubble.skin.CFrame = self._surface * CFrame.new(x, rise, z)
+    bubble.skin.Color = COOL_SKIN:Lerp(HOT_SKIN, growth ^ 1.4)
+    bubble.skin.Transparency = 1 - (.77 + .18 * growth) * collapse * density
+
+    -- A slight orange puddle spreads from the pop under the crust.
+    local spread = bubble.radius * (.54 + .92 * growth + math.max(0, fade) * .49)
+    bubble.halo.Size = Vector3.new(.014, spread * 1.9, spread * 1.56)
+    local patch = self._surface * CFrame.new(x, HALO_OFFSET, z)
+    bubble.halo.CFrame = patch * CFrame.Angles(0, bubble.angle, math.pi * .5)
+    bubble.halo.Color = HALO_RED:Lerp(HALO_GOLD, growth * .58)
+    local heat = math.min(1, self._glow * self._brightness * .92)
+    bubble.halo.Transparency = 1 - (.09 + .34 * growth) * collapse * density * heat
+end
+
+function Emissions:Update(time, dt, lod)
+    if not self._container then
+        return
+    end
+    if not self._source.Parent then
+        self:Destroy()
+        return
+    end
+    self:_align()
+
+    local target = setting(lod, 1, 0, 1) * self._quality
+    local alpha = 1 - math.exp(-setting(dt, 1 / 30, 0, .25) * 8)
+    local density = if target &lt;= .01 then 0 else (self._density or target)
+    density += (target - density) * alpha
+    self._density = density
+    rate(self._cinders, self._sparkRate * density)
+    rate(self._vapor, self._smoke * 7 * density * density)
+    for index, record in ipairs(self._lights) do
+        local enabled = self._lightGrant and target &gt; .48
+        record.item.Enabled = enabled
+        if enabled then
+            local wave = time * 2.3 + self._phase + index * 1.9
+            local flicker = .86 + .10 * math.sin(wave) + .04 * math.sin(wave * 2.9)
+            record.item.Brightness = self._glow * self._brightness * 1.12 * flicker * density
+        end
+    end
+
+    local bubbleRate = self._bubbleRate * density ^ 1.4
+    local popRate = self._sparkRate / 26 * .24 * density ^ 1.6
+    if bubbleRate &lt;= .001 or not self._nextBubble or self._nextBubble == math.huge then
+        self._nextBubble = schedule(self._random, time, bubbleRate)
+    elseif time &gt;= self._nextBubble then
+        self:_formBubble(time)
+        self._nextBubble = schedule(self._random, time, bubbleRate)
+    end
+    if popRate &lt;= .001 or not self._nextPop or self._nextPop == math.huge then
+        self._nextPop = schedule(self._random, time, popRate)
+    elseif time &gt;= self._nextPop then
+        local x, z = self:_spot(.16)
+        self:_burst(x, z, .85, density)
+        self._nextPop = schedule(self._random, time, popRate)
+    end
+    for _, bubble in ipairs(self._bubbles) do
+        if bubble.active then
+            self:_animateBubble(bubble, time, density)
+        end
+    end
+end
+
+function Emissions:Destroy()
+    if self._container then
+        self._container:Destroy()
+        self._container = nil
+    end
+end
+
+return Emissions
+</ProtectedString>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="RBX90">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="Script" referent="RBX98">
+      <Properties>
+        <string name="Name">DemoTag</string>
+        <ProtectedString name="Source">local CollectionService = game:GetService("CollectionService")
+local Workspace = game:GetService("Workspace")
+local scene = Workspace:WaitForChild("VolcanicLavaDemo")
+
+local main = scene:WaitForChild("MainPool")
+local side = scene:WaitForChild("SidePool")
+side:SetAttribute("FlowAngle", -22)
+side:SetAttribute("LavaFlowSpeed", .48)
+side:SetAttribute("GlowIntensity", .62)
+
+CollectionService:AddTag(main, "VolcanicLava")
+CollectionService:AddTag(side, "VolcanicLava")
+</ProtectedString>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="StarterPlayer" referent="RBX91">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterPlayerScripts" referent="RBX92">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="LocalScript" referent="RBX97">
+        <Properties>
+          <string name="Name">VolcanicLavaClient</string>
+          <ProtectedString name="Source">local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local system = ReplicatedStorage:WaitForChild("VolcanicLava")
+local Config = require(system.Config)
+local Surface = require(system.Surface)
+local MoltenTexture = require(system.MoltenTexture)
+local Emissions = require(system.Emissions)
+
+local budget = Config.Budget
+local mobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+local maxSurfaces = mobile and budget.MobileVisualPools or budget.MaxVisualPools
+local maxAtmospheres = mobile and budget.MobileAtmospherePools or budget.MaxAtmospherePools
+local poolRecords = {}
+local seconds = 0
+local nextScan = 0
+local scanStep = .25
+local root = Instance.new("Folder")
+root.Name = "VolcanicLavaClientEffects"
+root.Parent = Workspace
+
+local function dropAtmosphere(record)
+	if record.emissions then
+		record.emissions:Destroy()
+		record.emissions = nil
+	end
+end
+
+local function clear(record)
+	dropAtmosphere(record)
+	if record.image then
+		record.image:Destroy()
+		record.image = nil
+	end
+	if record.surface then
+		record.surface:Destroy()
+		record.surface = nil
+	end
+	if record.folder then
+		record.folder:Destroy()
+		record.folder = nil
+	end
+end
+
+local function track(part)
+	if not part:IsA("BasePart") or poolRecords[part] then
+		return
+	end
+	local record = {part = part, lod = 0, nextFrame = 0, lastUpdate = 0}
+	local function changed(attribute)
+		if not attribute or Config.Defaults[attribute] ~= nil then
+			record.needsRefresh = true
+			nextScan = 0
+		end
+	end
+	record.attributes = part.AttributeChanged:Connect(changed)
+	record.resized = part:GetPropertyChangedSignal("Size"):Connect(changed)
+	poolRecords[part] = record
+	nextScan = 0
+end
+
+local function untrack(part)
+	local record = poolRecords[part]
+	if record then
+		record.attributes:Disconnect()
+		record.resized:Disconnect()
+		clear(record)
+		poolRecords[part] = nil
+		nextScan = 0
+	end
+end
+
+local function create(record)
+	local folder = Instance.new("Folder")
+	folder.Name = record.part.Name .. "_LavaVisuals"
+	folder.Parent = root
+	record.folder = folder
+	local settings = Config.forPart(record.part, mobile)
+	record.settings = settings
+	record.surface = Surface.new(record.part, folder, settings)
+	if settings.UseEditableTexture then
+		record.image = MoltenTexture.new(record.surface.TextureCarrier or record.part, folder, settings)
+	end
+	record.needsRefresh = nil
+	record.nextFrame = 0
+	record.lastUpdate = seconds
+end
+
+local function distanceToSurface(part, worldPoint)
+	local point = part.CFrame:PointToObjectSpace(worldPoint)
+	local half = part.Size * .5
+	local x = math.max(0, math.abs(point.X) - half.X)
+	local z = math.max(0, math.abs(point.Z) - half.Z)
+	local height = point.Y - half.Y
+	return math.sqrt(x * x + height * height + z * z)
+end
+
+local function rescan(camera)
+	local candidates = {}
+	for part, record in pairs(poolRecords) do
+		if part:IsDescendantOf(Workspace) then
+			local distance = distanceToSurface(part, camera.CFrame.Position)
+			local heldRange = record.surface and 24 or 0
+			if distance &lt;= budget.MaxDistance + heldRange then
+				record.distance = distance
+				record.rank = distance - (record.surface and 12 or 0)
+				table.insert(candidates, record)
+			else
+				clear(record)
+			end
+		else
+			clear(record)
+		end
+	end
+	table.sort(candidates, function(a, b)
+		return a.rank &lt; b.rank
+	end)
+
+	local remainingBuilds = 1
+	local atmosphereSlots = maxAtmospheres
+	for index, record in ipairs(candidates) do
+		if index &lt;= maxSurfaces then
+			if remainingBuilds &gt; 0 and (not record.surface or record.needsRefresh) then
+				clear(record)
+				create(record)
+				remainingBuilds -= 1
+			end
+			if record.surface then
+				local fade = math.clamp((record.distance - budget.NearDistance)
+					/ (budget.MaxDistance - budget.NearDistance), 0, 1)
+				record.lod = 1 - .82 * fade
+				if atmosphereSlots &gt; 0 and record.distance &lt; budget.AtmosphereDistance + (record.emissions and 12 or 0) then
+					atmosphereSlots -= 1
+					if not record.emissions then
+						record.emissions = Emissions.new(record.part, record.folder, record.settings)
+					end
+					record.atmosphereLOD = 1 - math.clamp((record.distance - budget.NearDistance)
+						/ (budget.AtmosphereDistance - budget.NearDistance), 0, 1)
+				else
+					dropAtmosphere(record)
+				end
+			end
+		else
+			clear(record)
+		end
+	end
+end
+
+local added = CollectionService:GetInstanceAddedSignal(Config.Tag):Connect(track)
+local removed = CollectionService:GetInstanceRemovedSignal(Config.Tag):Connect(untrack)
+for _, part in ipairs(CollectionService:GetTagged(Config.Tag)) do
+	track(part)
+end
+
+local heartbeat = RunService.Heartbeat:Connect(function(dt)
+	seconds += dt
+	local camera = Workspace.CurrentCamera
+	if camera and seconds &gt;= nextScan then
+		nextScan = seconds + scanStep
+		rescan(camera)
+	end
+	for _, record in pairs(poolRecords) do
+		if record.surface and seconds &gt;= record.nextFrame then
+			local frameRate = 12 + (mobile and 20 or 36) * record.lod
+			local interval = 1 / frameRate
+			record.nextFrame = math.max(record.nextFrame + interval, seconds + .002)
+			local delta = math.min(.25, seconds - record.lastUpdate)
+			record.lastUpdate = seconds
+			record.surface:Update(seconds, record.lod)
+			if record.image then
+				record.image:Update(seconds, record.lod)
+			end
+			if record.emissions then
+				record.emissions:Update(seconds, delta, record.atmosphereLOD)
+			end
+		end
+	end
+end)
+
+script.Destroying:Connect(function()
+	added:Disconnect()
+	removed:Disconnect()
+	heartbeat:Disconnect()
+	for part in pairs(poolRecords) do
+		untrack(part)
+	end
+	root:Destroy()
+end)
+</ProtectedString>
+        </Properties>
+      </Item>
+      <Item class="LocalScript" referent="RBX99">
+        <Properties>
+          <string name="Name">DemoCamera</string>
+          <ProtectedString name="Source">local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local camera = Workspace.CurrentCamera
+while not camera do
+	Workspace:GetPropertyChangedSignal("CurrentCamera"):Wait()
+	camera = Workspace.CurrentCamera
+end
+
+camera.CameraType = Enum.CameraType.Scriptable
+camera.FieldOfView = 48
+local target = Vector3.new(4, .15, -.6)
+local elapsed = 0
+RunService:BindToRenderStep("VolcanicLavaDemoCamera", Enum.RenderPriority.Camera.Value, function(dt)
+	elapsed += dt
+	local angle = -.48 + math.sin(elapsed * .13) * .21
+	local eye = target + Vector3.new(math.sin(angle) * 65, 32, math.cos(angle) * 65)
+	camera.CFrame = CFrame.lookAt(eye, target)
+	camera.Focus = CFrame.new(target)
+end)
+script.Destroying:Connect(function()
+	RunService:UnbindFromRenderStep("VolcanicLavaDemoCamera")
+end)
+</ProtectedString>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+</roblox>
