@@ -3,7 +3,7 @@ local RunService = game:GetService("RunService")
 local Selection = game:GetService("Selection")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 
-local shellColor = Color3.fromRGB(84, 84, 84)
+local shellColor = Color3.fromRGB(96, 96, 96)
 local gateColor = Color3.fromRGB(61, 61, 61)
 local roles = {
 	dungeoncavegrayshell = "Shell",

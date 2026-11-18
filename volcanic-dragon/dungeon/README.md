@@ -1,6 +1,6 @@
 # Broken Dungeon Cave
 
-A plain charcoal-gray cave with a tall, angular opening, a beveled entrance, and a shallow shell that curves down into a rounded back. The dark gray gate has longer torn bars overhead and broken lower ends above both claws. The upper side bars and rails remain attached to the arch.
+A plain gray cave with a tall, angular opening, a beveled entrance, and a shallow shell that curves down into a rounded back. The dark gray gate has longer torn bars overhead and broken lower ends above both claws. The upper side bars and rails remain attached to the arch.
 
 [Download the GLB](DragonDungeonCave.glb) · [Front preview](DungeonCavePreview.png) · [Rear preview](DungeonCaveRear.png)
 
@@ -12,9 +12,9 @@ A plain charcoal-gray cave with a tall, angular opening, a beveled entrance, and
 
 ### Apply the colors in Studio
 
-Select the shell MeshPart in Explorer to darken just the cave, or select the full cave model to color the shell and gate. Copy the full [color fix](ApplyDungeonCaveColors.command.luau) into Studio's Command Bar in Edit mode and run it once. Click off the selection to see the new shade.
+Select the shell MeshPart in Explorer to recolor just the cave, or select the full cave model to color the shell and gate. Copy the full [color fix](ApplyDungeonCaveColors.command.luau) into Studio's Command Bar in Edit mode and run it once. Click off the selection to see the new shade.
 
-You can also set **Color** in Properties to RGB `84, 84, 84` for the shell and `61, 61, 61` for all three gate meshes. Use **SmoothPlastic** for a plain finish.
+You can also set **Color** in Properties to RGB `96, 96, 96` for the shell and `61, 61, 61` for all three gate meshes. Use **SmoothPlastic** for a plain finish.
 
 ## Rebuild in Blender
 
