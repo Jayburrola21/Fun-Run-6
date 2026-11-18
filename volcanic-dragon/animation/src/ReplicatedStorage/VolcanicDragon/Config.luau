@@ -1,0 +1,18 @@
+-- Angles in degrees, timing in seconds, and distances in studs.
+return table.freeze({
+	ModelName = "VolcanicDragon",
+	Duration = 10,
+	FireDuration = 5,
+	SweepAngle = 27,
+	FireRange = 105,
+	FireDepression = 13,
+	PreviewPrompt = true,
+	PreviewPromptDistance = 150,
+	-- Optional: put the track's Workspace child name in TrackName to keep
+	-- impact effects exclusive to that model and its descendants.
+	TrackName = "",
+	Effects = table.freeze({
+		Quality = 1,
+		WidthScale = 1,
+	}),
+})

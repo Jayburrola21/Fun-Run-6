@@ -1,0 +1,17 @@
+{
+  "name": "Volcanic Dragon Fire Breath",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "VolcanicDragon": { "$path": "src/ReplicatedStorage/VolcanicDragon" }
+    },
+    "ServerScriptService": {
+      "VolcanicDragonServer": { "$path": "src/ServerScriptService/VolcanicDragonServer.server.luau" }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "VolcanicDragonClient": { "$path": "src/StarterPlayer/StarterPlayerScripts/VolcanicDragonClient.client.luau" }
+      }
+    }
+  }
+}
