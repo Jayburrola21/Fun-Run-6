@@ -13,8 +13,6 @@ return table.freeze({
 	SweepAngle = 27,
 	FireRange = 105,
 	FireDepression = 13,
-	PreviewPrompt = true,
-	PreviewPromptDistance = 150,
 	-- Optional: put the track's Workspace child name in TrackName to keep
 	-- impact effects exclusive to that model and its descendants.
 	TrackName = "",
@@ -523,22 +521,22 @@ end
 local function flameBands(parent, source, endpoint)
     return {
         beam(parent, source, endpoint, {
-            name = "Crimson fringe", textureLength = 4.5, scroll = 12, brightness = 1.3,
-            width0 = 1.25, width1 = 4.75, phase = 0, offset = -.05,
+            name = "Crimson fringe", textureLength = 5.8, scroll = 12, brightness = 1.5,
+            width0 = 1.48, width1 = 8.6, phase = 0, offset = -.05,
             color = {{0, color(255, 72, 18)}, {.38, color(234, 49, 5)}, {1, color(144, 12, 1)}},
-            transparency = {{0, .76}, {.13, .59}, {.67, .63}, {1, .95}},
+            transparency = {{0, .73}, {.13, .48}, {.67, .54}, {1, .86}},
         }),
         beam(parent, source, endpoint, {
-            name = "Orange flame body", textureLength = 5.3, scroll = 15, brightness = 1.65,
-            width0 = .88, width1 = 3.15, phase = 2.2, offset = 0,
+            name = "Orange flame body", textureLength = 6.2, scroll = 15, brightness = 2.1,
+            width0 = 1.06, width1 = 5.65, phase = 2.2, offset = 0,
             color = {{0, color(255, 184, 70)}, {.50, color(255, 113, 18)}, {1, color(242, 52, 2)}},
-            transparency = {{0, .55}, {.16, .36}, {.62, .46}, {1, .90}},
+            transparency = {{0, .48}, {.16, .24}, {.62, .35}, {1, .76}},
         }),
         beam(parent, source, endpoint, {
-            name = "White-hot core", textureLength = 5.8, scroll = 17, brightness = 2.5,
-            width0 = .51, width1 = 1.62, phase = 4.6, offset = .06,
+            name = "White-hot core", textureLength = 5.8, scroll = 17, brightness = 3,
+            width0 = .62, width1 = 2.55, phase = 4.6, offset = .06,
             color = {{0, color(255, 250, 209)}, {.24, color(255, 212, 108)}, {1, color(255, 109, 14)}},
-            transparency = {{0, .10}, {.22, .23}, {.70, .58}, {1, 1}},
+            transparency = {{0, .08}, {.22, .16}, {.70, .45}, {1, 1}},
         }),
     }
 end
@@ -548,22 +546,22 @@ local function streamEmitters(mouth, wake)
     return {
         emitter(mouth, {
             name = "Nozzle flare", texture = FLAME, direction = front, emission = 1,
-            rate = 72, life = {.12, .22}, speed = {12, 25}, speedScale = {2.5, 3.7}, spread = 3, spin = 90,
-            size = {{0, .66}, {.35, 1.03}, {1, .68}},
+            rate = 84, life = {.12, .22}, speed = {12, 25}, speedScale = {2.5, 3.7}, spread = 3, spin = 90,
+            size = {{0, .78}, {.35, 1.34}, {1, .82}},
             transparency = {{0, .05}, {.42, .14}, {1, 1}},
             color = {{0, color(255, 251, 216)}, {.35, color(255, 221, 110)}, {1, color(255, 112, 23)}},
         }),
         emitter(mouth, {
             name = "Forward flame tongues", texture = FLAME, direction = front, emission = .94,
-            rate = 60, life = {.22, .31}, speed = {10, 21}, speedScale = {1.9, 2.8}, spread = 4, spin = 160,
-            size = {{0, .8}, {.42, 1.8}, {1, 1.05}},
+            rate = 72, life = {.22, .31}, speed = {10, 21}, speedScale = {1.9, 2.8}, spread = 3, spin = 160,
+            size = {{0, .93}, {.42, 2.7}, {1, 1.5}},
             transparency = {{0, .23}, {.6, .5}, {1, 1}},
             color = {{0, color(255, 194, 63)}, {.35, color(255, 109, 13)}, {1, color(219, 34, 2)}},
         }),
         emitter(wake, {
             name = "Turbulent flame edges", texture = FLAME, direction = front, emission = .89,
-            rate = 32, life = {.18, .28}, speed = {7, 19}, speedScale = {1.15, 1.6}, spread = 8, spin = 180,
-            size = {{0, 1.2}, {.5, 2.35}, {1, 2}},
+            rate = 42, life = {.18, .28}, speed = {7, 19}, speedScale = {1.15, 1.6}, spread = 5, spin = 180,
+            size = {{0, 1.6}, {.5, 3.75}, {1, 2.75}},
             transparency = {{0, .39}, {.48, .58}, {1, 1}},
             color = {{0, color(246, 79, 6)}, {.67, color(197, 30, 2)}, {1, color(74, 10, 4)}},
         }),
@@ -583,16 +581,16 @@ local function impactEmitters(ground)
     return {
         emitter(ground, {
             name = "Track strike", texture = FLAME, direction = top, emission = 1,
-            rate = 48, life = {.22, .48}, speed = {4, 11}, spread = 53, spin = 175,
-            size = {{0, .78}, {.38, 1.72}, {1, .94}},
+            rate = 74, life = {.32, .64}, speed = {6, 15}, spread = 39, spin = 175,
+            size = {{0, 1.35}, {.38, 3.85}, {1, 2.15}},
             transparency = {{0, .1}, {.60, .40}, {1, 1}},
             color = {{0, color(255, 232, 125)}, {.46, color(255, 110, 15)}, {1, color(191, 24, 3)}},
         }),
         emitter(ground, {
             name = "Hot scatter", texture = SPARK, direction = top, emission = 1,
-            rate = 29, life = {.36, .78}, speed = {5, 13}, spread = 70, spin = 42,
+            rate = 38, life = {.36, .78}, speed = {5, 13}, spread = 66, spin = 42,
             acceleration = Vector3.new(0, -12, 0), drag = 1.2,
-            size = {{0, .18}, {.35, .15}, {1, .02}},
+            size = {{0, .24}, {.35, .18}, {1, .02}},
             transparency = {{0, 0}, {.75, .25}, {1, 1}},
             color = {{0, color(255, 214, 97)}, {.45, color(255, 110, 10)}, {1, color(219, 35, 5)}},
         }),
@@ -600,7 +598,7 @@ local function impactEmitters(ground)
             name = "Rising strike smoke", texture = SMOKE, direction = top, emission = .03, influence = .88,
             rate = 14, life = {.64, 1.32}, speed = {1.9, 4.1}, spread = 30, spin = 34,
             acceleration = Vector3.new(0, 3.1, 0), drag = 1.4,
-            size = {{0, 1.18}, {.43, 1.98}, {1, 2.72}},
+            size = {{0, 1.42}, {.43, 2.5}, {1, 3.4}},
             transparency = {{0, .96}, {.26, .68}, {.63, .82}, {1, 1}},
             color = {{0, color(56, 42, 40)}, {1, color(30, 27, 29)}},
         }),
@@ -668,8 +666,8 @@ function FireEffects.new(dragonModel, config)
     self._bands = flameBands(group, source, endpoint)
     self._stream = streamEmitters(mouth, wake)
     self._impact = impactEmitters(ground)
-    self._mouthLight = pointLight("Mouth bounce", mouth, color(255, 142, 52), 15)
-    self._impactLight = pointLight("Track bounce", ground, color(255, 88, 14), 15)
+    self._mouthLight = pointLight("Mouth bounce", mouth, color(255, 142, 52), 19)
+    self._impactLight = pointLight("Track bounce", ground, color(255, 88, 14), 24)
     self._scorch = scorchPool(group)
     self._scorchIndex = 0
     self._scorchWait = 0
@@ -769,13 +767,15 @@ function FireEffects:Update(origin, direction, intensity, dt)
     local flicker = 1 + .065 * math.sin(self._time * 33) + .045 * math.sin(self._time * 57)
     local level = intensity * flicker
     local scale = (.44 + .56 * intensity) * self._size
+    -- Give longer jets room to flare without making close hits fan outward.
+    local expansion = math.clamp(length / 18, .60, 1)
     local bin = math.clamp(math.floor(level * FADE_STEPS + .5), 0, FADE_STEPS)
     for _, layer in ipairs(self._bands) do
         local band = layer.item
         band.Enabled = length > .15 and bin > 0
         local pulse = 1 + .096 * math.sin(self._time * 22 + layer.phase)
         band.Width0 = layer.width0 * scale * pulse
-        band.Width1 = layer.width1 * scale * pulse
+        band.Width1 = (layer.width0 + (layer.width1 - layer.width0) * expansion) * scale * pulse
         if self._fadeBin ~= bin then
             band.Transparency = layer.fades[bin]
         end
@@ -784,7 +784,7 @@ function FireEffects:Update(origin, direction, intensity, dt)
     local streamLevel = if length > .15 then level * self._quality else 0
     setEmitters(self._stream, streamLevel, length)
     self._mouthLight.Enabled = true
-    self._mouthLight.Brightness = 2.0 * level
+    self._mouthLight.Brightness = 2.65 * level
 
     if hit then
         local forward = stableForward(direction, hit.Normal)
@@ -792,7 +792,7 @@ function FireEffects:Update(origin, direction, intensity, dt)
         self._ground.CFrame = CFrame.lookAt(contact, contact + forward, hit.Normal)
         setEmitters(self._impact, level * self._quality, 0)
         self._impactLight.Enabled = true
-        self._impactLight.Brightness = 2.6 * level
+        self._impactLight.Brightness = 4.3 * level
         if intensity > .32 and self._scorchWait <= 0
             and (not self._lastScorch or (hit.Position - self._lastScorch).Magnitude > .82 * self._size) then
             self._lastScorch = hit.Position
@@ -841,7 +841,6 @@ local ATTACK_INTERVAL = 20
 local START_LEAD = 0.22
 
 local registered = {}
-local studioPrompts = RunService:IsStudio() and Config.PreviewPrompt
 
 local function findRig(model)
 	if model and model:IsA("Model") and model:IsDescendantOf(Workspace) then
@@ -859,18 +858,6 @@ local function availableAt(model)
 	return type(previous) == "number" and previous + DURATION or -math.huge
 end
 
-local function startAttack(model, state, startedAt, now)
-	model:SetAttribute(STARTED_AT, startedAt)
-	if state.prompt then
-		state.prompt.Enabled = false
-		task.delay(startedAt + DURATION - now, function()
-			if registered[model] == state and state.prompt.Parent and model:GetAttribute(STARTED_AT) == startedAt then
-				state.prompt.Enabled = true
-			end
-		end)
-	end
-end
-
 local function start(model)
 	if not model then
 		for candidate in pairs(registered) do
@@ -878,41 +865,15 @@ local function start(model)
 			break
 		end
 	end
-	local state = model and registered[model]
-	if not state or not model:IsDescendantOf(Workspace) then
+	if not model or not registered[model] or not model:IsDescendantOf(Workspace) then
 		warn("VolcanicDragon: import the rigged GLB in Workspace and name its model " .. Config.ModelName)
 		return
 	end
 
 	local now = Workspace:GetServerTimeNow()
 	if now >= availableAt(model) then
-		startAttack(model, state, now + START_LEAD, now)
+		model:SetAttribute(STARTED_AT, now + START_LEAD)
 	end
-end
-
-local function mountPrompt(model)
-	local base = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
-	if not base then
-		return nil
-	end
-	local point = Instance.new("Attachment")
-	point.Name = "VolcanicDragonStudioPromptLocation"
-	local center, size = model:GetBoundingBox()
-	point.Position = base.CFrame:PointToObjectSpace(center.Position + Vector3.yAxis * (size.Y * 0.5 + 2))
-	point.Parent = base
-
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "TestFireBreath"
-	prompt.ActionText = "Test fire breath"
-	prompt.ObjectText = "Volcanic Dragon"
-	prompt.HoldDuration = 0.2
-	prompt.MaxActivationDistance = Config.PreviewPromptDistance
-	prompt.RequiresLineOfSight = false
-	prompt.Parent = point
-	prompt.Triggered:Connect(function()
-		start(model)
-	end)
-	return prompt
 end
 
 local function register(model)
@@ -929,7 +890,6 @@ local function register(model)
 	model:SetAttribute(LOADED_AT, loadedAt)
 	model:SetAttribute(STARTED_AT, nil)
 	local state = {
-		prompt = studioPrompts and mountPrompt(model) or nil,
 		nextAttackAt = loadedAt + ATTACK_INTERVAL,
 	}
 	registered[model] = state
@@ -939,10 +899,6 @@ local function register(model)
 			state.connection:Disconnect()
 			registered[model] = nil
 			CollectionService:RemoveTag(model, TAG)
-			local point = state.prompt and state.prompt.Parent
-			if point then
-				point:Destroy()
-			end
 		end
 	end)
 end
@@ -972,7 +928,7 @@ RunService.Heartbeat:Connect(function()
 			elseif now >= readyAt and model:IsDescendantOf(Workspace) then
 				-- Keep the previous timestamp until its recovery has finished.
 				state.nextAttackAt = startedAt + ATTACK_INTERVAL
-				startAttack(model, state, startedAt, now)
+				model:SetAttribute(STARTED_AT, startedAt)
 			end
 		end
 	end

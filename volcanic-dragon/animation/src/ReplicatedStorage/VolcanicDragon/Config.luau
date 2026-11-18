@@ -8,8 +8,6 @@ return table.freeze({
 	SweepAngle = 27,
 	FireRange = 105,
 	FireDepression = 13,
-	PreviewPrompt = true,
-	PreviewPromptDistance = 150,
 	-- Optional: put the track's Workspace child name in TrackName to keep
 	-- impact effects exclusive to that model and its descendants.
 	TrackName = "",

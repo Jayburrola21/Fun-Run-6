@@ -160,9 +160,17 @@ assert(math.abs(hit.Position.Y) < .001, "Ray must touch the test floor")
 assert(lastCast.filter.ExcludeInstances[1] == dragon and lastCast.filter.ExcludeInstances[2] == effect._group)
 assert(lastCast.filter.IncludeInstances[1] == track, "A late track must be resolved")
 assert(effect._mouthLight.Enabled and effect._impactLight.Enabled)
-assert(effect._impact[1].item.Rate > 0 and effect._impact[1].item.Rate < 48)
+local strike = effect._impact[1]
+assert(strike.item.Rate > 0 and strike.item.Rate < strike.rate, "Quality scales the particle rate")
+assert(strike.item.Size[1][2][2] >= 3.5, "The track strike blooms into a larger plume")
 assert(effect._endpoint.CFrame.point == hit.Position and effect._ground.CFrame.point.Y > 0)
 assert(scheduledFades == 2)
+
+local fringe = effect._bands[1].item
+local core = effect._bands[3].item
+assert(fringe.Width1 > 7 and fringe.Width0 < 1.7, "The jet grows beyond the narrow mouth")
+assert(core.Width1 < fringe.Width1 / 2, "The jet retains its narrow hot core")
+assert(effect._stream[3].item.SpreadAngle[1] <= 5, "Flame particles stay close to the ray")
 
 local initialCount = createdCount
 for index = 1, 30 do
@@ -170,6 +178,10 @@ for index = 1, 30 do
 end
 assert(createdCount == initialCount, "Sustained fire must reuse its effect instances")
 assert(scheduledFades == 62 and canceledFades > 0 and effect._scorchIndex <= 12)
+
+local closeHit = effect:Update(Vector3.new(0, 1, 0), facing, .9, 0)
+assert(effect._endpoint.CFrame.point == closeHit.Position and fringe.Width1 < 6.1,
+    "The beam stays focused at its actual hit point during a short strike")
 
 forceMiss = true
 effect:Update(origin, facing, .8, .03)
@@ -184,4 +196,4 @@ effect:Destroy()
 assert(group.destroyed and effect._group == nil)
 effect:Destroy()
 assert(effect:Update(origin, facing, 1, 1 / 30) == nil)
-print("PASS raycast, late track, impact separation, scorch pool, stop, and destroy")
+print("PASS focused fire, larger strike, raycast, late track, scorch pool, stop, and destroy")
