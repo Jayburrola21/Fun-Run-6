@@ -10,8 +10,8 @@ local NAMES = {
 }
 local UP = Vector3.yAxis
 local HORN_TIP_PREFIX = "DragonHornHeat"
-local WARM_RED = Color3.fromRGB(156, 5, 3)
-local HOT_RED = Color3.fromRGB(255, 24, 9)
+local WARM_RED = Color3.fromRGB(178, 36, 6)
+local HOT_RED = Color3.fromRGB(255, 79, 16)
 
 function DragonRig.isHornTip(instance)
 	return instance:IsA("MeshPart") and instance.Name:sub(1, #HORN_TIP_PREFIX) == HORN_TIP_PREFIX

@@ -1,6 +1,6 @@
 # Volcanic Dragon Idle and Fire Breath
 
-The dragon starts in a relaxed idle pose. Its chest and neck rise and fall as it breathes, with occasional blinks and a slight head tilt and lean. The fire-breath attack starts 20 seconds after the dragon loads and repeats on that cadence. The black crown and facial horn tips heat to bright red just before ignition and cool as the dragon returns to idle.
+The dragon starts in a relaxed idle pose. Its chest and neck rise and fall as it breathes, with occasional blinks and a slight head tilt and lean. The fire-breath attack starts 20 seconds after the dragon loads and repeats on that cadence. The black crown and facial horn tips heat to a bright orange-red just before ignition and cool as the dragon returns to idle.
 
 ## Test it in Roblox Studio
 
