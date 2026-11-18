@@ -1,18 +1,17 @@
 # Broken Dungeon Cave
 
-A recessed stone cavern with a split iron gate, fitted around the existing Volcanic Dragon rig. Seven bent bar stubs hang from the arch. Two low stubs and fallen iron sit outside the opening where the dragon's claws rest.
+A Blender-built stone cave that curves back to a rounded end. Weathered gray masonry covers the front arch, sides, roof, interior, and rear. The iron gate keeps its side bars and cross rails, with uneven torn bars pulled outward around the dragon's head.
 
-[View the Blender preview.](DungeonCavePreview.png)
+[Download the GLB](DragonDungeonCave.glb) · [Front preview](DungeonCavePreview.png) · [Rear preview](DungeonCaveRear.png)
 
-## Install in Roblox Studio
+## Place it in Roblox Studio
 
-1. Open your test copy of the place in **Edit** mode. Move the old doorway and intact gate out of the way and position the dragon where you want its head to emerge.
-2. Select the top-level dragon model. The installer also finds a single model named **VolcanicDragon** automatically.
-3. Open [InstallBrokenDungeonCave.command.luau](InstallBrokenDungeonCave.command.luau) in a text editor. Copy the entire file into the Studio Command Bar and run it. The installer creates and selects **Dragon Dungeon Cave** in Workspace.
-4. Press **Play** and watch the full fire sweep. The first attack starts at 20 seconds with the default dragon scripts.
+1. In your test place, move the previous cave and gate aside. Open the **3D Importer** and import `DragonDungeonCave.glb` as a model. Keep the texture import enabled. The GLB contains the cave and gate assemblies.
+2. Match the cave's scale to the Volcanic Dragon. Align the doorway behind the snout with the cave floor just below the claws. At the original rig scale, the doorway is about 4.4 studs forward of the dragon's authored origin. The preview shows this fit.
+3. Anchor the imported cave pieces. For a decorative cave, set their `CanCollide` and `CanQuery` to false so Studio's generated collision shape stays clear of the opening and the dragon's fire ray. Press **Play** in your test copy and watch the first sweep.
 
-The installer fits the doorway from the rig's bind pose, facing, and scale. All stone, arch, gate, and fallen iron pieces are editable Studio parts within the cave model. The entrance uses cool, faceted stone based on the supplied wall panel. You can keep that panel as a backdrop or extend the masonry around the new cave.
+The masonry was recreated from the supplied wall panel's style. The GLB embeds the stone color and normal maps and the weathered metal texture.
 
-Move the cave and dragon together when repositioning the scene. Rerunning the installer selects the existing cave fitted to that dragon. After changing the dragon's scale, adjust the cave with Studio's Scale tool or move the old cave out of Workspace and run the installer again.
+## Rebuild in Blender
 
-The default opening was checked against the shipped rig's head, horn, and claw motion through idle and the full fire sweep. Check clearance in Studio if your dragon uses a custom rig or a wider animation.
+Run `blender -b --python-exit-code 1 --python build_dungeon_cave.py` from this directory. The script builds the cave and calls `dungeon_gate.py` to model the ironwork.
