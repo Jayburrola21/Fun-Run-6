@@ -1,6 +1,6 @@
 # Connected off-road kart
 
-Import [OffroadKart_Connected.glb](OffroadKart_Connected.glb) with Studio's **3D Importer**. Keep the named meshes separate. The GLB includes the centered 07 and checker stripes, closer-fitting fenders, carbon-fiber spoiler finish, and lens colors.
+Import [OffroadKart_Connected.glb](OffroadKart_Connected.glb) with Studio's **3D Importer**. Keep the named meshes separate. The GLB includes white 07 numbers on the hood and sides, side checker stripes, closer-fitting fenders, carbon-fiber spoiler finish, and lens colors.
 
 [View the preview](OffroadKart_Connected_Preview.png) · [Open the Blender project](OffroadKart_Connected.blend)
 
