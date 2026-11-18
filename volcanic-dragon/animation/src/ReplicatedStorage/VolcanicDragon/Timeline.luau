@@ -13,6 +13,11 @@ local WAKE = { 9, 10, 9, 5, 0 }
 local AIM = { 8, 11, 2, -28, 7 }
 local BREATH = { 9, 12, 1, -31, 30 }
 local RELEASE = { 8, 10, 3, -22, 0 }
+local BLINK_TIMES = { 3.2, 8.6, 12.7, 18.8 }
+local BLINK_CYCLE = 22.7
+local BLINK_CLOSE = 0.11
+local BLINK_REOPEN = 0.165
+local BLINK_HOLD = 0.055
 
 local function number(value, fallback)
 	if type(value) == "number" and value == value and math.abs(value) < math.huge then
@@ -106,6 +111,56 @@ function Timeline.sample(elapsed, config)
 		fire = fire,
 		active = true,
 	}
+end
+
+local function blink(age)
+	local phase = age % BLINK_CYCLE
+	local since = phase
+	for _, start in BLINK_TIMES do
+		if phase < start then
+			break
+		end
+		since = phase - start
+	end
+	-- The initial open period has no blink at time zero.
+	if age < BLINK_TIMES[1] then
+		return 0
+	end
+	return ease(since / BLINK_CLOSE)
+		* (1 - ease((since - BLINK_CLOSE - BLINK_HOLD) / BLINK_REOPEN))
+end
+
+function Timeline.pose(age, elapsed, config)
+	local sample = Timeline.sample(elapsed, config)
+	local idleWeight = 1
+	if sample.active then
+		-- Fade the idle motion during wake and bring it back during recovery.
+		local edge = math.min(elapsed, Timeline.duration(config) - elapsed)
+		idleWeight = 1 - ease(edge / 0.65)
+	end
+	if idleWeight == 0 then
+		return sample
+	end
+
+	local scale = idleWeight * math.clamp(number(config and config.IdleBreathScale, 1), 0, 2)
+	local period = math.clamp(number(config and config.IdleBreathPeriod, 4.8), 2, 15)
+	local phase = (age % period) / period * 2 * math.pi
+	local function lift(delay, degrees)
+		return math.rad(degrees) * scale * (1 - math.cos(phase - delay)) * 0.5
+	end
+
+	local gestureTime = age % 14.3 - 8.2
+	local lean = ease(gestureTime / 1.4) * (1 - ease((gestureTime - 1.4) / 2.0))
+	local pose = sample.active and sample or table.clone(sample)
+	pose.basePitch += lift(0, 1.6) + math.rad(1.05 * lean * scale)
+	pose.midPitch += lift(0.18, 1.3) + math.rad(0.7 * lean * scale)
+	pose.upperPitch += lift(0.34, 0.7)
+	pose.headPitch += lift(0.48, -2)
+	pose.headRoll = math.rad(3.1 * lean * scale)
+	-- Rise is in authored rig units, converted using the imported rig scale.
+	pose.chestRise = scale * (0.07 * (1 - math.cos(phase)) * 0.5 + 0.035 * lean)
+	pose.blink = blink(age) * idleWeight
+	return pose
 end
 
 return Timeline

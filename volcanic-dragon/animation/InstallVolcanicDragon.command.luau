@@ -6,6 +6,8 @@ local Source = {
 	{ name = "Config", class = "ModuleScript", code = [[-- Angles in degrees, timing in seconds, and distances in studs.
 return table.freeze({
 	ModelName = "VolcanicDragon",
+	IdleBreathPeriod = 4.8,
+	IdleBreathScale = 1,
 	Duration = 10,
 	FireDuration = 5,
 	SweepAngle = 27,
@@ -37,6 +39,11 @@ local WAKE = { 9, 10, 9, 5, 0 }
 local AIM = { 8, 11, 2, -28, 7 }
 local BREATH = { 9, 12, 1, -31, 30 }
 local RELEASE = { 8, 10, 3, -22, 0 }
+local BLINK_TIMES = { 3.2, 8.6, 12.7, 18.8 }
+local BLINK_CYCLE = 22.7
+local BLINK_CLOSE = 0.11
+local BLINK_REOPEN = 0.165
+local BLINK_HOLD = 0.055
 
 local function number(value, fallback)
 	if type(value) == "number" and value == value and math.abs(value) < math.huge then
@@ -132,6 +139,56 @@ function Timeline.sample(elapsed, config)
 	}
 end
 
+local function blink(age)
+	local phase = age % BLINK_CYCLE
+	local since = phase
+	for _, start in BLINK_TIMES do
+		if phase < start then
+			break
+		end
+		since = phase - start
+	end
+	-- The initial open period has no blink at time zero.
+	if age < BLINK_TIMES[1] then
+		return 0
+	end
+	return ease(since / BLINK_CLOSE)
+		* (1 - ease((since - BLINK_CLOSE - BLINK_HOLD) / BLINK_REOPEN))
+end
+
+function Timeline.pose(age, elapsed, config)
+	local sample = Timeline.sample(elapsed, config)
+	local idleWeight = 1
+	if sample.active then
+		-- Fade the idle motion during wake and bring it back during recovery.
+		local edge = math.min(elapsed, Timeline.duration(config) - elapsed)
+		idleWeight = 1 - ease(edge / 0.65)
+	end
+	if idleWeight == 0 then
+		return sample
+	end
+
+	local scale = idleWeight * math.clamp(number(config and config.IdleBreathScale, 1), 0, 2)
+	local period = math.clamp(number(config and config.IdleBreathPeriod, 4.8), 2, 15)
+	local phase = (age % period) / period * 2 * math.pi
+	local function lift(delay, degrees)
+		return math.rad(degrees) * scale * (1 - math.cos(phase - delay)) * 0.5
+	end
+
+	local gestureTime = age % 14.3 - 8.2
+	local lean = ease(gestureTime / 1.4) * (1 - ease((gestureTime - 1.4) / 2.0))
+	local pose = sample.active and sample or table.clone(sample)
+	pose.basePitch += lift(0, 1.6) + math.rad(1.05 * lean * scale)
+	pose.midPitch += lift(0.18, 1.3) + math.rad(0.7 * lean * scale)
+	pose.upperPitch += lift(0.34, 0.7)
+	pose.headPitch += lift(0.48, -2)
+	pose.headRoll = math.rad(3.1 * lean * scale)
+	-- Rise is in authored rig units, converted using the imported rig scale.
+	pose.chestRise = scale * (0.07 * (1 - math.cos(phase)) * 0.5 + 0.035 * lean)
+	pose.blink = blink(age) * idleWeight
+	return pose
+end
+
 return Timeline
 ]] },
 	{ name = "DragonRig", class = "ModuleScript", code = [[-- The importer can produce a skeleton per MeshPart. Move every matching bone
@@ -142,15 +199,45 @@ DragonRig.__index = DragonRig
 local JOINTS = { "NeckBase", "NeckMid", "NeckUpper", "Head", "Jaw" }
 local NAMES = {
 	Dragon_Root = true, NeckBase = true, NeckMid = true, NeckUpper = true,
-	Head = true, Jaw = true, MouthOrigin = true,
+	Head = true, Jaw = true, MouthOrigin = true, Chest = false,
 }
 local UP = Vector3.yAxis
 
 local function jointName(name)
-	if NAMES[name] then
-		return name
+	return name:match("^(.-)[%._]%d+$") or name
+end
+
+local function bindLidEdge(bone, groups)
+	local lid, point = jointName(bone.Name):match("^(Lid[UL][LR])Edge([A-E])$")
+	if not lid then
+		return
 	end
-	return name:match("^(.-)[%._]%d+$")
+
+	-- Both bones share the Head as their parent. At rest the edge covers
+	-- the eye; moving it to the matching rim folds the eyelid open.
+	local rimName = lid .. "Rim" .. point
+	local suffix = bone.Name:match("([%._]%d+)$") or ""
+	local rim = bone.Parent:FindFirstChild(rimName .. suffix) or bone.Parent:FindFirstChild(rimName)
+	if not rim or not rim:IsA("Bone") then
+		return
+	end
+
+	local group = groups[lid]
+	if not group then
+		group = { all = {}, preferred = {} }
+		groups[lid] = group
+	end
+	local edge = {
+		bone = bone,
+		rest = bone.Transform,
+		openDelta = bone.CFrame:PointToObjectSpace(rim.Position),
+	}
+	table.insert(group.all, edge)
+	local mesh = bone:FindFirstAncestorWhichIsA("MeshPart")
+	local meshName = "Dragon" .. lid
+	if mesh and mesh.Name:sub(1, #meshName) == meshName then
+		table.insert(group.preferred, edge)
+	end
 end
 
 function DragonRig.new(model)
@@ -158,16 +245,19 @@ function DragonRig.new(model)
 	for name in pairs(NAMES) do
 		groups[name] = {}
 	end
+	local lidGroups = {}
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("Bone") then
 			local list = groups[jointName(descendant.Name)]
 			if list then
 				table.insert(list, descendant)
+			else
+				bindLidEdge(descendant, lidGroups)
 			end
 		end
 	end
 	for name, list in pairs(groups) do
-		if #list == 0 then
+		if #list == 0 and NAMES[name] then
 			return nil, "missing imported bone " .. name
 		end
 	end
@@ -194,7 +284,7 @@ function DragonRig.new(model)
 	local forward = horizontal.Unit
 	local right = forward:Cross(UP)
 	local bind = {}
-	for _, name in JOINTS do
+	for _, name in { "NeckBase", "NeckMid", "NeckUpper", "Head", "Jaw", "Chest" } do
 		local group = {}
 		for _, bone in groups[name] do
 			local frame = bone.TransformedWorldCFrame
@@ -203,20 +293,30 @@ function DragonRig.new(model)
 				rest = bone.Transform,
 				yaw = frame:VectorToObjectSpace(UP),
 				pitch = frame:VectorToObjectSpace(right),
+				roll = frame:VectorToObjectSpace(forward),
 			})
 		end
 		bind[name] = group
 	end
+	local lids = {}
+	for _, group in pairs(lidGroups) do
+		local edges = #group.preferred > 0 and group.preferred or group.all
+		for _, edge in edges do
+			table.insert(lids, edge)
+		end
+	end
 
 	return setmetatable({
 		bind = bind,
+		lids = lids,
+		scale = horizontal.Magnitude / 2.51, -- Head-to-mouth distance in the authored GLB.
 		mouth = mouth,
 		mouthForward = mouth.TransformedWorldCFrame:VectorToObjectSpace(forward),
 		mouthUp = mouth.TransformedWorldCFrame:VectorToObjectSpace(UP),
 	}, DragonRig)
 end
 
-local function pose(joints, yaw, pitch)
+local function pose(joints, yaw, pitch, roll)
 	for _, joint in joints do
 		local transform = joint.rest
 		if yaw ~= 0 then
@@ -225,20 +325,41 @@ local function pose(joints, yaw, pitch)
 		if pitch ~= 0 then
 			transform *= CFrame.fromAxisAngle(joint.pitch, pitch)
 		end
+		if roll and roll ~= 0 then
+			transform *= CFrame.fromAxisAngle(joint.roll, roll)
+		end
 		joint.bone.Transform = transform
+	end
+end
+
+local function raiseChest(joints, rise)
+	for _, joint in joints do
+		joint.bone.Transform = joint.rest * CFrame.new(joint.yaw * rise)
+	end
+end
+
+function DragonRig:SetBlink(blink)
+	if blink == self.blink then
+		return
+	end
+	self.blink = blink
+	for _, edge in self.lids do
+		edge.bone.Transform = edge.rest * CFrame.new(edge.openDelta * (1 - blink))
 	end
 end
 
 function DragonRig:Apply(sample)
 	local bind = self.bind
+	raiseChest(bind.Chest, (sample.chestRise or 0) * self.scale)
 	pose(bind.NeckBase, sample.baseYaw, sample.basePitch)
 	pose(bind.NeckMid, sample.midYaw, sample.midPitch)
 	pose(bind.NeckUpper, sample.upperYaw, sample.upperPitch)
 	-- Counter the delayed neck contribution so the requested head heading
 	-- arrives first, instead of building turn offsets from previous frames.
 	local headYaw = sample.headYaw - sample.baseYaw - sample.midYaw - sample.upperYaw
-	pose(bind.Head, headYaw, sample.headPitch)
+	pose(bind.Head, headYaw, sample.headPitch, sample.headRoll)
 	pose(bind.Jaw, 0, -sample.jawOpen)
+	self:SetBlink(sample.blink or 0)
 end
 
 function DragonRig:GetMouth(depression)
@@ -251,6 +372,8 @@ function DragonRig:Reset()
 	for _, name in JOINTS do
 		pose(self.bind[name], 0, 0)
 	end
+	raiseChest(self.bind.Chest, 0)
+	self:SetBlink(0)
 end
 
 return DragonRig
@@ -711,8 +834,10 @@ local Config = require(shared.Config)
 local Timeline = require(shared.Timeline)
 
 local TAG = "VolcanicDragonAnimated"
+local LOADED_AT = "VolcanicDragonLoadedAt"
 local STARTED_AT = "VolcanicDragonStartedAt"
 local DURATION = Timeline.duration(Config)
+local ATTACK_INTERVAL = 20
 local START_LEAD = 0.22
 
 local registered = {}
@@ -729,6 +854,23 @@ local function findRig(model)
 	return false
 end
 
+local function availableAt(model)
+	local previous = model:GetAttribute(STARTED_AT)
+	return type(previous) == "number" and previous + DURATION or -math.huge
+end
+
+local function startAttack(model, state, startedAt, now)
+	model:SetAttribute(STARTED_AT, startedAt)
+	if state.prompt then
+		state.prompt.Enabled = false
+		task.delay(startedAt + DURATION - now, function()
+			if registered[model] == state and state.prompt.Parent and model:GetAttribute(STARTED_AT) == startedAt then
+				state.prompt.Enabled = true
+			end
+		end)
+	end
+end
+
 local function start(model)
 	if not model then
 		for candidate in pairs(registered) do
@@ -743,19 +885,8 @@ local function start(model)
 	end
 
 	local now = Workspace:GetServerTimeNow()
-	local previous = model:GetAttribute(STARTED_AT)
-	if type(previous) == "number" and now < previous + DURATION then
-		return
-	end
-	local startedAt = now + START_LEAD
-	model:SetAttribute(STARTED_AT, startedAt)
-	if state.prompt then
-		state.prompt.Enabled = false
-		task.delay(DURATION + START_LEAD, function()
-			if state.prompt.Parent and model:GetAttribute(STARTED_AT) == startedAt then
-				state.prompt.Enabled = true
-			end
-		end)
+	if now >= availableAt(model) then
+		startAttack(model, state, now + START_LEAD, now)
 	end
 end
 
@@ -794,8 +925,13 @@ local function register(model)
 		end
 	end
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
+	local loadedAt = Workspace:GetServerTimeNow()
+	model:SetAttribute(LOADED_AT, loadedAt)
 	model:SetAttribute(STARTED_AT, nil)
-	local state = { prompt = studioPrompts and mountPrompt(model) or nil }
+	local state = {
+		prompt = studioPrompts and mountPrompt(model) or nil,
+		nextAttackAt = loadedAt + ATTACK_INTERVAL,
+	}
 	registered[model] = state
 	CollectionService:AddTag(model, TAG)
 	state.connection = model.AncestryChanged:Connect(function()
@@ -823,6 +959,25 @@ Workspace.DescendantAdded:Connect(function(instance)
 	end
 end)
 
+RunService.Heartbeat:Connect(function()
+	local now = Workspace:GetServerTimeNow()
+	for model, state in pairs(registered) do
+		if now >= state.nextAttackAt - START_LEAD then
+			-- Keep the cadence anchored at load, even if a server frame is late.
+			local missed = math.floor((now - (state.nextAttackAt - START_LEAD)) / ATTACK_INTERVAL)
+			local startedAt = state.nextAttackAt + missed * ATTACK_INTERVAL
+			local readyAt = availableAt(model)
+			if readyAt > startedAt or now >= startedAt + DURATION then
+				state.nextAttackAt = startedAt + ATTACK_INTERVAL
+			elseif now >= readyAt and model:IsDescendantOf(Workspace) then
+				-- Keep the previous timestamp until its recovery has finished.
+				state.nextAttackAt = startedAt + ATTACK_INTERVAL
+				startAttack(model, state, startedAt, now)
+			end
+		end
+	end
+end)
+
 -- A server-only manual entry point. Watching the start timestamp also
 -- synchronizes clients that stream in or join while a breath is running.
 local trigger = Instance.new("BindableEvent")
@@ -843,7 +998,7 @@ local FireEffects = require(shared.FireEffects)
 
 local TAG = "VolcanicDragonAnimated"
 local STARTED_AT = "VolcanicDragonStartedAt"
-local duration = Timeline.duration(Config)
+local LOADED_AT = "VolcanicDragonLoadedAt"
 local depression = math.rad(math.clamp(Config.FireDepression, 0, 40))
 local models = {}
 
@@ -876,41 +1031,36 @@ end
 RunService.RenderStepped:Connect(function(dt)
 	local now = Workspace:GetServerTimeNow()
 	for model, state in pairs(models) do
-		local started = model:GetAttribute(STARTED_AT)
-		local elapsed = type(started) == "number" and now - started or math.huge
-		if elapsed >= 0 and elapsed < duration then
+		if not state.rig and now >= state.retryAt then
 			-- Atomic streaming keeps copies of the bind skeleton together.
-			-- A missed replication frame can retry without shifting the clock.
-			if not state.rig and now >= state.retryAt then
-				local rig, reason = DragonRig.new(model)
-				state.rig = rig
-				state.retryAt = now + .25
-				if not rig and elapsed > 1 and not state.warned then
+			-- Retry if the tag arrives before the skeleton is available.
+			local rig, reason = DragonRig.new(model)
+			state.rig = rig
+			state.retryAt = now + 0.25
+			if not rig then
+				state.firstFailure = state.firstFailure or now
+				if now - state.firstFailure > 1 and not state.warned then
 					warn("VolcanicDragon: " .. reason)
 					state.warned = true
 				end
 			end
-			if state.rig then
-				local sample = Timeline.sample(elapsed, Config)
-				state.rig:Apply(sample)
-				state.moving = true
-				if sample.fire > 0 then
-					state.effects = state.effects or FireEffects.new(model, Config)
-					local origin, direction = state.rig:GetMouth(depression)
-					state.effects:Update(origin, direction, sample.fire, dt)
-					state.breathing = true
-				elseif state.breathing then
-					state.effects:Stop()
-					state.breathing = nil
-				end
-			end
-		elseif state.moving then
-			state.rig:Reset()
-			if state.breathing then
+		end
+		if state.rig then
+			local started = model:GetAttribute(STARTED_AT)
+			local elapsed = type(started) == "number" and now - started or math.huge
+			local loaded = model:GetAttribute(LOADED_AT)
+			local age = type(loaded) == "number" and math.max(0, now - loaded) or 0
+			local sample = Timeline.pose(age, elapsed, Config)
+			state.rig:Apply(sample)
+			if sample.fire > 0 then
+				state.effects = state.effects or FireEffects.new(model, Config)
+				local origin, direction = state.rig:GetMouth(depression)
+				state.effects:Update(origin, direction, sample.fire, dt)
+				state.breathing = true
+			elseif state.breathing then
 				state.effects:Stop()
 				state.breathing = nil
 			end
-			state.moving = nil
 		end
 	end
 end)
@@ -960,4 +1110,4 @@ for _, entry in Source do
 	end
 	object.Parent = destination
 end
-print("Volcanic Dragon installed. Import the rigged GLB as VolcanicDragon, then Play and use Test fire breath.")
+print("Volcanic Dragon installed. Import the updated rigged GLB as VolcanicDragon, then Play for idle and automatic fire breath.")

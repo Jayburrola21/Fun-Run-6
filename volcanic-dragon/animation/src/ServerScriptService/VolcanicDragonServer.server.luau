@@ -9,8 +9,10 @@ local Config = require(shared.Config)
 local Timeline = require(shared.Timeline)
 
 local TAG = "VolcanicDragonAnimated"
+local LOADED_AT = "VolcanicDragonLoadedAt"
 local STARTED_AT = "VolcanicDragonStartedAt"
 local DURATION = Timeline.duration(Config)
+local ATTACK_INTERVAL = 20
 local START_LEAD = 0.22
 
 local registered = {}
@@ -27,6 +29,23 @@ local function findRig(model)
 	return false
 end
 
+local function availableAt(model)
+	local previous = model:GetAttribute(STARTED_AT)
+	return type(previous) == "number" and previous + DURATION or -math.huge
+end
+
+local function startAttack(model, state, startedAt, now)
+	model:SetAttribute(STARTED_AT, startedAt)
+	if state.prompt then
+		state.prompt.Enabled = false
+		task.delay(startedAt + DURATION - now, function()
+			if registered[model] == state and state.prompt.Parent and model:GetAttribute(STARTED_AT) == startedAt then
+				state.prompt.Enabled = true
+			end
+		end)
+	end
+end
+
 local function start(model)
 	if not model then
 		for candidate in pairs(registered) do
@@ -41,19 +60,8 @@ local function start(model)
 	end
 
 	local now = Workspace:GetServerTimeNow()
-	local previous = model:GetAttribute(STARTED_AT)
-	if type(previous) == "number" and now < previous + DURATION then
-		return
-	end
-	local startedAt = now + START_LEAD
-	model:SetAttribute(STARTED_AT, startedAt)
-	if state.prompt then
-		state.prompt.Enabled = false
-		task.delay(DURATION + START_LEAD, function()
-			if state.prompt.Parent and model:GetAttribute(STARTED_AT) == startedAt then
-				state.prompt.Enabled = true
-			end
-		end)
+	if now >= availableAt(model) then
+		startAttack(model, state, now + START_LEAD, now)
 	end
 end
 
@@ -92,8 +100,13 @@ local function register(model)
 		end
 	end
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
+	local loadedAt = Workspace:GetServerTimeNow()
+	model:SetAttribute(LOADED_AT, loadedAt)
 	model:SetAttribute(STARTED_AT, nil)
-	local state = { prompt = studioPrompts and mountPrompt(model) or nil }
+	local state = {
+		prompt = studioPrompts and mountPrompt(model) or nil,
+		nextAttackAt = loadedAt + ATTACK_INTERVAL,
+	}
 	registered[model] = state
 	CollectionService:AddTag(model, TAG)
 	state.connection = model.AncestryChanged:Connect(function()
@@ -118,6 +131,25 @@ end
 Workspace.DescendantAdded:Connect(function(instance)
 	if instance:IsA("Model") and instance.Name == Config.ModelName then
 		task.defer(register, instance)
+	end
+end)
+
+RunService.Heartbeat:Connect(function()
+	local now = Workspace:GetServerTimeNow()
+	for model, state in pairs(registered) do
+		if now >= state.nextAttackAt - START_LEAD then
+			-- Keep the cadence anchored at load, even if a server frame is late.
+			local missed = math.floor((now - (state.nextAttackAt - START_LEAD)) / ATTACK_INTERVAL)
+			local startedAt = state.nextAttackAt + missed * ATTACK_INTERVAL
+			local readyAt = availableAt(model)
+			if readyAt > startedAt or now >= startedAt + DURATION then
+				state.nextAttackAt = startedAt + ATTACK_INTERVAL
+			elseif now >= readyAt and model:IsDescendantOf(Workspace) then
+				-- Keep the previous timestamp until its recovery has finished.
+				state.nextAttackAt = startedAt + ATTACK_INTERVAL
+				startAttack(model, state, startedAt, now)
+			end
+		end
 	end
 end)
 

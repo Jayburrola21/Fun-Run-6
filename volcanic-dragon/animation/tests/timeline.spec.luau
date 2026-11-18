@@ -154,4 +154,57 @@ for _, field in angles do
 end
 near(repeated.fire, first.fire, 1e-8, "Repeated trigger produces the same fire envelope")
 
-print(string.format("PASS: %d cinematic timeline assertions", passes))
+local idleConfig = { IdleBreathPeriod = 5 }
+local exhale = Timeline.pose(0, math.huge, idleConfig)
+local inhale = Timeline.pose(2.5, math.huge, idleConfig)
+local nextInhale = Timeline.pose(7.5, math.huge, idleConfig)
+check(inhale.basePitch - exhale.basePitch > radians(1), "Idle raises the neck on inhale")
+check(inhale.headPitch < exhale.headPitch, "Head counters the neck lift")
+check(inhale.chestRise > exhale.chestRise + .06, "Chest rises on inhale")
+near(inhale.jawOpen, 0, 1e-8, "Idle keeps the jaw closed")
+near(inhale.fire, 0, 1e-8, "Idle emits no fire")
+for _, field in angles do
+    near(nextInhale[field], inhale[field], 1e-8, "Idle loops smoothly for " .. field)
+    near(Timeline.pose(2.5, math.huge, { IdleBreathScale = 0 })[field], 0, 1e-8, "Idle can be disabled")
+end
+
+local leaning = Timeline.pose(9.6, math.huge, idleConfig)
+local settled = Timeline.pose(13, math.huge, idleConfig)
+check(leaning.headRoll > radians(2), "Idle occasionally tilts the head")
+check(leaning.basePitch > Timeline.pose(4.6, math.huge, idleConfig).basePitch + radians(1),
+    "The slight lean lifts the neck on top of continuous breathing")
+near(settled.headRoll, 0, 1e-8, "The head eases back to neutral")
+
+local function idleBlink(age)
+    return Timeline.pose(age, math.huge, idleConfig).blink
+end
+near(idleBlink(0.13), 0, 1e-8, "Eyes start open")
+near(idleBlink(3.2), 0, 1e-8, "Eyes are open before a blink")
+check(idleBlink(3.25) > 0 and idleBlink(3.25) < 1, "Lids close gradually")
+near(idleBlink(3.33), 1, 1e-8, "Lids close fully")
+check(idleBlink(3.43) > 0 and idleBlink(3.43) < 1, "Lids reopen gradually")
+near(idleBlink(3.56), 0, 1e-8, "Eyes return fully open")
+near(idleBlink(8.73), 1, 1e-8, "The next blink has a different interval")
+near(idleBlink(22.83), 1, 1e-8, "Blink timing continues across cycle boundaries")
+
+for _, edge in { 0, 10 } do
+    for _, offset in { -0.001, 0, 0.001 } do
+        local pose = Timeline.pose(2.5 + offset, edge + offset, idleConfig)
+        for _, field in angles do
+            near(pose[field], inhale[field], radians(0.01), "Idle transition is continuous for " .. field)
+        end
+        near(pose.chestRise, inhale.chestRise, 0.0001, "Chest blends continuously at the attack boundary")
+        local blinking = Timeline.pose(3.33 + offset, edge + offset, idleConfig)
+        near(blinking.blink, 1, 1e-6, "Blink blends continuously at the attack boundary")
+    end
+end
+
+local firePose = Timeline.pose(2.5, 4.18, idleConfig)
+near(firePose.fire, first.fire, 1e-8, "Idle leaves the fire envelope unchanged")
+check(firePose.headRoll == nil and firePose.chestRise == nil and firePose.blink == nil,
+    "Idle pose layers are neutral during the fire phase")
+for _, field in angles do
+    near(firePose[field], first[field], 1e-8, "Idle leaves the fire pose unchanged for " .. field)
+end
+
+print(string.format("PASS: %d dragon timeline assertions", passes))

@@ -65,7 +65,7 @@ for _, entry in Source do
 	end
 	object.Parent = destination
 end
-print("Volcanic Dragon installed. Import the rigged GLB as VolcanicDragon, then Play and use Test fire breath.")
+print("Volcanic Dragon installed. Import the updated rigged GLB as VolcanicDragon, then Play for idle and automatic fire breath.")
 """
 
 

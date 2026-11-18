@@ -6,15 +6,45 @@ DragonRig.__index = DragonRig
 local JOINTS = { "NeckBase", "NeckMid", "NeckUpper", "Head", "Jaw" }
 local NAMES = {
 	Dragon_Root = true, NeckBase = true, NeckMid = true, NeckUpper = true,
-	Head = true, Jaw = true, MouthOrigin = true,
+	Head = true, Jaw = true, MouthOrigin = true, Chest = false,
 }
 local UP = Vector3.yAxis
 
 local function jointName(name)
-	if NAMES[name] then
-		return name
+	return name:match("^(.-)[%._]%d+$") or name
+end
+
+local function bindLidEdge(bone, groups)
+	local lid, point = jointName(bone.Name):match("^(Lid[UL][LR])Edge([A-E])$")
+	if not lid then
+		return
 	end
-	return name:match("^(.-)[%._]%d+$")
+
+	-- Both bones share the Head as their parent. At rest the edge covers
+	-- the eye; moving it to the matching rim folds the eyelid open.
+	local rimName = lid .. "Rim" .. point
+	local suffix = bone.Name:match("([%._]%d+)$") or ""
+	local rim = bone.Parent:FindFirstChild(rimName .. suffix) or bone.Parent:FindFirstChild(rimName)
+	if not rim or not rim:IsA("Bone") then
+		return
+	end
+
+	local group = groups[lid]
+	if not group then
+		group = { all = {}, preferred = {} }
+		groups[lid] = group
+	end
+	local edge = {
+		bone = bone,
+		rest = bone.Transform,
+		openDelta = bone.CFrame:PointToObjectSpace(rim.Position),
+	}
+	table.insert(group.all, edge)
+	local mesh = bone:FindFirstAncestorWhichIsA("MeshPart")
+	local meshName = "Dragon" .. lid
+	if mesh and mesh.Name:sub(1, #meshName) == meshName then
+		table.insert(group.preferred, edge)
+	end
 end
 
 function DragonRig.new(model)
@@ -22,16 +52,19 @@ function DragonRig.new(model)
 	for name in pairs(NAMES) do
 		groups[name] = {}
 	end
+	local lidGroups = {}
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("Bone") then
 			local list = groups[jointName(descendant.Name)]
 			if list then
 				table.insert(list, descendant)
+			else
+				bindLidEdge(descendant, lidGroups)
 			end
 		end
 	end
 	for name, list in pairs(groups) do
-		if #list == 0 then
+		if #list == 0 and NAMES[name] then
 			return nil, "missing imported bone " .. name
 		end
 	end
@@ -58,7 +91,7 @@ function DragonRig.new(model)
 	local forward = horizontal.Unit
 	local right = forward:Cross(UP)
 	local bind = {}
-	for _, name in JOINTS do
+	for _, name in { "NeckBase", "NeckMid", "NeckUpper", "Head", "Jaw", "Chest" } do
 		local group = {}
 		for _, bone in groups[name] do
 			local frame = bone.TransformedWorldCFrame
@@ -67,20 +100,30 @@ function DragonRig.new(model)
 				rest = bone.Transform,
 				yaw = frame:VectorToObjectSpace(UP),
 				pitch = frame:VectorToObjectSpace(right),
+				roll = frame:VectorToObjectSpace(forward),
 			})
 		end
 		bind[name] = group
 	end
+	local lids = {}
+	for _, group in pairs(lidGroups) do
+		local edges = #group.preferred > 0 and group.preferred or group.all
+		for _, edge in edges do
+			table.insert(lids, edge)
+		end
+	end
 
 	return setmetatable({
 		bind = bind,
+		lids = lids,
+		scale = horizontal.Magnitude / 2.51, -- Head-to-mouth distance in the authored GLB.
 		mouth = mouth,
 		mouthForward = mouth.TransformedWorldCFrame:VectorToObjectSpace(forward),
 		mouthUp = mouth.TransformedWorldCFrame:VectorToObjectSpace(UP),
 	}, DragonRig)
 end
 
-local function pose(joints, yaw, pitch)
+local function pose(joints, yaw, pitch, roll)
 	for _, joint in joints do
 		local transform = joint.rest
 		if yaw ~= 0 then
@@ -89,20 +132,41 @@ local function pose(joints, yaw, pitch)
 		if pitch ~= 0 then
 			transform *= CFrame.fromAxisAngle(joint.pitch, pitch)
 		end
+		if roll and roll ~= 0 then
+			transform *= CFrame.fromAxisAngle(joint.roll, roll)
+		end
 		joint.bone.Transform = transform
+	end
+end
+
+local function raiseChest(joints, rise)
+	for _, joint in joints do
+		joint.bone.Transform = joint.rest * CFrame.new(joint.yaw * rise)
+	end
+end
+
+function DragonRig:SetBlink(blink)
+	if blink == self.blink then
+		return
+	end
+	self.blink = blink
+	for _, edge in self.lids do
+		edge.bone.Transform = edge.rest * CFrame.new(edge.openDelta * (1 - blink))
 	end
 end
 
 function DragonRig:Apply(sample)
 	local bind = self.bind
+	raiseChest(bind.Chest, (sample.chestRise or 0) * self.scale)
 	pose(bind.NeckBase, sample.baseYaw, sample.basePitch)
 	pose(bind.NeckMid, sample.midYaw, sample.midPitch)
 	pose(bind.NeckUpper, sample.upperYaw, sample.upperPitch)
 	-- Counter the delayed neck contribution so the requested head heading
 	-- arrives first, instead of building turn offsets from previous frames.
 	local headYaw = sample.headYaw - sample.baseYaw - sample.midYaw - sample.upperYaw
-	pose(bind.Head, headYaw, sample.headPitch)
+	pose(bind.Head, headYaw, sample.headPitch, sample.headRoll)
 	pose(bind.Jaw, 0, -sample.jawOpen)
+	self:SetBlink(sample.blink or 0)
 end
 
 function DragonRig:GetMouth(depression)
@@ -115,6 +179,8 @@ function DragonRig:Reset()
 	for _, name in JOINTS do
 		pose(self.bind[name], 0, 0)
 	end
+	raiseChest(self.bind.Chest, 0)
+	self:SetBlink(0)
 end
 
 return DragonRig

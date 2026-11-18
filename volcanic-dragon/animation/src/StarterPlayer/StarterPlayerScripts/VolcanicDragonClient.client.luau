@@ -11,7 +11,7 @@ local FireEffects = require(shared.FireEffects)
 
 local TAG = "VolcanicDragonAnimated"
 local STARTED_AT = "VolcanicDragonStartedAt"
-local duration = Timeline.duration(Config)
+local LOADED_AT = "VolcanicDragonLoadedAt"
 local depression = math.rad(math.clamp(Config.FireDepression, 0, 40))
 local models = {}
 
@@ -44,41 +44,36 @@ end
 RunService.RenderStepped:Connect(function(dt)
 	local now = Workspace:GetServerTimeNow()
 	for model, state in pairs(models) do
-		local started = model:GetAttribute(STARTED_AT)
-		local elapsed = type(started) == "number" and now - started or math.huge
-		if elapsed >= 0 and elapsed < duration then
+		if not state.rig and now >= state.retryAt then
 			-- Atomic streaming keeps copies of the bind skeleton together.
-			-- A missed replication frame can retry without shifting the clock.
-			if not state.rig and now >= state.retryAt then
-				local rig, reason = DragonRig.new(model)
-				state.rig = rig
-				state.retryAt = now + .25
-				if not rig and elapsed > 1 and not state.warned then
+			-- Retry if the tag arrives before the skeleton is available.
+			local rig, reason = DragonRig.new(model)
+			state.rig = rig
+			state.retryAt = now + 0.25
+			if not rig then
+				state.firstFailure = state.firstFailure or now
+				if now - state.firstFailure > 1 and not state.warned then
 					warn("VolcanicDragon: " .. reason)
 					state.warned = true
 				end
 			end
-			if state.rig then
-				local sample = Timeline.sample(elapsed, Config)
-				state.rig:Apply(sample)
-				state.moving = true
-				if sample.fire > 0 then
-					state.effects = state.effects or FireEffects.new(model, Config)
-					local origin, direction = state.rig:GetMouth(depression)
-					state.effects:Update(origin, direction, sample.fire, dt)
-					state.breathing = true
-				elseif state.breathing then
-					state.effects:Stop()
-					state.breathing = nil
-				end
-			end
-		elseif state.moving then
-			state.rig:Reset()
-			if state.breathing then
+		end
+		if state.rig then
+			local started = model:GetAttribute(STARTED_AT)
+			local elapsed = type(started) == "number" and now - started or math.huge
+			local loaded = model:GetAttribute(LOADED_AT)
+			local age = type(loaded) == "number" and math.max(0, now - loaded) or 0
+			local sample = Timeline.pose(age, elapsed, Config)
+			state.rig:Apply(sample)
+			if sample.fire > 0 then
+				state.effects = state.effects or FireEffects.new(model, Config)
+				local origin, direction = state.rig:GetMouth(depression)
+				state.effects:Update(origin, direction, sample.fire, dt)
+				state.breathing = true
+			elseif state.breathing then
 				state.effects:Stop()
 				state.breathing = nil
 			end
-			state.moving = nil
 		end
 	end
 end)
