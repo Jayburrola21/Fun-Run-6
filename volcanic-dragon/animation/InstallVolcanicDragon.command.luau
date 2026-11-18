@@ -29,7 +29,7 @@ local Timeline = {}
 local REST = table.freeze({
 	basePitch = 0, midPitch = 0, upperPitch = 0, headPitch = 0,
 	baseYaw = 0, midYaw = 0, upperYaw = 0, headYaw = 0,
-	jawOpen = 0, fire = 0, hornHeat = 0, active = false,
+	jawOpen = 0, fire = 0, hornHeat = 0, eyeGlow = 0, recoverySmoke = 0, active = false,
 })
 
 local ZERO = { 0, 0, 0, 0, 0 }
@@ -101,6 +101,7 @@ function Timeline.sample(elapsed, config)
 
 	local from, to, phase, fire = ZERO, WAKE, 0, 0
 	local settledBreath = 0
+	local recoverySmoke = 0
 	if elapsed < wakeEnd then
 		phase = ease(elapsed / wakeEnd)
 	elseif elapsed < fireStart then
@@ -113,6 +114,11 @@ function Timeline.sample(elapsed, config)
 		fire = ease((elapsed - fireStart) / math.min(0.32, breathTime * 0.18))
 			* ease((fireEnd - elapsed) / math.min(0.58, breathTime * 0.28))
 	else
+		local sinceFire = elapsed - fireEnd
+		-- Leave time within recovery for the last smoke particles to fade.
+		local smokeTime = math.min(1.45, recovery - 0.96)
+		recoverySmoke = ease(sinceFire / (smokeTime * 0.25))
+			* (1 - ease((sinceFire - smokeTime * 0.35) / (smokeTime * 0.65)))
 		local progress = (elapsed - fireEnd) / recovery
 		if progress < 0.31 then
 			from, to = BREATH, RELEASE
@@ -137,6 +143,8 @@ function Timeline.sample(elapsed, config)
 		jawOpen = math.rad(lerp(from[5], to[5], phase)),
 		fire = fire,
 		hornHeat = hornHeat,
+		eyeGlow = hornHeat * (0.55 + 0.45 * fire),
+		recoverySmoke = recoverySmoke,
 		active = true,
 	}
 end
@@ -207,6 +215,14 @@ local UP = Vector3.yAxis
 local HORN_TIP_PREFIX = "DragonHornHeat"
 local WARM_RED = Color3.fromRGB(178, 36, 6)
 local HOT_RED = Color3.fromRGB(255, 79, 16)
+-- Measured on the current GLB in the head's right/up/back frame, before scaling.
+local LEFT_NOSTRIL = Vector3.new(0.5605, 0.1411, -2.2023)
+local RIGHT_NOSTRIL = Vector3.new(-0.5350, 0.1687, -2.2037)
+local LEFT_VENT = Vector3.new(0.5840, 0.5080, -0.6331)
+local RIGHT_VENT = Vector3.new(-0.5840, 0.5078, -0.6333)
+local MOUTH_VENT = Vector3.new(0, -0.633, -2.62)
+local LEFT_EYE = Vector3.new(1.374, 0.486, -1.347)
+local RIGHT_EYE = Vector3.new(-1.374, 0.486, -1.347)
 
 function DragonRig.isHornTip(instance)
 	return instance:IsA("MeshPart") and instance.Name:sub(1, #HORN_TIP_PREFIX) == HORN_TIP_PREFIX
@@ -214,6 +230,16 @@ end
 
 local function jointName(name)
 	return name:match("^(.-)[%._]%d+$") or name
+end
+
+local function isIris(name)
+	local key = name:lower():gsub("[^%w]", "")
+	return key:match("^crimsoniris[lr]%d*$") ~= nil
+end
+
+local function ventFrame(offset, direction, scale)
+	local point = offset * scale
+	return CFrame.lookAt(point, point + direction)
 end
 
 local function bindLidEdge(bone, groups)
@@ -256,6 +282,7 @@ function DragonRig.new(model)
 	end
 	local lidGroups = {}
 	local hornTips = {}
+	local irises = {}
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("Bone") then
 			local list = groups[jointName(descendant.Name)]
@@ -266,6 +293,11 @@ function DragonRig.new(model)
 			end
 		elseif DragonRig.isHornTip(descendant) then
 			table.insert(hornTips, descendant)
+		elseif descendant:IsA("MeshPart") and isIris(descendant.Name) then
+			local surface = descendant:FindFirstChildWhichIsA("SurfaceAppearance")
+			if surface then
+				table.insert(irises, {surface = surface, strength = surface.EmissiveStrength})
+			end
 		end
 	end
 	for name, list in pairs(groups) do
@@ -295,6 +327,9 @@ function DragonRig.new(model)
 	end
 	local forward = horizontal.Unit
 	local right = forward:Cross(UP)
+	local scale = horizontal.Magnitude / 2.51 -- Head-to-mouth distance in the authored GLB.
+	local headFrame = head.TransformedWorldCFrame
+	local faceFrame = CFrame.lookAt(headFrame.Position, headFrame.Position + forward, UP)
 	local bind = {}
 	for _, name in { "NeckBase", "NeckMid", "NeckUpper", "Head", "Jaw", "Chest" } do
 		local group = {}
@@ -322,7 +357,13 @@ function DragonRig.new(model)
 		bind = bind,
 		lids = lids,
 		hornTips = hornTips,
-		scale = horizontal.Magnitude / 2.51, -- Head-to-mouth distance in the authored GLB.
+		irises = irises,
+		scale = scale,
+		head = head,
+		face = headFrame:ToObjectSpace(faceFrame),
+		leftNostril = ventFrame(LEFT_NOSTRIL + LEFT_VENT * 0.065, LEFT_VENT, scale),
+		rightNostril = ventFrame(RIGHT_NOSTRIL + RIGHT_VENT * 0.065, RIGHT_VENT, scale),
+		mouthVent = ventFrame(MOUTH_VENT, Vector3.new(0, 0.22, -1), scale),
 		mouth = mouth,
 		mouthForward = mouth.TransformedWorldCFrame:VectorToObjectSpace(forward),
 		mouthUp = mouth.TransformedWorldCFrame:VectorToObjectSpace(UP),
@@ -373,6 +414,16 @@ function DragonRig:SetHornHeat(heat)
 	end
 end
 
+function DragonRig:SetEyeGlow(level)
+	if level == self.eyeGlow then
+		return
+	end
+	self.eyeGlow = level
+	for _, iris in self.irises do
+		iris.surface.EmissiveStrength = iris.strength + level * 1.6
+	end
+end
+
 function DragonRig:Apply(sample)
 	local bind = self.bind
 	raiseChest(bind.Chest, (sample.chestRise or 0) * self.scale)
@@ -386,12 +437,23 @@ function DragonRig:Apply(sample)
 	pose(bind.Jaw, 0, -sample.jawOpen)
 	self:SetBlink(sample.blink or 0)
 	self:SetHornHeat(sample.hornHeat or 0)
+	self:SetEyeGlow(sample.eyeGlow or 0)
 end
 
 function DragonRig:GetMouth(depression)
 	local frame = self.mouth.TransformedWorldCFrame
 	local aim = self.mouthForward * math.cos(depression) - self.mouthUp * math.sin(depression)
 	return frame.Position, frame:VectorToWorldSpace(aim).Unit
+end
+
+function DragonRig:GetRecoveryVents()
+	local face = self.head.TransformedWorldCFrame * self.face
+	return face * self.leftNostril, face * self.rightNostril, face * self.mouthVent
+end
+
+function DragonRig:GetEyeGlowPositions()
+	local face = self.head.TransformedWorldCFrame * self.face
+	return face:PointToWorldSpace(LEFT_EYE * self.scale), face:PointToWorldSpace(RIGHT_EYE * self.scale)
 end
 
 function DragonRig:Reset()
@@ -401,11 +463,12 @@ function DragonRig:Reset()
 	raiseChest(self.bind.Chest, 0)
 	self:SetBlink(0)
 	self:SetHornHeat(0)
+	self:SetEyeGlow(0)
 end
 
 return DragonRig
 ]] },
-	{ name = "FireEffects", class = "ModuleScript", code = [[-- The caller supplies the locally animated mouth pose. These effects are visual only.
+	{ name = "FireEffects", class = "ModuleScript", code = [[-- The caller supplies the locally animated mouth and nostril poses. These effects are visual only.
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
@@ -636,6 +699,33 @@ local function impactEmitters(ground)
     }
 end
 
+local function recoveryEmitters(group)
+    local left = containerPart("Left nostril recovery", group)
+    local right = containerPart("Right nostril recovery", group)
+    local mouth = containerPart("Mouth recovery", group)
+    local smokeColor = {{0, color(117, 109, 102)}, {1, color(78, 75, 74)}}
+    local smokeFade = {{0, .82}, {.18, .41}, {.55, .67}, {1, 1}}
+    local nostrilSpec = {
+        name = "Nostril smoke", texture = SMOKE, direction = Enum.NormalId.Front, emission = .04, influence = .73,
+        rate = 17, life = {.52, .94}, speed = {1.35, 2.35}, spread = 11, spin = 29,
+        acceleration = Vector3.new(0, 4.4, 0), drag = 1.7,
+        size = {{0, .085}, {.36, .42}, {1, .66}},
+        transparency = smokeFade, color = smokeColor,
+    }
+    local mouthSpec = {
+        name = "Mouth wisp", texture = SMOKE, direction = Enum.NormalId.Front, emission = .04, influence = .73,
+        rate = 7, life = {.43, .76}, speed = {.75, 1.35}, spread = 16, spin = 34,
+        acceleration = Vector3.new(0, 3.8, 0), drag = 1.5,
+        size = {{0, .09}, {.36, .36}, {1, .58}},
+        transparency = {{0, .87}, {.19, .52}, {.55, .76}, {1, 1}}, color = smokeColor,
+    }
+    return {left, right, mouth}, {
+        emitter(attachment("Smoke source", left), nostrilSpec),
+        emitter(attachment("Smoke source", right), nostrilSpec),
+        emitter(attachment("Smoke source", mouth), mouthSpec),
+    }
+end
+
 local function scorchPool(parent)
     local pool = {}
     for index = 1, SCORCH_POOL_SIZE do
@@ -671,7 +761,7 @@ local function setEmitters(emitters, level, distance)
     end
 end
 
-function FireEffects.new(dragonModel, config)
+function FireEffects.new(dragonModel, config, rigScale)
     config = config or {}
     local options = config.Effects or {}
     local self = setmetatable({}, FireEffects)
@@ -697,8 +787,15 @@ function FireEffects.new(dragonModel, config)
     self._bands = flameBands(group, source, endpoint)
     self._stream = streamEmitters(mouth, wake)
     self._impact = impactEmitters(ground)
+    self._recoverySources, self._recoverySmoke = recoveryEmitters(group)
     self._mouthLight = pointLight("Mouth bounce", mouth, color(255, 142, 52), 19)
     self._impactLight = pointLight("Track bounce", ground, color(255, 88, 14), 24)
+    self._leftEye = containerPart("Left eye light origin", group)
+    self._rightEye = containerPart("Right eye light origin", group)
+    local eyeRange = configure(rigScale, 1, .2, 8) * .96
+    local eyeColor = color(255, 131, 41)
+    self._leftEyeLight = pointLight("Left iris glow", self._leftEye, eyeColor, eyeRange)
+    self._rightEyeLight = pointLight("Right iris glow", self._rightEye, eyeColor, eyeRange)
     self._scorch = scorchPool(group)
     self._scorchIndex = 0
     self._scorchWait = 0
@@ -759,6 +856,38 @@ function FireEffects:Stop()
     self._impactLight.Enabled = false
     self._lastScorch = nil
     self._scorchWait = 0
+end
+
+-- Update the three smoke origins independently of the main flame. Frames may
+-- be omitted when the level is zero so already emitted wisps can fade out.
+function FireEffects:UpdateRecoverySmoke(leftNostrilFrame, rightNostrilFrame, mouthFrame, level)
+    if not self._group then
+        return
+    end
+    level = configure(level, 0, 0, 1) * self._quality
+    if level > .004 then
+        local sources = self._recoverySources
+        sources[1].CFrame = leftNostrilFrame
+        sources[2].CFrame = rightNostrilFrame
+        sources[3].CFrame = mouthFrame
+    end
+    setEmitters(self._recoverySmoke, level, 0)
+end
+
+function FireEffects:UpdateEyeGlow(leftEye, rightEye, level)
+    if not self._group then
+        return
+    end
+    level = configure(level, 0, 0, 1)
+    local enabled = level > .004
+    if enabled then
+        self._leftEye.Position = leftEye
+        self._rightEye.Position = rightEye
+    end
+    self._leftEyeLight.Enabled = enabled
+    self._rightEyeLight.Enabled = enabled
+    self._leftEyeLight.Brightness = level * 2.7
+    self._rightEyeLight.Brightness = level * 2.7
 end
 
 function FireEffects:Update(origin, direction, intensity, dt)
@@ -1019,6 +1148,44 @@ local function untrack(model)
 	models[model] = nil
 end
 
+local function updateEffects(model, state, sample, dt)
+	local rig = state.rig
+	if not state.effects then
+		if sample.fire == 0 and sample.recoverySmoke == 0 and sample.eyeGlow == 0 then
+			return
+		end
+		state.effects = FireEffects.new(model, Config, rig.scale)
+	end
+	local effects = state.effects
+
+	if sample.fire > 0 then
+		local origin, direction = rig:GetMouth(depression)
+		effects:Update(origin, direction, sample.fire, dt)
+		state.breathing = true
+	elseif state.breathing then
+		effects:Stop()
+		state.breathing = nil
+	end
+
+	if sample.recoverySmoke > 0 then
+		local left, right, mouth = rig:GetRecoveryVents()
+		effects:UpdateRecoverySmoke(left, right, mouth, sample.recoverySmoke)
+		state.smoking = true
+	elseif state.smoking then
+		effects:UpdateRecoverySmoke(nil, nil, nil, 0)
+		state.smoking = nil
+	end
+
+	if sample.eyeGlow > 0 then
+		local left, right = rig:GetEyeGlowPositions()
+		effects:UpdateEyeGlow(left, right, sample.eyeGlow)
+		state.eyesGlowing = true
+	elseif state.eyesGlowing then
+		effects:UpdateEyeGlow(nil, nil, 0)
+		state.eyesGlowing = nil
+	end
+end
+
 CollectionService:GetInstanceAddedSignal(TAG):Connect(track)
 CollectionService:GetInstanceRemovedSignal(TAG):Connect(untrack)
 for _, model in CollectionService:GetTagged(TAG) do
@@ -1049,15 +1216,7 @@ RunService.RenderStepped:Connect(function(dt)
 			local age = type(loaded) == "number" and math.max(0, now - loaded) or 0
 			local sample = Timeline.pose(age, elapsed, Config)
 			state.rig:Apply(sample)
-			if sample.fire > 0 then
-				state.effects = state.effects or FireEffects.new(model, Config)
-				local origin, direction = state.rig:GetMouth(depression)
-				state.effects:Update(origin, direction, sample.fire, dt)
-				state.breathing = true
-			elseif state.breathing then
-				state.effects:Stop()
-				state.breathing = nil
-			end
+			updateEffects(model, state, sample, dt)
 		end
 	end
 end)

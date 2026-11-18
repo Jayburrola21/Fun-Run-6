@@ -1,6 +1,6 @@
 # Volcanic Dragon Idle and Fire Breath
 
-The dragon starts in a relaxed idle pose. Its chest and neck rise and fall as it breathes, with occasional blinks and a slight head tilt and lean. The fire-breath attack starts 20 seconds after the dragon loads and repeats on that cadence. The black crown and facial horn tips heat to a bright orange-red just before ignition and cool as the dragon returns to idle.
+The dragon starts in a relaxed idle pose. Its chest and neck rise and fall as it breathes, with occasional blinks and a slight head tilt and lean. The fire-breath attack starts 20 seconds after the dragon loads and repeats on that cadence. The black crown and facial horn tips heat to a bright orange-red before ignition. The eyes brighten during the blast. After the flame cuts off, smoke rises from both nostrils and a smaller wisp escapes the mouth as the dragon returns to idle.
 
 ## Test it in Roblox Studio
 
@@ -8,7 +8,7 @@ The dragon starts in a relaxed idle pose. Its chest and neck rise and fall as it
 2. Open [InstallVolcanicDragon.command.luau](InstallVolcanicDragon.command.luau), copy the entire file into Studio's **Command Bar** while editing, and run it once. Save any custom `Config` values first so you can reapply them after the installer updates the module. The [Rojo project](default.project.json) is an alternative if you already sync your game with Rojo.
 3. Press **Play**. The eyelids open when the idle starts, then blink at varying intervals. Watch the chest and neck rise and settle, then wait for the attacks at 20 and 40 seconds. Each attack should return smoothly to idle.
 
-For an existing installation, import the latest rig and rerun the installer in Edit mode to get the horn-tip effect. The server shares its timestamps with every client. Scripts can also trigger an attack through the server-only `ServerStorage.PlayVolcanicDragon` event. The scheduler skips a slot if another attack would overlap it.
+For an existing installation, keep the current skinned rig and rerun the installer in Edit mode to get the recovery smoke and brighter eyes. The server shares its timestamps with every client. Scripts can also trigger an attack through the server-only `ServerStorage.PlayVolcanicDragon` event. The scheduler skips a slot if another attack would overlap it.
 
 ### If Studio reports a Command Bar syntax error
 
@@ -41,4 +41,4 @@ Edit **ReplicatedStorage → VolcanicDragon → Config** before pressing Play, o
 
 The underlying timeline, rig driver, and effects can be used separately. `build_studio_installer.py` rebuilds the Command Bar script after changes to the Luau sources. `build_dragon_rig.py` recreates the skin from the existing static GLB in Blender. The original `VolcanicDragon.glb` is still available.
 
-Standalone Luau tests cover the idle motion, blink timing, transitions, delayed turns, and fire envelope. Check the import, eyelid fit, placement, and multiplayer timing in Studio on the target place.
+Standalone Luau tests cover idle motion, blink timing, transitions, delayed turns, the fire envelope, eye glow, and recovery smoke. Check the colors, smoke placement, and multiplayer timing in Studio on the target place.

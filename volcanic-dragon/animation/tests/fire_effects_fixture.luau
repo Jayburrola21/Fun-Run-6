@@ -206,10 +206,51 @@ effect:Update(origin, facing, 0, .03)
 assert(not effect._bands[1].item.Enabled and effect._stream[1].item.Rate == 0)
 assert(not effect._mouthLight.Enabled and not effect._impactLight.Enabled)
 
+local smokeFrames = {
+    CFrame.lookAt(Vector3.new(-.35, 5.9, 1), Vector3.new(-.35, 6.5, 2), Vector3.yAxis),
+    CFrame.lookAt(Vector3.new(.35, 5.9, 1), Vector3.new(.35, 6.5, 2), Vector3.yAxis),
+    CFrame.lookAt(Vector3.new(0, 5.5, 1), Vector3.new(0, 5.8, 2), Vector3.yAxis),
+}
+local smoke = effect._recoverySmoke
+local leftEye = Vector3.new(-1.4, 7, 1)
+local rightEye = Vector3.new(1.4, 7, 1)
+effect:UpdateEyeGlow(leftEye, rightEye, .5)
+assert(effect._leftEye.Position == leftEye and effect._rightEye.Position == rightEye)
+assert(effect._leftEyeLight.Enabled and effect._rightEyeLight.Enabled)
+assert(effect._leftEyeLight.Brightness == 1.35 and effect._rightEyeLight.Brightness == 1.35)
+assert(not effect._mouthLight.Enabled and not effect._impactLight.Enabled)
+
+local lastFireCast = lastCast
+effect:UpdateRecoverySmoke(smokeFrames[1], smokeFrames[2], smokeFrames[3], 1)
+for index, spec in ipairs(smoke) do
+    assert(spec.item.Enabled and math.abs(spec.item.Rate - spec.rate * .6) < .000001)
+    assert(effect._recoverySources[index].CFrame == smokeFrames[index], "Each wisp follows its own origin")
+    assert(spec.item.Acceleration.Y > 0 and spec.item.Lifetime[2] <= 1, "Smoke rises and fades promptly")
+end
+assert(smoke[3].item.Rate < smoke[1].item.Rate / 2, "Mouth smoke is subtler than either nostril")
+assert(lastCast == lastFireCast and not fringe.Enabled and createdCount == initialCount,
+    "Recovery smoke reuses its effects and leaves the fire ray and beam idle")
+
 effect:Stop()
+assert(smoke[1].item.Enabled, "Stopping the flame leaves recovery smoke independent")
+assert(effect._leftEyeLight.Enabled and effect._rightEyeLight.Enabled, "Eye afterglow is independent of the flame")
+effect:UpdateEyeGlow(nil, nil, 0)
+assert(not effect._leftEyeLight.Enabled and not effect._rightEyeLight.Enabled)
+assert(effect._leftEyeLight.Brightness == 0 and effect._rightEyeLight.Brightness == 0)
+effect:UpdateRecoverySmoke(smokeFrames[1], smokeFrames[2], smokeFrames[3], .25)
+assert(math.abs(smoke[1].item.Rate - smoke[1].rate * .6 * .25) < .000001, "Smoke tapers with recovery")
+effect:UpdateRecoverySmoke(nil, nil, nil, 0)
+for _, spec in ipairs(smoke) do
+    assert(not spec.item.Enabled and spec.item.Rate == 0, "Smoke stops emitting at idle")
+end
+
 local group = effect._group
 effect:Destroy()
 assert(group.destroyed and effect._group == nil)
 effect:Destroy()
 assert(effect:Update(origin, facing, 1, 1 / 30) == nil)
-print("PASS doubled fire and impact dimensions, focused jet, raycast, late track, scorch pool, stop, and destroy")
+effect:UpdateRecoverySmoke(smokeFrames[1], smokeFrames[2], smokeFrames[3], 1)
+effect:UpdateEyeGlow(leftEye, rightEye, 1)
+assert(not smoke[1].item.Enabled, "Destroyed recovery effects stay disabled")
+assert(not effect._leftEyeLight.Enabled and not effect._rightEyeLight.Enabled)
+print("PASS focused fire, raycast, scorch pool, recovery smoke, eye glow, stop, and destroy")

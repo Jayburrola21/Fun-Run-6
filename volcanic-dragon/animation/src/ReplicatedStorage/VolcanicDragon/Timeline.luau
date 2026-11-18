@@ -5,7 +5,7 @@ local Timeline = {}
 local REST = table.freeze({
 	basePitch = 0, midPitch = 0, upperPitch = 0, headPitch = 0,
 	baseYaw = 0, midYaw = 0, upperYaw = 0, headYaw = 0,
-	jawOpen = 0, fire = 0, hornHeat = 0, active = false,
+	jawOpen = 0, fire = 0, hornHeat = 0, eyeGlow = 0, recoverySmoke = 0, active = false,
 })
 
 local ZERO = { 0, 0, 0, 0, 0 }
@@ -77,6 +77,7 @@ function Timeline.sample(elapsed, config)
 
 	local from, to, phase, fire = ZERO, WAKE, 0, 0
 	local settledBreath = 0
+	local recoverySmoke = 0
 	if elapsed < wakeEnd then
 		phase = ease(elapsed / wakeEnd)
 	elseif elapsed < fireStart then
@@ -89,6 +90,11 @@ function Timeline.sample(elapsed, config)
 		fire = ease((elapsed - fireStart) / math.min(0.32, breathTime * 0.18))
 			* ease((fireEnd - elapsed) / math.min(0.58, breathTime * 0.28))
 	else
+		local sinceFire = elapsed - fireEnd
+		-- Leave time within recovery for the last smoke particles to fade.
+		local smokeTime = math.min(1.45, recovery - 0.96)
+		recoverySmoke = ease(sinceFire / (smokeTime * 0.25))
+			* (1 - ease((sinceFire - smokeTime * 0.35) / (smokeTime * 0.65)))
 		local progress = (elapsed - fireEnd) / recovery
 		if progress < 0.31 then
 			from, to = BREATH, RELEASE
@@ -113,6 +119,8 @@ function Timeline.sample(elapsed, config)
 		jawOpen = math.rad(lerp(from[5], to[5], phase)),
 		fire = fire,
 		hornHeat = hornHeat,
+		eyeGlow = hornHeat * (0.55 + 0.45 * fire),
+		recoverySmoke = recoverySmoke,
 		active = true,
 	}
 end

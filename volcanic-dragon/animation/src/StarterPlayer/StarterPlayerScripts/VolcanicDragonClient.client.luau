@@ -35,6 +35,44 @@ local function untrack(model)
 	models[model] = nil
 end
 
+local function updateEffects(model, state, sample, dt)
+	local rig = state.rig
+	if not state.effects then
+		if sample.fire == 0 and sample.recoverySmoke == 0 and sample.eyeGlow == 0 then
+			return
+		end
+		state.effects = FireEffects.new(model, Config, rig.scale)
+	end
+	local effects = state.effects
+
+	if sample.fire > 0 then
+		local origin, direction = rig:GetMouth(depression)
+		effects:Update(origin, direction, sample.fire, dt)
+		state.breathing = true
+	elseif state.breathing then
+		effects:Stop()
+		state.breathing = nil
+	end
+
+	if sample.recoverySmoke > 0 then
+		local left, right, mouth = rig:GetRecoveryVents()
+		effects:UpdateRecoverySmoke(left, right, mouth, sample.recoverySmoke)
+		state.smoking = true
+	elseif state.smoking then
+		effects:UpdateRecoverySmoke(nil, nil, nil, 0)
+		state.smoking = nil
+	end
+
+	if sample.eyeGlow > 0 then
+		local left, right = rig:GetEyeGlowPositions()
+		effects:UpdateEyeGlow(left, right, sample.eyeGlow)
+		state.eyesGlowing = true
+	elseif state.eyesGlowing then
+		effects:UpdateEyeGlow(nil, nil, 0)
+		state.eyesGlowing = nil
+	end
+end
+
 CollectionService:GetInstanceAddedSignal(TAG):Connect(track)
 CollectionService:GetInstanceRemovedSignal(TAG):Connect(untrack)
 for _, model in CollectionService:GetTagged(TAG) do
@@ -65,15 +103,7 @@ RunService.RenderStepped:Connect(function(dt)
 			local age = type(loaded) == "number" and math.max(0, now - loaded) or 0
 			local sample = Timeline.pose(age, elapsed, Config)
 			state.rig:Apply(sample)
-			if sample.fire > 0 then
-				state.effects = state.effects or FireEffects.new(model, Config)
-				local origin, direction = state.rig:GetMouth(depression)
-				state.effects:Update(origin, direction, sample.fire, dt)
-				state.breathing = true
-			elseif state.breathing then
-				state.effects:Stop()
-				state.breathing = nil
-			end
+			updateEffects(model, state, sample, dt)
 		end
 	end
 end)

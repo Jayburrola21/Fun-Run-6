@@ -110,6 +110,20 @@ check(coolDown.hornHeat > 0 and coolDown.hornHeat < 1 and coolDown.fire == 0,
     "Horn tips cool during recovery after the fire stops")
 near(Timeline.sample(8.75, default).hornHeat, 0, 1e-8, "Horn tips finish cooling before idle")
 near(Timeline.pose(20, math.huge, default).hornHeat, 0, 1e-8, "Horn tips stay dark in idle")
+check(heatUp.eyeGlow > 0 and heatUp.eyeGlow < 1, "Eyes start to brighten on the charge")
+near(Timeline.sample(4, default).eyeGlow, 1, 1e-8, "Eyes reach peak glow during the breath")
+near(Timeline.sample(4, default).recoverySmoke, 0, 1e-8, "Recovery smoke stays off during fire")
+near(Timeline.sample(8, default).recoverySmoke, 1, 1e-8, "The smoke reaches its peak after fire stops")
+check(Timeline.sample(8.6, default).recoverySmoke > 0 and Timeline.sample(8.6, default).recoverySmoke < 1,
+    "Recovery smoke tapers off")
+near(Timeline.sample(9.06, default).recoverySmoke, 0, 1e-8, "Smoke emission ends before idle")
+local idleFace = Timeline.pose(20, math.huge, default)
+near(idleFace.eyeGlow, 0, 1e-8, "The eyes return to their usual brightness in idle")
+near(idleFace.recoverySmoke, 0, 1e-8, "Idle emits no recovery smoke")
+
+local shortRecovery = { Duration = 4, FireDuration = 100 }
+check(Timeline.sample(2.92, shortRecovery).recoverySmoke > 0, "A short recovery still produces some smoke")
+near(Timeline.sample(3.05, shortRecovery).recoverySmoke, 0, 1e-8, "A short recovery gives smoke time to clear")
 near(fireEnd, 7.5, .12, "Default fire ends around 7.5 seconds")
 check(firePeak >= .9, "Breath has a sustained full-strength interval")
 

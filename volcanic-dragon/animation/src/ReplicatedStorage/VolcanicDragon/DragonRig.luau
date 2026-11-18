@@ -12,6 +12,14 @@ local UP = Vector3.yAxis
 local HORN_TIP_PREFIX = "DragonHornHeat"
 local WARM_RED = Color3.fromRGB(178, 36, 6)
 local HOT_RED = Color3.fromRGB(255, 79, 16)
+-- Measured on the current GLB in the head's right/up/back frame, before scaling.
+local LEFT_NOSTRIL = Vector3.new(0.5605, 0.1411, -2.2023)
+local RIGHT_NOSTRIL = Vector3.new(-0.5350, 0.1687, -2.2037)
+local LEFT_VENT = Vector3.new(0.5840, 0.5080, -0.6331)
+local RIGHT_VENT = Vector3.new(-0.5840, 0.5078, -0.6333)
+local MOUTH_VENT = Vector3.new(0, -0.633, -2.62)
+local LEFT_EYE = Vector3.new(1.374, 0.486, -1.347)
+local RIGHT_EYE = Vector3.new(-1.374, 0.486, -1.347)
 
 function DragonRig.isHornTip(instance)
 	return instance:IsA("MeshPart") and instance.Name:sub(1, #HORN_TIP_PREFIX) == HORN_TIP_PREFIX
@@ -19,6 +27,16 @@ end
 
 local function jointName(name)
 	return name:match("^(.-)[%._]%d+$") or name
+end
+
+local function isIris(name)
+	local key = name:lower():gsub("[^%w]", "")
+	return key:match("^crimsoniris[lr]%d*$") ~= nil
+end
+
+local function ventFrame(offset, direction, scale)
+	local point = offset * scale
+	return CFrame.lookAt(point, point + direction)
 end
 
 local function bindLidEdge(bone, groups)
@@ -61,6 +79,7 @@ function DragonRig.new(model)
 	end
 	local lidGroups = {}
 	local hornTips = {}
+	local irises = {}
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("Bone") then
 			local list = groups[jointName(descendant.Name)]
@@ -71,6 +90,11 @@ function DragonRig.new(model)
 			end
 		elseif DragonRig.isHornTip(descendant) then
 			table.insert(hornTips, descendant)
+		elseif descendant:IsA("MeshPart") and isIris(descendant.Name) then
+			local surface = descendant:FindFirstChildWhichIsA("SurfaceAppearance")
+			if surface then
+				table.insert(irises, {surface = surface, strength = surface.EmissiveStrength})
+			end
 		end
 	end
 	for name, list in pairs(groups) do
@@ -100,6 +124,9 @@ function DragonRig.new(model)
 	end
 	local forward = horizontal.Unit
 	local right = forward:Cross(UP)
+	local scale = horizontal.Magnitude / 2.51 -- Head-to-mouth distance in the authored GLB.
+	local headFrame = head.TransformedWorldCFrame
+	local faceFrame = CFrame.lookAt(headFrame.Position, headFrame.Position + forward, UP)
 	local bind = {}
 	for _, name in { "NeckBase", "NeckMid", "NeckUpper", "Head", "Jaw", "Chest" } do
 		local group = {}
@@ -127,7 +154,13 @@ function DragonRig.new(model)
 		bind = bind,
 		lids = lids,
 		hornTips = hornTips,
-		scale = horizontal.Magnitude / 2.51, -- Head-to-mouth distance in the authored GLB.
+		irises = irises,
+		scale = scale,
+		head = head,
+		face = headFrame:ToObjectSpace(faceFrame),
+		leftNostril = ventFrame(LEFT_NOSTRIL + LEFT_VENT * 0.065, LEFT_VENT, scale),
+		rightNostril = ventFrame(RIGHT_NOSTRIL + RIGHT_VENT * 0.065, RIGHT_VENT, scale),
+		mouthVent = ventFrame(MOUTH_VENT, Vector3.new(0, 0.22, -1), scale),
 		mouth = mouth,
 		mouthForward = mouth.TransformedWorldCFrame:VectorToObjectSpace(forward),
 		mouthUp = mouth.TransformedWorldCFrame:VectorToObjectSpace(UP),
@@ -178,6 +211,16 @@ function DragonRig:SetHornHeat(heat)
 	end
 end
 
+function DragonRig:SetEyeGlow(level)
+	if level == self.eyeGlow then
+		return
+	end
+	self.eyeGlow = level
+	for _, iris in self.irises do
+		iris.surface.EmissiveStrength = iris.strength + level * 1.6
+	end
+end
+
 function DragonRig:Apply(sample)
 	local bind = self.bind
 	raiseChest(bind.Chest, (sample.chestRise or 0) * self.scale)
@@ -191,12 +234,23 @@ function DragonRig:Apply(sample)
 	pose(bind.Jaw, 0, -sample.jawOpen)
 	self:SetBlink(sample.blink or 0)
 	self:SetHornHeat(sample.hornHeat or 0)
+	self:SetEyeGlow(sample.eyeGlow or 0)
 end
 
 function DragonRig:GetMouth(depression)
 	local frame = self.mouth.TransformedWorldCFrame
 	local aim = self.mouthForward * math.cos(depression) - self.mouthUp * math.sin(depression)
 	return frame.Position, frame:VectorToWorldSpace(aim).Unit
+end
+
+function DragonRig:GetRecoveryVents()
+	local face = self.head.TransformedWorldCFrame * self.face
+	return face * self.leftNostril, face * self.rightNostril, face * self.mouthVent
+end
+
+function DragonRig:GetEyeGlowPositions()
+	local face = self.head.TransformedWorldCFrame * self.face
+	return face:PointToWorldSpace(LEFT_EYE * self.scale), face:PointToWorldSpace(RIGHT_EYE * self.scale)
 end
 
 function DragonRig:Reset()
@@ -206,6 +260,7 @@ function DragonRig:Reset()
 	raiseChest(self.bind.Chest, 0)
 	self:SetBlink(0)
 	self:SetHornHeat(0)
+	self:SetEyeGlow(0)
 end
 
 return DragonRig
