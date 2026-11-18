@@ -233,21 +233,21 @@ local function recoveryEmitters(group)
     local left = containerPart("Left nostril recovery", group)
     local right = containerPart("Right nostril recovery", group)
     local mouth = containerPart("Mouth recovery", group)
-    local smokeColor = {{0, color(117, 109, 102)}, {1, color(78, 75, 74)}}
-    local smokeFade = {{0, .82}, {.18, .41}, {.55, .67}, {1, 1}}
     local nostrilSpec = {
-        name = "Nostril smoke", texture = SMOKE, direction = Enum.NormalId.Front, emission = .04, influence = .73,
-        rate = 17, life = {.52, .94}, speed = {1.35, 2.35}, spread = 11, spin = 29,
-        acceleration = Vector3.new(0, 4.4, 0), drag = 1.7,
-        size = {{0, .085}, {.36, .42}, {1, .66}},
-        transparency = smokeFade, color = smokeColor,
+        name = "Nostril smoke", texture = SMOKE, direction = Enum.NormalId.Front, emission = .09, influence = .35,
+        rate = 30, life = {.52, .94}, speed = {1.75, 2.8}, spread = 11, spin = 29,
+        acceleration = Vector3.new(0, 5.1, 0), drag = 1.7,
+        size = {{0, .10}, {.36, .56}, {1, .83}},
+        transparency = {{0, .68}, {.18, .25}, {.55, .53}, {1, 1}},
+        color = {{0, color(181, 174, 166)}, {1, color(132, 131, 130)}},
     }
     local mouthSpec = {
         name = "Mouth wisp", texture = SMOKE, direction = Enum.NormalId.Front, emission = .04, influence = .73,
         rate = 7, life = {.43, .76}, speed = {.75, 1.35}, spread = 16, spin = 34,
         acceleration = Vector3.new(0, 3.8, 0), drag = 1.5,
         size = {{0, .09}, {.36, .36}, {1, .58}},
-        transparency = {{0, .87}, {.19, .52}, {.55, .76}, {1, 1}}, color = smokeColor,
+        transparency = {{0, .87}, {.19, .52}, {.55, .76}, {1, 1}},
+        color = {{0, color(117, 109, 102)}, {1, color(78, 75, 74)}},
     }
     return {left, right, mouth}, {
         emitter(attachment("Smoke source", left), nostrilSpec),
