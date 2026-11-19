@@ -2,6 +2,8 @@
 
 For a single curve to connect by hand, use the [standalone 90° curve](STANDALONE-CURVE.md). The [fitted continuous bend](CONTINUOUS-BEND.md) is the replacement for the corner in the original place.
 
+The [standalone straight track](STANDALONE-STRAIGHT.md) uses the original Trackmain paving and adds matching walls along its sides.
+
 [Download the Roblox model](FunRun6-TrackKit.rbxm) · [Preview the six sections](TrackKitPreview.png)
 
 The kit contains **64- and 128-stud straights** and **left and right 45° and 90° curves**. Each section is a separate model with a 63-stud driving width, a level deck, and stone walls on both sides. The curves use a 64-stud centerline radius.

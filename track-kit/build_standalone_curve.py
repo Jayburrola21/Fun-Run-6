@@ -110,9 +110,9 @@ class Strip:
             batch.add(mapped if self.slope > 0 else mapped[::-1])
 
 
-def sweep(batch, profile, stations, uv, side=0):
+def sweep(batch, profile, stations, uv, side=0, *, point=track_point):
     def section(station):
-        return [(*track_point(station, side * (HALF_WIDTH + offset) if side else offset, y), *uv)
+        return [(*point(station, side * (HALF_WIDTH + offset) if side else offset, y), *uv)
                 for offset, y in profile]
 
     def face(vertices):

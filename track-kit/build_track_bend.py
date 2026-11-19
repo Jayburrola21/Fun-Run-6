@@ -158,10 +158,16 @@ def palette_material(label, rgb):
     return material
 
 
+def bend_mesh_point(x, y, z):
+    # +X world travel becomes Blender +Y / Roblox local -Z.
+    return z - CENTER_Z, x - X_JOIN, y - FLOOR_Y
+
+
 class MeshBatch:
-    def __init__(self, label, color):
+    def __init__(self, label, color, *, to_blender=bend_mesh_point):
         self.label = label
         self.material = palette_material(label, color)
+        self.to_blender = to_blender
         self.triangles = []
         self.objects = []
 
@@ -187,8 +193,7 @@ class MeshBatch:
         for triangle in self.triangles:
             face = []
             for x, y, z, _, _ in triangle:
-                # +X world travel becomes Blender +Y / Roblox local -Z.
-                point = (round(z - CENTER_Z, 7), round(x - X_JOIN, 7), round(y - FLOOR_Y, 7))
+                point = tuple(round(axis, 7) for axis in self.to_blender(x, y, z))
                 index = lookup.get(point)
                 if index is None:
                     index = len(verts)
