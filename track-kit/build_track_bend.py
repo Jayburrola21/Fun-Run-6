@@ -38,6 +38,26 @@ WALL_WINDOWS = {
     -1: (-998.0, 123.90, -53.75631),
     1: (-924.0, 23.75, 9.19699),
 }
+# Lateral clearance from the lane edge to the next original row of tiles.
+# Both deck runouts overlap that row by just enough to hide its chipped ends.
+DECK_RUNOUTS = (
+    (10.06, (-.494, .081)),
+    (5.92, (-.090, .205)),
+)
+DECK_SHOULDER = .45
+WALL_RUNOUTS = ((1.44, 4.31), (9.19, 8.69))
+CAP_LEAD_IN = 4.5
+CAP_LAP = .06
+CAP_PROFILE = [(-.20, 3.70), (.92, 3.70), (.92, 4.206), (-.034, 4.206), (-.20, 3.967)]
+GROUT_UV = (.200027, .278477)
+# At each join, fit the canal lip's top, bevel and lateral offset. The
+# inner canals end at the cut; the outside lips continue past it.
+CAP_JOINS = {
+    (0, -1): (.03, .15, .987, 31.085, 31.295),
+    (0, 1): (-.016, .124, 1.126, 31.3057, 31.3057),
+    (1, -1): (-.031, .087, 1.046, 31.067, 31.295),
+    (1, 1): (-.075, .049, 1.036, 31.3057, 31.3057),
+}
 
 
 @dataclass
@@ -91,13 +111,25 @@ def clip(corners, axis, plane, greater):
     return result
 
 
-def bend_point(station, lane, height, wall_offset=0):
-    progress = station / ARC
+def half_width(station):
+    progress = max(0, min(1, station / ARC))
     blend = progress * progress * (3 - 2 * progress)
-    width = START_HALF + (END_HALF - START_HALF) * blend
+    return START_HALF + (END_HALF - START_HALF) * blend
+
+
+def bend_point(station, lane, height, wall_offset=0):
+    width = half_width(station)
     radial = RADIUS - (lane * width + wall_offset)
     angle = station / RADIUS
     return X_JOIN + radial * math.sin(angle), FLOOR_Y + height, Z_JOIN - radial * math.cos(angle)
+
+
+def track_point(station, lane, height, wall_offset=0):
+    if station < 0:
+        return X_JOIN + station, FLOOR_Y + height, CENTER_Z + lane * START_HALF + wall_offset
+    if station > ARC:
+        return CENTER_X - lane * END_HALF - wall_offset, FLOOR_Y + height, Z_JOIN + station - ARC
+    return bend_point(station, lane, height, wall_offset)
 
 
 def warped(corners, transform):
@@ -185,23 +217,79 @@ def source_corners(indices, points, uvs, height_delta=0):
         yield x, y + height_delta, z, *uvs[uv_index]
 
 
-def sweep_profile(batch, side, profile, uv):
+def sweep_profile(batch, side, sections, uv):
     """A continuous profile, with a source-atlas UV for each corner."""
-    def section(station):
-        return [(*bend_point(station, side, y, side * offset), *uv)
-                if side else (*bend_point(station, offset, y), *uv) for offset, y in profile]
+    def section(station, profile):
+        return [(*track_point(station, side, y, side * offset), *uv)
+                if side else (*track_point(station, offset, y), *uv) for offset, y in profile]
 
     mirrored = side < 0
-    previous = section(0)
+    start, profile = next(sections)
+    previous = section(start, profile)
     batch.add(previous[::-1] if mirrored else previous)
-    for index in range(1, SLICES + 1):
-        current = section(ARC * index / SLICES)
+    for station, profile in sections:
+        current = section(station, profile)
         for j in range(len(profile)):
             k = (j + 1) % len(profile)
             quad = [previous[j], current[j], current[k], previous[k]]
             batch.add(quad[::-1] if mirrored else quad)
         previous = current
     batch.add(previous if mirrored else previous[::-1])
+
+
+def stations(entry, exit):
+    yield -entry
+    for index in range(SLICES + 1):
+        yield ARC * index / SLICES
+    yield ARC + exit
+
+
+def deck_profile(station):
+    # Carry the grout under the wall so that chipped verge stones cannot
+    # leave a slit between the deck and the brick backing.
+    width = half_width(station)
+    entry_edge = -DECK_RUNOUTS[0][1][0] if station <= 0 else 0
+    left = -1 - max(DECK_SHOULDER, entry_edge) / width
+    right = 1 + DECK_SHOULDER / width
+    return [(left, -.54), (right, -.54), (right, -.285), (left, -.285)]
+
+
+def cap_profile(side, station):
+    end = int(station > ARC / 2)
+    distance = max(0, ARC - station if end else station)
+    blend = max(0, 1 - distance / CAP_LEAD_IN)
+    blend *= blend * (3 - 2 * blend)
+    near, shoulder, far, shoulder_top, top = CAP_JOINS[end, side]
+    # Keep the small overlap under both canal seams free of coincident faces.
+    if station < 0 or station > ARC:
+        top -= .022
+        shoulder_top -= .022
+    join = [(near, 3.70), (far, 3.70), (far, top - FLOOR_Y),
+            (shoulder, shoulder_top - FLOOR_Y), (near, shoulder_top - FLOOR_Y - .14)]
+    return [tuple(a + (b - a) * blend for a, b in zip(shape, fit))
+            for shape, fit in zip(CAP_PROFILE, join)]
+
+
+def paving_apron(corners, end):
+    length, (low, high) = DECK_RUNOUTS[end]
+    axis, cross = (2, 0) if end else (0, 2)
+    cut = (X_JOIN, Z_JOIN)[end]
+    center = (CENTER_Z, CENTER_X)[end]
+    width = (START_HALF, END_HALF)[end]
+    if end:
+        corners = clip(clip(corners, 0, X_JOIN, True), axis, cut, True)
+        corners = clip(corners, axis, cut + length, False)
+        corners = clip(corners, cross, center - width - high, True)
+        corners = clip(corners, cross, center + width - low, False)
+    else:
+        corners = clip(clip(corners, axis, cut, False), axis, cut - length, True)
+        corners = clip(clip(corners, cross, center - width + low, True), cross, center + width + high, False)
+    # Lower the last stud into the untouched stones to keep their shaped
+    # edges without two nearly coplanar surfaces fighting in Studio.
+    feather = cut + (length - 1) * (1 if end else -1)
+    yield clip(corners, axis, feather, not end)
+    yield [(x, y - .025 * abs((x, y, z)[axis] - feather), z, u, v)
+           for x, y, z, u, v in clip(corners, axis, feather, bool(end))]
 
 
 def make_markers():
@@ -218,7 +306,7 @@ def make_markers():
 def build(source):
     points, uvs, groups = read_obj(source)
     batches = {label: MeshBatch(label, rgb) for label, rgb in PALETTE.values()}
-    base = MeshBatch("BendPavingBase", (50, 52, 61))
+    base = MeshBatch("BendPavingBase", PALETTE["Meshesfloorssmenvtiles021Mtl"][1])
     wall = batches["BendWallNeutral"]
     if Counter(g.material for g in groups) != Counter({key: n for key, n in zip(PALETTE, (126, 87, 63))}):
         raise ValueError("Load the matching Track.obj Studio export")
@@ -236,7 +324,7 @@ def build(source):
         if is_floor:
             # The source has overlapping carved edges. Keep their
             # visual depths distinct while Studio supplies one flat deck.
-            level -= (.009 if batch.label == "BendPavingDark" else 0) + (group_index % 13) * .0002
+            level -= (.014 if batch.label == "BendPavingDark" else 0) + (group_index % 13) * .001
         affected = hi[0] > X_JOIN + .0001 and lo[2] < Z_JOIN - .0001
         if affected:
             replaced_counts["floor" if is_floor else "wall"] += 1
@@ -244,8 +332,13 @@ def build(source):
                 corners = list(source_corners(face, points, uvs, level))
                 # Retain the exact UV/position of original meshes up to both
                 # tangent cuts when their old instance crosses the join.
-                batch.add(clip(corners, 0, X_JOIN, False))
-                batch.add(clip(clip(corners, 0, X_JOIN, True), 2, Z_JOIN, True))
+                if is_floor:
+                    for end in (0, 1):
+                        for fragment in paving_apron(corners, end):
+                            batch.add(fragment)
+                else:
+                    batch.add(clip(corners, 0, X_JOIN, False))
+                    batch.add(clip(clip(corners, 0, X_JOIN, True), 2, Z_JOIN, True))
         window = (SOURCE_X, ARC) if is_floor else WALL_WINDOWS[1 if lo[2] > 0 else -1][:2]
         source_x, runoff = window
         if hi[0] <= source_x or lo[0] >= source_x + runoff:
@@ -273,16 +366,18 @@ def build(source):
                 for result in warped(normalized, lambda s, lateral, y: bend_point(s, sign, y, lateral)):
                     wall.add(result)
 
-    # Dark backing sits below the paving relief, at the levels of
-    # original mortar gaps. The flat drive deck is placed in Studio.
-    sweep_profile(base, 0, [(-1, -.59), (1, -.59), (1, -.295), (-1, -.295)], (0, 0))
+    # The grout continues below the paving and into the straight joins.
+    deck = ((s, deck_profile(s)) for s in stations(DECK_RUNOUTS[0][0], DECK_RUNOUTS[1][0]))
+    sweep_profile(base, 0, deck, GROUT_UV)
     for side in (-1, 1):
-        # Close tiny wall-end openings behind the original front brickwork.
-        sweep_profile(wall, side, [(.22, -.45), (.68, -.45), (.68, 3.98), (.22, 3.98)], (.199469, .275827))
-        # Form the continuous top with the source canal lip's bevel and
-        # exact upward UV swatch, without including the outer trough.
-        sweep_profile(wall, side, [(-.20, 3.89), (.804, 3.89), (.804, 4.206),
-                                  (-.034, 4.206), (-.20, 3.967)], (.199705, .301077))
+        # The spine backs the original brick relief and the clipped brick
+        # ends, including on the straight portions past the cap transition.
+        entry, exit = (runout[int(side > 0)] for runout in WALL_RUNOUTS)
+        spine_profile = [(.11, -.54), (.68, -.54), (.68, 3.94), (.11, 3.94)]
+        spine = ((s, spine_profile) for s in stations(entry, exit))
+        sweep_profile(wall, side, spine, (.199469, .275827))
+        cap = ((s, cap_profile(side, s)) for s in stations(CAP_LAP, CAP_LAP))
+        sweep_profile(wall, side, cap, (.199705, .301077))
     for batch in (*batches.values(), base):
         batch.flush()
     print("Source groups used:", source_counts)

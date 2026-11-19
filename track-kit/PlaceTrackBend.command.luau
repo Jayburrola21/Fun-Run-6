@@ -11,6 +11,8 @@ local radius = 47
 local entryHalfWidth, exitHalfWidth = 31.47665, 31.57025
 local wallWidth, wallHeight = .71, 3.95
 local collisionName = "Track Bend Collision"
+local originalArchiveName = "Fun Run 6 Original Bend"
+local revisionsArchiveName = "Previous Bend Models"
 local markerRoles = {
 	trackbendentry = "entry",
 	trackbendforward = "forward",
@@ -20,7 +22,7 @@ local visualStyles = {
 	{ prefix = "bendpavingslate", color = Color3.fromRGB(88, 92, 108) },
 	{ prefix = "bendpavingdark", color = Color3.fromRGB(52, 54, 66) },
 	{ prefix = "bendwallneutral", color = Color3.fromRGB(163, 162, 165) },
-	{ prefix = "bendpavingbase", color = Color3.fromRGB(50, 52, 61), plain = true },
+	{ prefix = "bendpavingbase", color = Color3.fromRGB(88, 92, 108) },
 }
 local originalTexture = "rbxassetid://2913129928"
 
@@ -126,8 +128,8 @@ for _, child in ipairs(bend:GetDescendants()) do
 end
 assert(markers.entry and markers.forward and markers.up,
 	"Import the complete bend as a Model with Merge Meshes off so its three placement markers remain separate.")
-assert(rolesSeen.bendpavingslate and rolesSeen.bendpavingdark and rolesSeen.bendwallneutral,
-	"Import all the separate paving and wall meshes together with the bend markers.")
+assert(rolesSeen.bendpavingslate and rolesSeen.bendpavingdark and rolesSeen.bendwallneutral and rolesSeen.bendpavingbase,
+	"Import all the separate paving, grout, and wall meshes together with the bend markers.")
 local oldCollision = bend:FindFirstChild(collisionName)
 assert(not oldCollision or oldCollision:GetAttribute("GeneratedTrackBendCollision"),
 	"Rename the existing Track Bend Collision folder before running the command.")
@@ -145,28 +147,85 @@ local function markerFrame()
 	return CFrame.lookAt(origin, origin + forward, up), expectedLength / markerDistance
 end
 
+local function findReference(children, reference, trim)
+	local id, mesh, x, y, z, sx, sy, sz, rx, rz = table.unpack(reference)
+	local meshId = "rbxassetid://" .. mesh
+	local position = if trim then trim[1] else Vector3.new(x, y, z)
+	local size = if trim then trim[2] else Vector3.new(sx, sy, sz)
+	local right = Vector3.new(rx, 0, rz)
+	local found
+	for _, part in ipairs(children) do
+		if part:IsA("MeshPart") and part.MeshId == meshId
+			and (part.Position - position).Magnitude < .01
+			and (part.Size - size).Magnitude < .01
+			and (part.CFrame.RightVector - right).Magnitude < .001
+			and (part.CFrame.UpVector - Vector3.yAxis).Magnitude < .001 then
+			assert(not found, string.format("Track piece %d matches more than one part.", id))
+			found = part
+		end
+	end
+	return found
+end
+
 local function originalParts(model)
 	local matched = {}
 	local children = model:GetChildren()
 	for _, reference in ipairs(originalReferences) do
-		local id, mesh, x, y, z, sx, sy, sz, rx, rz = table.unpack(reference)
-		local meshId = "rbxassetid://" .. mesh
-		local position, size, right = Vector3.new(x, y, z), Vector3.new(sx, sy, sz), Vector3.new(rx, 0, rz)
-		for _, part in ipairs(children) do
-			if part:IsA("MeshPart") and part.MeshId == meshId
-				and (part.Position - position).Magnitude < .01
-				and (part.Size - size).Magnitude < .01
-				and (part.CFrame.RightVector - right).Magnitude < .001
-				and (part.CFrame.UpVector - Vector3.yAxis).Magnitude < .001 then
-				assert(not matched[id], string.format("Original Track piece %d matches more than one part.", id))
-				matched[id] = part
-			end
-		end
+		local id = reference[1]
+		matched[id] = findReference(children, reference)
 		assert(matched[id], string.format(
 			"Could not verify original Track piece %d at its uploaded position. Select the unmodified Track or place the bend on its own.",
 			id))
 	end
 	return matched
+end
+
+local function findOriginalArchive()
+	local archive
+	for _, child in ipairs(ServerStorage:GetChildren()) do
+		if child:IsA("Folder") and child.Name == originalArchiveName and pcall(originalParts, child) then
+			assert(not archive, "More than one matching original bend archive exists in ServerStorage.")
+			archive = child
+		end
+	end
+	return archive
+end
+
+local function existingInstallation()
+	local previous
+	for _, model in ipairs(track:GetChildren()) do
+		if model ~= bend and model:IsA("Model") then
+			local collision = model:FindFirstChild(collisionName)
+			if collision and collision:IsA("Folder") and collision:GetAttribute("GeneratedTrackBendCollision") then
+				assert(not previous, "Track contains more than one installed bend. Move the extra bend aside first.")
+				previous = model
+			end
+		end
+	end
+	if not previous and (bend.Parent ~= track or not oldCollision) then
+		return nil, nil
+	end
+
+	local archive = findOriginalArchive()
+	if not archive then
+		assert(not previous, "Could not verify the original bend archive in ServerStorage.")
+		return nil, nil
+	end
+
+	-- Confirm the old curve was installed over the same upload and its two
+	-- clipped canal strips still exist. A revision does not recreate them.
+	local children = track:GetChildren()
+	for _, reference in ipairs(originalReferences) do
+		local id = reference[1]
+		assert(not findReference(children, reference),
+			string.format("Original track piece %d is still present beside the installed bend.", id))
+		local trim = canalTrim[id]
+		if trim then
+			assert(findReference(children, reference, trim),
+				string.format("Could not verify the existing trimmed canal strip %d.", id))
+		end
+	end
+	return previous, archive
 end
 
 local rollback = {}
@@ -203,7 +262,7 @@ end
 
 local function archiveCorner(parts)
 	local backup = discardOnFailure(Instance.new("Folder"), true)
-	backup.Name = "Fun Run 6 Original Bend"
+	backup.Name = originalArchiveName
 	backup.Parent = ServerStorage
 
 	for id, trim in pairs(canalTrim) do
@@ -218,6 +277,18 @@ local function archiveCorner(parts)
 	for _, part in pairs(parts) do
 		reparent(part, backup)
 	end
+	reparent(bend, track)
+end
+
+local function replaceBend(previous, originalArchive)
+	local revisions = originalArchive:FindFirstChild(revisionsArchiveName)
+	if not revisions then
+		revisions = discardOnFailure(Instance.new("Folder"), true)
+		revisions.Name = revisionsArchiveName
+		revisions.Parent = originalArchive
+	end
+	assert(revisions:IsA("Folder"), "Rename the existing Previous Bend Models item in the original bend archive.")
+	reparent(previous, revisions)
 	reparent(bend, track)
 end
 
@@ -330,12 +401,16 @@ local function styleImportedMeshes()
 		part.MaterialVariant = ""
 		part.Reflectance = 0
 		part.Color = style.color
-		part.TextureID = if style.plain then "" else originalTexture
+		part.TextureID = originalTexture
 	end
 end
 
 local frame, scale = markerFrame()
-local partsToArchive = if track then originalParts(track) else nil
+local previous, originalArchive
+if track then
+	previous, originalArchive = existingInstallation()
+end
+local partsToArchive = if track and not originalArchive then originalParts(track) else nil
 local initialScale, initialPivot = bend:GetScale(), bend:GetPivot()
 local historyOk, recording = pcall(function()
 	return ChangeHistoryService:TryBeginRecording("PlaceFunRun6Bend", "Place Fun Run 6 track bend")
@@ -387,6 +462,8 @@ local success, message = pcall(function()
 	collision.Parent = bend
 	if partsToArchive then
 		archiveCorner(partsToArchive)
+	elseif previous then
+		replaceBend(previous, originalArchive)
 	end
 end)
 if not success then
@@ -412,7 +489,11 @@ elseif waypoints and success then
 	end)
 end
 assert(success, message)
-if partsToArchive then
+if previous then
+	print("Revised bend installed. The previous bend and its collision are in the original bend archive in ServerStorage.")
+elseif originalArchive then
+	print("Refreshed the installed bend. The original track backup and trimmed canals are unchanged.")
+elseif partsToArchive then
 	print("Installed the bend. Original corner parts are in ServerStorage under Fun Run 6 Original Bend.")
 else
 	print("Placed the bend at the original track entrance.")
