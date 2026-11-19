@@ -37,6 +37,10 @@ def world_to_blender(x, y, z):
     return x, -z, y
 
 
+def straight_point(x, lateral, height):
+    return x, FLOOR_Y + height, CENTER_Z + lateral
+
+
 def source_bounds(group, vertices):
     cloud = [vertices[i] for i in {i for face in group.faces for i, _ in face}]
     return tuple(map(min, zip(*cloud))), tuple(map(max, zip(*cloud)))
@@ -60,7 +64,7 @@ def import_paving(source, sample_wall):
         obj.data.materials[0] = material
 
 
-def add_bricks(batch, wall_group, vertices, uvs, start, end):
+def add_bricks(batch, wall_group, vertices, uvs, start, end, *, sides=(-1, 1), point=straight_point):
     lo, hi = source_bounds(wall_group, vertices)
     panel_count = math.ceil((end - start) / OUTER_BRICK_SPACING)
     pitch = (end - start) / panel_count
@@ -82,31 +86,34 @@ def add_bricks(batch, wall_group, vertices, uvs, start, end):
             for tile in tiles:
                 corners = [(x + panel_start, y, depth, u, v) for x, y, depth, u, v in tile]
                 corners = clip(clip(corners, 0, start, True), 0, end, False)
-                for side in (-1, 1):
+                for side in sides:
                     placed = [
-                        (x, FLOOR_Y + y, CENTER_Z + side * (HALF_WIDTH + (WALL_REAR_EDGE - depth if rear else depth)), u, v)
+                        (*point(x, side * (HALF_WIDTH + (WALL_REAR_EDGE - depth if rear else depth)), y), u, v)
                         for x, y, depth, u, v in corners
                     ]
                     batch.add(placed[::-1] if (side > 0) != rear else placed)
 
 
-def add_walls(wall_group, vertices, uvs, start, end):
-    def straight_point(x, lateral, height):
-        return x, FLOOR_Y + height, CENTER_Z + lateral
+def finish_wall(batch, side, start, end, *, point=straight_point, finish_cuts=True):
+    cap_bottom = CAP_PROFILE[0][1]
+    sweep(batch, rectangle(WALL_FACE_INSET, WALL_DEPTH, BASE_BOTTOM, cap_bottom),
+          [start, end], WALL_BODY_UV, side, point=point)
+    sweep(batch, CAP_PROFILE, [start, end], (.199705, .301077), side, point=point)
+    if not finish_cuts:
+        return
+    # Finish only the exposed thickness of the wall at each cut.
+    for x, outgoing in ((start, False), (end, True)):
+        for a, b in ((0, WALL_FACE_INSET), (WALL_DEPTH, WALL_REAR_EDGE)):
+            cut = [(*point(x, side * (HALF_WIDTH + depth), height), *WALL_BODY_UV)
+                   for depth, height in rectangle(a, b, BASE_BOTTOM, cap_bottom)]
+            batch.add(cut[::-1] if (side < 0) != outgoing else cut)
 
+
+def add_walls(wall_group, vertices, uvs, start, end):
     wall = MeshBatch("StraightWallNeutral", WALL_COLOR, to_blender=world_to_blender)
     add_bricks(wall, wall_group, vertices, uvs, start, end)
-    cap_bottom = CAP_PROFILE[0][1]
     for side in (-1, 1):
-        sweep(wall, rectangle(WALL_FACE_INSET, WALL_DEPTH, BASE_BOTTOM, cap_bottom),
-              [start, end], WALL_BODY_UV, side, point=straight_point)
-        sweep(wall, CAP_PROFILE, [start, end], (.199705, .301077), side, point=straight_point)
-        # Finish only the exposed thickness of each side wall at its cut.
-        for x, outgoing in ((start, False), (end, True)):
-            for a, b in ((0, WALL_FACE_INSET), (WALL_DEPTH, WALL_REAR_EDGE)):
-                cut = [(*straight_point(x, side * (HALF_WIDTH + depth), height), *WALL_BODY_UV)
-                       for depth, height in rectangle(a, b, BASE_BOTTOM, cap_bottom)]
-                wall.add(cut[::-1] if (side < 0) != outgoing else cut)
+        finish_wall(wall, side, start, end)
     wall.flush()
 
     collider = MeshBatch("StraightWallCollider", WALL_COLOR, to_blender=world_to_blender)

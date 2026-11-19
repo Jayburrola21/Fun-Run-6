@@ -10,6 +10,14 @@ The model retains the uploaded `Trackmain.obj` paving groups, geometry, and UVs.
 
 The OBJ referenced an external material file. The Studio command uses the two corresponding material groups and shared atlas from the original track. The preview uses neutral gray materials to show the geometry.
 
+## Single wall piece
+
+[Download the wall GLB](FunRun6-StandaloneTrackWall.glb) · [Wall preview](StandaloneTrackWallPreview.png) · [Wall styling command](StyleStandaloneTrackWall.command.luau)
+
+The wall imports as one mesh with brickwork on both faces and the same beveled cap as the track. Select the imported wall and run its styling command in Studio. Duplicate it and move the copy **10.168 studs along the wall's length** to place it end to end.
+
 ## Rebuild
 
 From this directory, run `blender -b --python-exit-code 1 --python build_standalone_straight.py -- Trackmain.obj FunRun6-StandaloneStraightTrack.glb`.
+
+To rebuild the single wall, run `blender -b --python-exit-code 1 --python build_standalone_wall.py -- Trackmain.obj FunRun6-StandaloneTrackWall.glb`.
