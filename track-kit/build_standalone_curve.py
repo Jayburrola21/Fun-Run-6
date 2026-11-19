@@ -36,6 +36,8 @@ from build_track_bend import (
 HALF_WIDTH = START_HALF
 TANGENT = 4.0
 BORDER = 12.5
+INNER_JOINT_WIDTH = .22
+INNER_JOINT_BEVEL = .13
 BASE_BOTTOM = -.54
 GROUT_TOP = -.285
 WALL_DEPTH = .70845
@@ -68,6 +70,7 @@ class Strip:
     offset: float = 0.0
     radius_ratio: float = 1.0
     stretch: float = 1.0
+    edge_bevel: float = 0.0
 
     def __post_init__(self):
         self.cuts = [self.source_x + arc_distance(s, self.radius_ratio) / self.stretch for s in SECTIONS]
@@ -78,6 +81,20 @@ class Strip:
 
     def add(self, batch, corners):
         corners = clip(clip(corners, 2, self.low_z, True), 2, self.high_z, False)
+        if self.edge_bevel:
+            # Sink the clipped stone edge into the original grout bed.
+            # The independently warped rows meet along a narrow gray joint.
+            shoulder = self.high_z - self.edge_bevel
+            self.add_warped(batch, clip(corners, 2, shoulder, False))
+            bevel = clip(corners, 2, shoulder, True)
+            self.add_warped(batch, [
+                (x, y + min(0, GROUT_TOP - .015 - y) * (z - shoulder) / self.edge_bevel, z, u, v)
+                for x, y, z, u, v in bevel
+            ])
+        else:
+            self.add_warped(batch, corners)
+
+    def add_warped(self, batch, corners):
         if not corners:
             return
         first = max(0, bisect_right(self.cuts, min(p[0] for p in corners)) - 1)
@@ -119,11 +136,13 @@ def paving_strips():
     # same chipped stones over much less source distance on the inside.
     outside_ratio = (RADIUS + HALF_WIDTH - BORDER / 2) / RADIUS
     inside_ratio = (RADIUS - HALF_WIDTH + BORDER / 2) / RADIUS
+    inset = INNER_JOINT_WIDTH / 2
     return (
         Strip(SOURCE_X, OUTER_EDGE, OUTER_EDGE + BORDER, offset=-CENTER_Z),
-        Strip(SOURCE_X, OUTER_EDGE + BORDER, INNER_EDGE - BORDER, offset=-CENTER_Z),
-        Strip(-1029.5, OUTER_EDGE, OUTER_EDGE + BORDER, slope=-1.0, offset=CENTER_Z,
-              radius_ratio=inside_ratio, stretch=outside_ratio),
+        Strip(SOURCE_X, OUTER_EDGE + BORDER, INNER_EDGE - BORDER - inset,
+              offset=-CENTER_Z, edge_bevel=INNER_JOINT_BEVEL),
+        Strip(-1029.5, OUTER_EDGE, OUTER_EDGE + BORDER - inset, slope=-1.0, offset=CENTER_Z,
+              radius_ratio=inside_ratio, stretch=outside_ratio, edge_bevel=INNER_JOINT_BEVEL),
     )
 
 
@@ -148,6 +167,10 @@ def build(source):
             continue
         cloud = [points[index] for index in {p[0] for f in group.faces for p in f}]
         lo, hi = tuple(map(min, zip(*cloud))), tuple(map(max, zip(*cloud)))
+        if is_floor and (lo[2] + hi[2]) / 2 > INNER_EDGE - BORDER:
+            # The mirrored strip supplies this row. The old row's overhang
+            # would otherwise leave disconnected stone tips in the center.
+            continue
         if not is_floor and hi[2] - lo[2] > 2:
             continue
         mappings = strips if is_floor else (wall_strips[1 if lo[2] > 0 else -1],)
