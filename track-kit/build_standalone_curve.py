@@ -39,6 +39,8 @@ BORDER = 12.5
 BASE_BOTTOM = -.54
 GROUT_TOP = -.285
 WALL_DEPTH = .70845
+OUTER_ENTRY_BRICK_PANEL = "Mesheswalls2smenvwallquarter0126"
+OUTER_BRICK_SPACING = 10.168
 SECTIONS = [-TANGENT, *(ARC * n / SLICES for n in range(SLICES + 1)), ARC + TANGENT]
 OUTER_EDGE = CENTER_Z - HALF_WIDTH
 INNER_EDGE = CENTER_Z + HALF_WIDTH
@@ -157,10 +159,16 @@ def build(source):
         height_offset = (0 if is_floor else WALL_TOP - FLOOR_Y) - hi[1]
         if is_floor:
             height_offset -= (.014 if batch.label == "BendPavingDark" else 0) + (group_index % 13) * .001
+        fill_outer_entry = group.name == OUTER_ENTRY_BRICK_PANEL
         for face in group.faces:
             corners = list(source_corners(face, points, uvs, height_offset))
             for strip in mappings:
                 strip.add(batch, corners)
+            if fill_outer_entry:
+                # Continue the source wall's brick spacing into the short
+                # entry landing. The strip clips the relief at the flat end.
+                previous_panel = [(x - OUTER_BRICK_SPACING, y, z, u, v) for x, y, z, u, v in corners]
+                wall_strips[-1].add(wall, previous_panel)
     if source_families != set(batches):
         raise ValueError("Load the original Track.obj export containing both kinds of paving and the stone walls")
 
