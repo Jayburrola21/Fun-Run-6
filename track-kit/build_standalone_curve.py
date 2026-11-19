@@ -41,6 +41,8 @@ INNER_JOINT_BEVEL = .13
 BASE_BOTTOM = -.54
 GROUT_TOP = -.285
 WALL_DEPTH = .70845
+WALL_FACE_INSET = .16
+REAR_BRICK_LAP = .015
 OUTER_ENTRY_BRICK_PANEL = "Mesheswalls2smenvwallquarter0126"
 OUTER_BRICK_SPACING = 10.168
 SECTIONS = [-TANGENT, *(ARC * n / SLICES for n in range(SLICES + 1)), ARC + TANGENT]
@@ -146,10 +148,16 @@ def paving_strips():
     )
 
 
-def wall_strip(side):
+def wall_strip(side, rear=False):
     x, length, edge = WALL_WINDOWS[side]
     ratio = (RADIUS - HALF_WIDTH * side) / RADIUS
-    return Strip(x, edge + min(0, side), edge + max(0, side), offset=HALF_WIDTH * side - edge,
+    # Reflect the exposed brick relief onto the back, with its base just
+    # inside the wall body and its peaks under the existing cap overhang.
+    depth = WALL_FACE_INSET + 2 * REAR_BRICK_LAP if rear else 1
+    face = HALF_WIDTH + WALL_DEPTH + WALL_FACE_INSET + REAR_BRICK_LAP if rear else HALF_WIDTH
+    slope = -1 if rear else 1
+    return Strip(x, edge + min(0, side) * depth, edge + max(0, side) * depth,
+                 slope=slope, offset=side * face - slope * edge,
                  radius_ratio=ratio, stretch=ratio * ARC / length)
 
 
@@ -157,9 +165,11 @@ def build(source):
     points, uvs, groups = read_obj(source)
     batches = {label: MeshBatch(label, rgb) for label, rgb in PALETTE.values()}
     wall = batches["BendWallNeutral"]
+    rear_wall = MeshBatch("BendWallNeutralRear", PALETTE["Meshesfloorssmenvsewercanalcorner011Mtl"][1])
     grout = MeshBatch("BendPavingBase", PALETTE["Meshesfloorssmenvtiles021Mtl"][1])
     strips = paving_strips()
     wall_strips = {side: wall_strip(side) for side in (-1, 1)}
+    rear_strips = {side: wall_strip(side, rear=True) for side in (-1, 1)}
     source_families = set()
     for group_index, group in enumerate(groups):
         is_floor = "tiles" in group.name
@@ -173,7 +183,8 @@ def build(source):
             continue
         if not is_floor and hi[2] - lo[2] > 2:
             continue
-        mappings = strips if is_floor else (wall_strips[1 if lo[2] > 0 else -1],)
+        side = 1 if lo[2] > 0 else -1
+        mappings = strips if is_floor else (wall_strips[side],)
         mappings = [strip for strip in mappings if strip.intersects(lo, hi)]
         if not mappings:
             continue
@@ -187,22 +198,25 @@ def build(source):
             corners = list(source_corners(face, points, uvs, height_offset))
             for strip in mappings:
                 strip.add(batch, corners)
+            if not is_floor:
+                rear_strips[side].add(rear_wall, corners)
             if fill_outer_entry:
                 # Continue the source wall's brick spacing into the short
                 # entry landing. The strip clips the relief at the flat end.
                 previous_panel = [(x - OUTER_BRICK_SPACING, y, z, u, v) for x, y, z, u, v in corners]
                 wall_strips[-1].add(wall, previous_panel)
+                rear_strips[-1].add(rear_wall, previous_panel)
     if source_families != set(batches):
         raise ValueError("Load the original Track.obj export containing both kinds of paving and the stone walls")
 
     half_base = HALF_WIDTH + .36
     sweep(grout, rectangle(-half_base, half_base, BASE_BOTTOM, GROUT_TOP), SECTIONS, GROUT_UV)
     # One continuous backing and cap on each side, cut square on the
-    # same planes as the deck. The visible brick is the original relief.
+    # same planes as the deck. Brick relief wraps both faces of the wall.
     for side in (-1, 1):
-        sweep(wall, rectangle(.16, WALL_DEPTH, BASE_BOTTOM, 3.95), SECTIONS, (.199469, .275827), side)
+        sweep(wall, rectangle(WALL_FACE_INSET, WALL_DEPTH, BASE_BOTTOM, 3.95), SECTIONS, (.199469, .275827), side)
         sweep(wall, CAP_PROFILE, SECTIONS, (.199705, .301077), side)
-    for batch in (*batches.values(), grout):
+    for batch in (*batches.values(), rear_wall, grout):
         batch.flush()
 
     # Closed collision meshes keep the ride level and follow the visible

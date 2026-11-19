@@ -2,7 +2,7 @@
 
 [Download the curve GLB](FunRun6-StandaloneTrackCurve.glb) · [Blender preview](StandaloneCurvePreview.png) · [Studio styling command](StyleStandaloneTrackCurve.command.luau)
 
-The model has a 62.95-stud driving width, a 47-stud centerline radius, and a 4-stud straight section at each end. The floor, brick walls, and top caps end on the same flat face at both connections. The inside border uses fewer repeats of the original chipped stones so their proportions stay close to the outside border. The preview uses gray materials to show the geometry.
+The model has a 62.95-stud driving width, a 47-stud centerline radius, and a 4-stud straight section at each end. The floor, brick walls, and top caps end on the same flat face at both connections. Both wall faces use the original brick relief and texture. The inside border uses fewer repeats of the original chipped stones so their proportions stay close to the outside border. The preview uses gray materials to show the geometry.
 
 ## Import into Studio
 
