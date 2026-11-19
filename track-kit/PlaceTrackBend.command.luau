@@ -169,23 +169,56 @@ local function originalParts(model)
 	return matched
 end
 
+local rollback = {}
+
+local function reparent(instance, parent)
+	local original = instance.Parent
+	table.insert(rollback, function()
+		instance.Parent = original
+	end)
+	instance.Parent = parent
+end
+
+local function discardOnFailure(instance, holdsOriginals)
+	table.insert(rollback, function()
+		-- Keep a recovery folder intact if Studio refused to restore one
+		-- of the original instances inside it.
+		assert(not holdsOriginals or #instance:GetChildren() == 0, "Original instances remain in " .. instance.Name)
+		instance:Destroy()
+	end)
+	return instance
+end
+
+local function rememberProperties(instance, names)
+	local old = {}
+	for _, name in ipairs(names) do
+		old[name] = instance[name]
+	end
+	table.insert(rollback, function()
+		for _, name in ipairs(names) do
+			instance[name] = old[name]
+		end
+	end)
+end
+
 local function archiveCorner(parts)
-	local backup = Instance.new("Folder")
+	local backup = discardOnFailure(Instance.new("Folder"), true)
 	backup.Name = "Fun Run 6 Original Bend"
 	backup.Parent = ServerStorage
 
 	for id, trim in pairs(canalTrim) do
 		local part = parts[id]
 		local clone = assert(part:Clone(), "Could not clone the original inner canal strip.")
+		discardOnFailure(clone)
 		local frame = part.CFrame
 		clone.Size = trim[2]
 		clone.CFrame = CFrame.fromMatrix(trim[1], frame.RightVector, frame.UpVector, frame.LookVector * -1)
 		clone.Parent = track
 	end
 	for _, part in pairs(parts) do
-		part.Parent = backup
+		reparent(part, backup)
 	end
-	bend.Parent = track
+	reparent(bend, track)
 end
 
 local function configureCollider(part, name, frame, size, parent)
@@ -279,13 +312,16 @@ local function styleImportedMeshes()
 		for _, child in ipairs(part:GetChildren()) do
 			if child:IsA("SurfaceAppearance") then
 				if not savedAppearance then
-					savedAppearance = Instance.new("Folder")
+					savedAppearance = discardOnFailure(Instance.new("Folder"), true)
 					savedAppearance.Name = "Imported Bend Appearance"
 					savedAppearance.Parent = bend
 				end
-				child.Parent = savedAppearance
+				reparent(child, savedAppearance)
 			end
 		end
+		rememberProperties(part, {
+			"Anchored", "CanCollide", "CanTouch", "CanQuery", "Material", "MaterialVariant", "Reflectance", "Color", "TextureID",
+		})
 		part.Anchored = true
 		part.CanCollide = false
 		part.CanTouch = false
@@ -300,9 +336,34 @@ end
 
 local frame, scale = markerFrame()
 local partsToArchive = if track then originalParts(track) else nil
-local recording = ChangeHistoryService:TryBeginRecording("PlaceFunRun6Bend", "Place Fun Run 6 track bend")
-assert(recording, "Could not start an undo recording. Finish any other active Studio edit first.")
+local initialScale, initialPivot = bend:GetScale(), bend:GetPivot()
+local historyOk, recording = pcall(function()
+	return ChangeHistoryService:TryBeginRecording("PlaceFunRun6Bend", "Place Fun Run 6 track bend")
+end)
+if not historyOk then
+	recording = nil
+end
+local waypoints = false
+if not recording then
+	-- The Command Bar may run while a plugin holds the active recording.
+	-- Try a legacy undo waypoint and preserve the original corner either way.
+	waypoints = pcall(function()
+		ChangeHistoryService:SetWaypoint("Before placing Fun Run 6 bend")
+	end)
+end
+
 local success, message = pcall(function()
+	local collision = discardOnFailure(Instance.new("Folder"))
+	collision.Name = collisionName
+	collision:SetAttribute("GeneratedTrackBendCollision", true)
+	colliders(collision)
+
+	table.insert(rollback, function()
+		if math.abs(bend:GetScale() - initialScale) > .00001 then
+			bend:ScaleTo(initialScale)
+		end
+		bend:PivotTo(initialPivot)
+	end)
 	if math.abs(scale - 1) > .00001 then
 		bend:ScaleTo(bend:GetScale() / scale)
 		frame, scale = markerFrame()
@@ -312,6 +373,7 @@ local success, message = pcall(function()
 
 	styleImportedMeshes()
 	for _, marker in pairs(markers) do
+		rememberProperties(marker, { "Anchored", "Transparency", "CanCollide", "CanTouch", "CanQuery", "CastShadow" })
 		marker.Anchored = true
 		marker.Transparency = 1
 		marker.CanCollide = false
@@ -320,19 +382,35 @@ local success, message = pcall(function()
 		marker.CastShadow = false
 	end
 	if oldCollision then
-		oldCollision:Destroy()
+		reparent(oldCollision, nil)
 	end
-	local collision = Instance.new("Folder")
-	collision.Name = collisionName
-	collision:SetAttribute("GeneratedTrackBendCollision", true)
-	colliders(collision)
 	collision.Parent = bend
 	if partsToArchive then
 		archiveCorner(partsToArchive)
 	end
 end)
-ChangeHistoryService:FinishRecording(recording,
-	if success then Enum.FinishRecordingOperation.Commit else Enum.FinishRecordingOperation.Cancel)
+if not success then
+	for i = #rollback, 1, -1 do
+		local restored, reason = pcall(rollback[i])
+		if not restored then
+			warn("Track bend recovery: " .. tostring(reason))
+		end
+	end
+end
+
+if recording then
+	local finished = pcall(function()
+		ChangeHistoryService:FinishRecording(recording,
+			if success then Enum.FinishRecordingOperation.Commit else Enum.FinishRecordingOperation.Cancel)
+	end)
+	if success and not finished then
+		warn("The bend was placed but Studio could not finish the undo recording.")
+	end
+elseif waypoints and success then
+	pcall(function()
+		ChangeHistoryService:SetWaypoint("Placed Fun Run 6 bend")
+	end)
+end
 assert(success, message)
 if partsToArchive then
 	print("Installed the bend. Original corner parts are in ServerStorage under Fun Run 6 Original Bend.")

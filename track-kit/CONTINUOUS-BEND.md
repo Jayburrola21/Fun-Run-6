@@ -10,7 +10,7 @@ This replacement connects the two straights in the original uploaded `Track` mod
 2. Select the imported bend model and the original **Track** model in Explorer.
 3. Copy the full placement command into the **Command Bar** and run it. It checks the original corner against the uploaded placements, aligns the new section, applies the original stone texture and tints, and adds a level driving surface. It fits the clipped pieces at both joins and shortens the two adjoining inside canal ends to keep the driving area clear.
 
-The command keeps the original corner parts in **ServerStorage → Fun Run 6 Original Bend**. The installation is one undoable edit. Selecting only the imported bend runs placement and styling for a fit preview.
+The command keeps the original corner parts in **ServerStorage → Fun Run 6 Original Bend**. Studio groups the installation in Undo when change history is available. Selecting only the imported bend runs placement and styling for a fit preview.
 
 ## Rebuild
 
