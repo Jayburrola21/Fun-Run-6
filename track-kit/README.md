@@ -1,5 +1,7 @@
 # Fun Run 6 modular track kit
 
+For the corner in the original place, use the [fitted continuous bend](CONTINUOUS-BEND.md).
+
 [Download the Roblox model](FunRun6-TrackKit.rbxm) · [Preview the six sections](TrackKitPreview.png)
 
 The kit contains **64- and 128-stud straights** and **left and right 45° and 90° curves**. Each section is a separate model with a 63-stud driving width, a level deck, and stone walls on both sides. The curves use a 64-stud centerline radius.
