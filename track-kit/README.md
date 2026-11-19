@@ -1,6 +1,6 @@
 # Fun Run 6 modular track kit
 
-For the corner in the original place, use the [fitted continuous bend](CONTINUOUS-BEND.md).
+For a single curve to connect by hand, use the [standalone 90° curve](STANDALONE-CURVE.md). The [fitted continuous bend](CONTINUOUS-BEND.md) is the replacement for the corner in the original place.
 
 [Download the Roblox model](FunRun6-TrackKit.rbxm) · [Preview the six sections](TrackKitPreview.png)
 
