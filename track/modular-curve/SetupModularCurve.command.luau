@@ -258,6 +258,7 @@ end
 local targetsByRole = { slate = {}, dark = {}, wall = {} }
 local visuals = {}
 local colliders = {}
+local grout = {}
 for _, part in target:GetDescendants() do
     if isModularPart(part) then
         local role = targetRole(part)
@@ -266,6 +267,8 @@ for _, part in target:GetDescendants() do
             table.insert(visuals, part)
         elseif contains(nameKey(part.Name), "modularcurvecollider") then
             table.insert(colliders, part)
+        elseif contains(nameKey(part.Name), "modularcurveinfillgrout") then
+            table.insert(grout, part)
         end
     end
 end
@@ -342,6 +345,22 @@ local ok, problem = pcall(function()
             write(part, "CanQuery", false)
             write(part, "CanTouch", false)
         end
+    end
+    for _, part in grout do
+        for _, child in part:GetChildren() do
+            if textureChildren[child.ClassName] then write(child, "Parent", nil) end
+        end
+        write(part, "Material", Enum.Material.SmoothPlastic)
+        write(part, "MaterialVariant", "")
+        write(part, "Color", Color3.fromRGB(128, 139, 151))
+        write(part, "TextureID", "")
+        write(part, "Reflectance", 0)
+        write(part, "Transparency", 0)
+        write(part, "CastShadow", false)
+        write(part, "Anchored", true)
+        write(part, "CanCollide", false)
+        write(part, "CanTouch", false)
+        write(part, "CanQuery", false)
     end
     for _, change in changes do
         local part, source = change.part, change.source

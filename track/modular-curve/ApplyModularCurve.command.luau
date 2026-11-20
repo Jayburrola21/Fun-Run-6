@@ -2,8 +2,7 @@ assert(not game:GetService("RunService"):IsRunning(), "Stop Play first.")
 local selection = game:GetService("Selection"):Get()
 local curve
 for _, item in selection do
-    if item:IsA("Model") and (item:FindFirstChild("ModularCurveInfillPavingDark01", true)
-        or item:FindFirstChild("ModularCurveInfillPavingSlate01", true)) then
+    if item:IsA("Model") and item:FindFirstChild("ModularCurveInfillGrout01", true) then
         curve = item
         break
     end
@@ -58,7 +57,15 @@ end
 local copied = 0
 for _, part in curve:GetDescendants() do
     local kind = part:IsA("MeshPart") and role(part.Name)
-    if kind then
+    if part:IsA("MeshPart") and part.Name:lower():find("modularcurveinfillgrout", 1, true) then
+        for _, child in part:GetChildren() do
+            if child:IsA("SurfaceAppearance") then child:Destroy() end
+        end
+        part.Material, part.MaterialVariant = Enum.Material.SmoothPlastic, ""
+        part.Color, part.TextureID = Color3.fromRGB(128, 139, 151), ""
+        part.Transparency, part.Reflectance, part.CastShadow = 0, 0, false
+        part.Anchored, part.CanCollide, part.CanQuery, part.CanTouch = true, false, false, false
+    elseif kind then
         part.Anchored = true
         if #helpers == 60 then part.CanCollide = false end
         local source = references[kind]
