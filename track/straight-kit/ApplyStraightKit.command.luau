@@ -10,11 +10,12 @@ local function role(key)
 end
 
 local function identify(part)
-    local kind, tagged
+    local kind, tagged, original
     local node = part
     while node and node ~= workspace do
         local key = node.Name:lower():gsub("[^%w]", "")
         kind = kind or role(key)
+        original = original or key:find("^straight") and role(key) ~= nil
         if key:find("straightkit") then
             tagged = tagged or node
             if kind and node:IsA("Model") and key:match("^straightkitstraight0[1-6]") then
@@ -24,10 +25,10 @@ local function identify(part)
         node = node.Parent
     end
     if kind and tagged then return kind, tagged:FindFirstAncestorOfClass("Model") or tagged end
-    return kind
+    return kind, nil, original
 end
 
-local pieces, sources = {}, {}
+local pieces, sources, scores = {}, {}, {}
 local anySelected
 local colliderRoles = { deck = true, innerwall = true, outerwall = true }
 local function selectedPart(part)
@@ -39,7 +40,7 @@ end
 
 for _, part in workspace:GetDescendants() do
     if not part:IsA("MeshPart") then continue end
-    local kind, model = identify(part)
+    local kind, model, original = identify(part)
     if not kind then continue end
     local active = selectedPart(part)
     if model then
@@ -52,8 +53,14 @@ for _, part in workspace:GetDescendants() do
         else
             piece.visuals[part] = kind
         end
-    elseif active and not sources[kind] then
-        sources[kind] = part
+    elseif active or original then
+        local score = active and 2 or 0
+        if part.TextureID ~= "" or part.MaterialVariant ~= ""
+            or part:FindFirstChildOfClass("SurfaceAppearance") then score += 4 end
+        if original then score += 1 end
+        if not scores[kind] or score > scores[kind] then
+            sources[kind], scores[kind] = part, score
+        end
     end
 end
 assert(next(pieces), "Import a StraightKit GLB first.")
@@ -81,6 +88,7 @@ local function copyAppearance(part, source)
 end
 
 local pieceCount, copied, incomplete = 0, 0, 0
+local missing = {}
 for _, piece in pieces do
     if anySelected and not piece.selected then continue end
     pieceCount += 1
@@ -107,11 +115,18 @@ for _, piece in pieces do
             part.CanTouch = false
         end
         local source = sources[kind]
-        if source and copyAppearance(part, source) then copied += 1 end
+        if source and copyAppearance(part, source) then
+            copied += 1
+        else
+            missing[kind] = true
+        end
     end
 end
 pcall(function() game:GetService("ChangeHistoryService"):SetWaypoint("Set up track kit") end)
 print(("Prepared %d kits and copied %d appearances."):format(pieceCount, copied))
 if incomplete > 0 then
     warn(("%d kits kept visual collision because helpers were incomplete."):format(incomplete))
+end
+for kind in missing do
+    warn("No usable " .. kind .. " reference. Select the original textured straight in Workspace and rerun.")
 end
