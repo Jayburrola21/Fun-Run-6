@@ -1,8 +1,8 @@
 # Foundry Highlands
 
-A 3,591-stud closed stone track with a 59.625-stud road width. The widened upper approach gives the road 77 more studs to roll into the 60° bank. The descent eases back to level across the road before rejoining the lower U. Both walls are half their previous height, measured from the local road surface.
+A 3,591-stud closed stone track with a 59.625-stud road width. The upper approach climbs to a 216-stud crest, about 61 studs higher than the previous crest, and rolls into a 63° side ride. The longer descent eases out of the bank and matches the original road at the floor of the lower U. Both walls rise about 2.1 studs above the local road surface.
 
-The continuous opaque deck fills the joins beneath the source stone courses. The paving uses the original stone UVs and darker gray mortar. The shoulder inlay in the banked turn shares a MeshPart, material, and atlas range with the neighboring dark paving.
+The continuous opaque deck fills the joins beneath the source stone courses. The lifted road uses the original stone UVs and darker gray mortar.
 
 Import `FoundryHighlands.glb` in Roblox Studio as one Model with separate MeshParts at the original track scale. If Studio shifts the model on import, line up `FoundryHighlandsPavingBase001` on the bottom straight with the same MeshPart in the previous model.
 
