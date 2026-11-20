@@ -4,7 +4,7 @@ Import `TrackCurve_Modular.glb` in Roblox Studio as one Model with separate Mesh
 
 1. With Play stopped, select the imported Model in Explorer. To copy the original track appearance, also select the original curve or straight Model in Workspace.
 2. Paste all of `SetupModularCurve.command.luau` into the Studio Command Bar and click **Run**. It anchors the model, enables the hidden deck and wall collision meshes, and applies the original appearance for each material it can match.
-3. Check **Output** for 60 collision MeshParts, copied materials, and any missing material references. Use **Undo** to revert the setup.
+3. Check **Output** for 60 collision MeshParts, copied materials, and any missing material references. Use **Undo** to revert the setup when Studio supports it. The command still applies the setup if Studio declines the Undo recording.
 
 The original square border modules measure approximately 12.13 × 12.13 studs. The wall panels and border modules are reproduced at their source scale. The interior paving is shaped to the new radius. The GLB includes preview colors and the source UVs. Its exact textures come from the original Studio MeshParts when the appearance is copied within the same place.
 

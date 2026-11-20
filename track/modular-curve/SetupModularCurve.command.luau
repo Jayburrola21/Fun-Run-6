@@ -307,51 +307,91 @@ for _, role in roles do
     end
 end
 
-local recording = assert(History:TryBeginRecording("SetupModularTrackCurve", "Set up modular track curve"),
-    "Studio could not start an Undo recording. Finish any active plugin operation and retry.")
+local setupName = "Set up modular track curve"
+local started, recording = pcall(function()
+    return History:TryBeginRecording("SetupModularTrackCurve", setupName)
+end)
+if not started then recording = nil end
+
+local function waypoint(name)
+    return pcall(function() History:SetWaypoint(name) end)
+end
+
+-- Keep a rollback path even when Studio declines an Undo recording.
+local journal = {}
+local function write(object, property, value)
+    local previous = object[property]
+    if previous == value then return end
+    object[property] = value
+    table.insert(journal, { object = object, property = property, previous = previous })
+end
+
 local ok, problem = pcall(function()
     for _, part in colliders do
-        part.Anchored = true
-        part.CanCollide = collisionReady
-        part.CanQuery = collisionReady
-        part.CanTouch = false
-        part.Transparency = 1
-        part.CastShadow = false
+        write(part, "Anchored", true)
+        write(part, "CanCollide", collisionReady)
+        write(part, "CanQuery", collisionReady)
+        write(part, "CanTouch", false)
+        write(part, "Transparency", 1)
+        write(part, "CastShadow", false)
     end
     for _, part in visuals do
-        part.Anchored = true
+        write(part, "Anchored", true)
         if collisionReady then
-            part.CanCollide = false
-            part.CanQuery = false
-            part.CanTouch = false
+            write(part, "CanCollide", false)
+            write(part, "CanQuery", false)
+            write(part, "CanTouch", false)
         end
     end
     for _, change in changes do
         local part, source = change.part, change.source
         for _, property in meshProperties do
-            part[property] = source.signature[property]
+            write(part, property, source.signature[property])
         end
-        if source.textureContent ~= nil then
-            local assigned = pcall(function()
-                part.TextureContent = source.textureContent
-            end)
-            if not assigned then part.TextureID = source.textureID end
+        if hasContent(source.textureContent) then
+            local assigned = pcall(write, part, "TextureContent", source.textureContent)
+            if not assigned then
+                local uri = source.textureID
+                if not hasContent(uri) then uri = readProperty(source.textureContent, "Uri") end
+                assert(hasContent(uri), "Studio could not assign the embedded texture on " .. part:GetFullName())
+                write(part, "TextureID", uri)
+            end
         else
-            part.TextureID = source.textureID
+            write(part, "TextureID", source.textureID)
         end
         for _, child in part:GetChildren() do
-            if textureChildren[child.ClassName] then child:Destroy() end
+            if textureChildren[child.ClassName] then write(child, "Parent", nil) end
         end
         for _, replacement in change.replacements do
-            replacement.Parent = part
+            write(replacement, "Parent", part)
         end
     end
 end)
-History:FinishRecording(recording,
-    if ok then Enum.FinishRecordingOperation.Commit else Enum.FinishRecordingOperation.Cancel)
-assert(ok, problem)
 
-print(("Set up %s: %d visual MeshParts, %d collision MeshParts, %d appearance copies. Studio Undo can revert this change."):format(
+local finalized = false
+if recording then
+    finalized = pcall(function()
+        History:FinishRecording(recording,
+            if ok then Enum.FinishRecordingOperation.Commit else Enum.FinishRecordingOperation.Cancel)
+    end)
+end
+if not ok then
+    if not finalized then
+        for index = #journal, 1, -1 do
+            local edit = journal[index]
+            local restored, reason = pcall(function()
+                edit.object[edit.property] = edit.previous
+            end)
+            if not restored then warn("Could not restore " .. edit.property .. ": " .. tostring(reason)) end
+        end
+    end
+    error(problem, 0)
+end
+if not finalized and not waypoint(setupName) then
+    warn("Studio Undo was unavailable. The curve setup was applied.")
+end
+
+print(("Set up %s: %d visual MeshParts, %d collision MeshParts, %d appearance copies."):format(
     target:GetFullName(), #visuals, #colliders, #changes))
 if not collisionReady then
     warn(("Found %d of %d collision meshes. Reimport the GLB as one Model with separate MeshParts to "
