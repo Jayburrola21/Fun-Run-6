@@ -1,6 +1,6 @@
 # Foundry Highlands
 
-A 3,591-stud closed stone track with a 59.625-stud road width. The upper approach climbs to a 216-stud crest, about 61 studs higher than the previous crest, and rolls into a 63° side ride. The longer descent eases out of the bank and matches the original road at the floor of the lower U. Both walls rise about 2.1 studs above the local road surface.
+A 3,662-stud closed stone track with a 59.625-stud road width. The crest reaches 235.5 studs farther along the right bend, and the road stays higher through the turn. The right bend and its recovery have wider radii and run through a 63° bank. The descent eases back to level across the road and matches the original road at the floor of the lower U. Both walls rise about 2.1 studs above the local road surface.
 
 The continuous opaque deck fills the joins beneath the source stone courses. The lifted road uses the original stone UVs and darker gray mortar.
 
