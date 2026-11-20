@@ -1,9 +1,9 @@
 # Foundry Highlands
 
-A 3,577-stud closed stone track with a 59.625-stud road width. After the upper approach reaches about 156 studs, the wide right sweeper rolls up to a 60° bank. The cross-bank eases back to level before the road rejoins the original lower U. The rebuilt curve matches the curvature of the road at both connections.
+A 3,591-stud closed stone track with a 59.625-stud road width. The widened upper approach gives the road 77 more studs to roll into the 60° bank. The descent eases back to level across the road before rejoining the lower U. Both walls are half their previous height, measured from the local road surface.
 
-The continuous opaque deck fills the joins beneath the source stone courses. The updated paving uses the original stone UVs and darker gray mortar. Native stone pieces fill the broad border gaps, and the walls follow the new sweep from the banked apex to the level exit.
+The continuous opaque deck fills the joins beneath the source stone courses. The paving uses the original stone UVs and darker gray mortar. The shoulder inlay in the banked turn shares a MeshPart, material, and atlas range with the neighboring dark paving.
 
 Import `FoundryHighlands.glb` in Roblox Studio as one Model with separate MeshParts at the original track scale. If Studio shifts the model on import, line up `FoundryHighlandsPavingBase001` on the bottom straight with the same MeshPart in the previous model.
 
-With Play stopped, run `ApplyFoundryHighlandsAppearance.command.luau` in the Command Bar. The command copies available paving and wall textures from an original track or a textured Foundry Switchbacks model in Workspace. It uses the original slate atlas for the grout when a suitable reference is available and a darker gray tint otherwise. You can select an original textured model to give it priority.
+Keep a textured previous Highlands model, original track, or Foundry Switchbacks model in Workspace. With Play stopped, select only the new Highlands model and run `ApplyFoundryHighlandsAppearance.command.luau` in the Command Bar. The previous Highlands model can have the same name as the new model. The command uses the slate atlas for grout when a suitable reference is available.
