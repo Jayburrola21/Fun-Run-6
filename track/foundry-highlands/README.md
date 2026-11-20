@@ -1,8 +1,8 @@
 # Foundry Highlands
 
-A 3,299-stud closed stone track with a 59.625-stud road width. The bottom straight and the right-hand branch keep their original position and geometry. The left side climbs through six reworked bends. The high bench rises another 8–11 studs and eases into a 42.5° bank. The new infield route drops 65 studs into a wide sweep, then climbs 46 studs to reach the original right-hand bend.
+A 3,455-stud closed stone track with a 59.625-stud road width. The upper approach climbs to 156 studs, about 64 studs above the previous bench. The new 64° right turn banks up to 62.5° and rolls back to level across the road as it drops into the original infield sweep. The lower route, including the bottom straight and right-hand branch, keeps its original alignment.
 
-The continuous opaque deck fills the joins beneath the source stone courses. The straight border lines use darker gray mortar and the original grout UVs. The walls continue through the slopes and turns.
+The continuous opaque deck fills the joins beneath the source stone courses. The updated paving uses the original stone UVs and darker gray mortar. Native stone pieces fill the broad border gaps, and the center pattern flows through the rebuilt turns.
 
 Import `FoundryHighlands.glb` in Roblox Studio as one Model with separate MeshParts at the original track scale. If Studio shifts the model on import, line up `FoundryHighlandsPavingBase001` on the bottom straight with the same MeshPart in the previous model.
 
