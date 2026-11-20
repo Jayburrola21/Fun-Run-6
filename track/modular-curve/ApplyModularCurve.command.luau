@@ -1,5 +1,13 @@
 assert(not game:GetService("RunService"):IsRunning(), "Stop Play first.")
-local curve = assert(workspace:FindFirstChild("Modular 90 degree track curve", true), "Modular curve not found.")
+local selection = game:GetService("Selection"):Get()
+local curve
+for _, item in selection do
+    if item:IsA("Model") and item:FindFirstChild("ModularCurveInfillPavingSlate01", true) then
+        curve = item
+        break
+    end
+end
+curve = curve or assert(workspace:FindFirstChild("Modular 90 degree track curve", true), "Modular curve not found.")
 local function role(name)
     name = name:lower():gsub("[^%w]", "")
     if name:find("pavingslate") or name:find("pavingbase") then return "slate" end
@@ -8,7 +16,6 @@ local function role(name)
 end
 
 local references, scores = {}, {}
-local selection = game:GetService("Selection"):Get()
 for _, part in workspace:GetDescendants() do
     if part:IsA("MeshPart") and not part:IsDescendantOf(curve)
         and not part:FindFirstAncestor("Wide 90 degree track curve") then
