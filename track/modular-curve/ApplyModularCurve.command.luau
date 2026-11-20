@@ -2,7 +2,8 @@ assert(not game:GetService("RunService"):IsRunning(), "Stop Play first.")
 local selection = game:GetService("Selection"):Get()
 local curve
 for _, item in selection do
-    if item:IsA("Model") and item:FindFirstChild("ModularCurveInfillPavingSlate01", true) then
+    if item:IsA("Model") and (item:FindFirstChild("ModularCurveInfillPavingDark01", true)
+        or item:FindFirstChild("ModularCurveInfillPavingSlate01", true)) then
         curve = item
         break
     end
