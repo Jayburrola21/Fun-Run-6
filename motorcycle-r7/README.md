@@ -6,6 +6,8 @@ Editable black Yamaha YZF-R7 model built from the supplied visual references. Th
 
 | File | Contents |
 | --- | --- |
+| [Yamaha_R7_Roblox.glb](dist/Yamaha_R7_Roblox.glb) | Recommended Roblox import. Embedded base color and metallic/roughness maps, seat and tire normal maps, and tinted lenses. |
+| [ApplyR7Materials.command.luau](tools/ApplyR7Materials.command.luau) | Optional one-time Studio Command Bar fallback for meshes that come in without their finishes. |
 | [Yamaha_R7_Detailed.blend](dist/Yamaha_R7_Detailed.blend) | Editable Blender project with 17 named assembly collections, separate component geometry, materials, and a studio preview scene. |
 | [Yamaha_R7_Roblox.fbx](dist/Yamaha_R7_Roblox.fbx) | Motorcycle geometry in FBX with applied mesh modifiers, UVs and normals, one material per mesh, and separate front/rear wheel and steering groups. |
 | [Preview sheet](dist/R7_Preview_Sheet.jpg) | Three-quarter, front, rear, rider-left, rider-right, and top views. Full-resolution PNGs are in `dist/previews/`. |
@@ -14,12 +16,11 @@ The model includes physical tread grooves, perforated front and rear discs, sepa
 
 ## Roblox Studio import
 
-1. Open **3D Importer** and select `Yamaha_R7_Roblox.fbx`. Import it as a model and keep the child meshes. The file uses meter units, +Y up, and a nose facing −Z in FBX coordinates.
-2. Check the full assembly scale in the importer. At 0.28 m per stud, the model should be about **7.34 studs long**, **2.51 studs wide**, and **4.15 studs high**. If Studio applies a different unit convention, uniformly scale the assembled model against those dimensions.
-3. Use the `R7_FrontWheel__*`, `R7_RearWheel__*`, and `R7_FrontForks__*` names to identify wheel and steering meshes. The FBX carries axle or steering origins for these groups. The side panels, lights, handlebars, and swingarm are also separately identified.
-4. Compare the surfaces with the Blender previews after importing. The FBX includes named material colors. Match the smoke windshield with approximately 0.6 transparency if needed, and set metallic, roughness, or neon finishes in Studio to reproduce Blender's shading. Blender's procedural rubber and seat grain is in the editable project.
+1. Download [Yamaha_R7_Roblox.glb](dist/Yamaha_R7_Roblox.glb). In Roblox Studio, open **File → Import 3D** and select it. Import it as a model with its named child meshes.
+2. Check the scale. At 0.28 m per stud the assembled model is about **7.34 studs long**, **2.51 studs wide**, and **4.15 studs high**. The GLB uses meters, +Y up, and the nose facing −Z.
+3. If the model still looks white, select the imported bike in **Explorer**. Open **View → Command Bar**, paste the contents of [ApplyR7Materials.command.luau](tools/ApplyR7Materials.command.luau), and press **Enter**. Use the Command Bar while editing the place. The command sets colors, Roblox materials and lens transparency on named MeshParts. It also works on the supplied FBX if you already imported it.
 
-The full-detail mesh is intended for close viewing. The FBX contains 243,612 triangles across 103 meshes, with at most 9,500 triangles in any one mesh. It was round-tripped in Blender to check mesh counts, UVs, scale, pivots, and evaluated vertex positions. Roblox Studio import and its rendered appearance still need an in-Studio check.
+The GLB contains 103 meshes, 24 materials, and 50 embedded PNG maps. Front and rear wheel and steering meshes retain separate names and pivots. The GLB passed geometry and texture checks and reimported in Blender. Visual appearance and texture handling in Roblox Studio still need an in-Studio check.
 
 ## Rebuild and verify
 
@@ -28,6 +29,7 @@ From `motorcycle-r7/` with Blender 4.3 or later:
 ```sh
 blender -b --python-exit-code 1 --python tools/build_r7.py
 blender -b --python-exit-code 1 --python tools/verify_r7.py
+python3 tools/verify_glb.py
 ```
 
-Add `-- --views` to the build command to generate the model files only. Use `-- --out /tmp/r7-draft --draft --views three-quarter front` for small comparison renders without changing the deliverable models. To reproduce the denoised previews, pass `-- --denoiser /path/to/oidnDenoise`, or omit the flag to render with Blender alone.
+Add `-- --views` to the build command to generate the model files only. Add `-- --glb-only` to export from the existing Blender project and leave the previews and FBX in place. Use `-- --out /tmp/r7-draft --draft --views three-quarter front` for small comparison renders without changing the deliverable models. To reproduce the denoised previews, pass `-- --denoiser /path/to/oidnDenoise`, or omit the flag to render with Blender alone.

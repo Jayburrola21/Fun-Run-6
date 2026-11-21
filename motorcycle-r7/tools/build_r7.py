@@ -1,9 +1,12 @@
-"""Create the editable motorcycle, a compact FBX, and six orthographic previews."""
+"""Create the editable motorcycle, FBX and textured GLB exports, and six orthographic previews."""
 
 import argparse
 from collections import defaultdict
+from contextlib import contextmanager
+from math import pi
 from pathlib import Path
 import sys
+from tempfile import TemporaryDirectory
 
 import bpy
 from mathutils import Vector
@@ -13,6 +16,7 @@ sys.path.insert(0, str(TOOLS))
 sys.dont_write_bytecode = True
 
 from common import COLLECTIONS, build_materials, collection, project_uv
+from glb_materials import write_material_glb
 from studio import VIEWS, aim, render_views, studio
 
 MAX_PART_TRIANGLES = 9_500
@@ -84,7 +88,8 @@ def mechanical_group(group, obj):
     return group
 
 
-def export_model(path):
+@contextmanager
+def staged_meshes():
     """Bake a temporary evaluated copy and group meshes by assembly and material."""
     graph = bpy.context.evaluated_depsgraph_get()
     matrices = []
@@ -92,7 +97,7 @@ def export_model(path):
         evaluated = source.evaluated_get(graph)
         data = bpy.data.meshes.new_from_object(evaluated, preserve_all_data_layers=True, depsgraph=graph)
         matrices.append((mechanical_group(group, source), data, evaluated.matrix_world.copy()))
-    temp = bpy.data.collections.new("FBX export staging")
+    temp = bpy.data.collections.new("Mesh export staging")
     bpy.context.scene.collection.children.link(temp)
     staged = []
     batches = defaultdict(list)
@@ -154,12 +159,7 @@ def export_model(path):
         bpy.ops.object.select_all(action='DESELECT')
         for obj in staged:
             obj.select_set(True)
-        bpy.ops.export_scene.fbx(
-            filepath=str(path), use_selection=True, object_types={'MESH'},
-            axis_forward='Z', axis_up='Y', apply_unit_scale=True,
-            apply_scale_options='FBX_SCALE_UNITS', bake_anim=False,
-            path_mode='AUTO', mesh_smooth_type='OFF', use_custom_props=False,
-        )
+        yield staged
         print(f"Exported {len(staged)} meshes and {sum(map(len, batches.values())):,} triangles", flush=True)
     finally:
         del batches
@@ -172,23 +172,57 @@ def export_model(path):
             bpy.data.meshes.remove(data)
 
 
+def export_models(destination, *, glb_only=False):
+    with staged_meshes() as staged:
+        if not glb_only:
+            bpy.ops.export_scene.fbx(
+                filepath=str(destination / "Yamaha_R7_Roblox.fbx"), use_selection=True, object_types={'MESH'},
+                axis_forward='Z', axis_up='Y', apply_unit_scale=True,
+                apply_scale_options='FBX_SCALE_UNITS', bake_anim=False,
+                path_mode='AUTO', mesh_smooth_type='OFF', use_custom_props=False,
+            )
+
+        # Blender's Y-up glTF conversion maps +Y to -Z. Turn the bike first
+        # so its nose faces Roblox's forward direction, with scale unchanged.
+        for obj in staged:
+            obj.location.x *= -1
+            obj.location.y *= -1
+            obj.rotation_euler.z = pi
+        bpy.context.view_layer.update()
+        with TemporaryDirectory(prefix="r7-glb-", dir=destination) as scratch:
+            raw = Path(scratch) / "geometry.glb"
+            finished = Path(scratch) / "textured.glb"
+            bpy.ops.export_scene.gltf(
+                filepath=str(raw), export_format='GLB', use_selection=True,
+                export_yup=True, export_animations=False, export_materials='EXPORT', export_tangents=True,
+                export_lights=False, export_cameras=False,
+            )
+            write_material_glb(raw, finished)
+            finished.replace(destination / "Yamaha_R7_Roblox.glb")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=TOOLS.parent / "dist")
     parser.add_argument("--views", nargs="*", choices=VIEWS, default=tuple(VIEWS))
     parser.add_argument("--draft", action="store_true")
     parser.add_argument("--render-existing", action="store_true")
+    parser.add_argument("--glb-only", action="store_true", help="export GLB from the existing Blender file")
     parser.add_argument("--denoiser", type=Path, help="optional path to the oidnDenoise executable")
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     args.out = args.out.resolve()
     args.out.mkdir(parents=True, exist_ok=True)
+    if args.glb_only:
+        bpy.ops.wm.open_mainfile(filepath=str(args.out / "Yamaha_R7_Detailed.blend"))
+        export_models(args.out, glb_only=True)
+        return
     if args.render_existing:
         bpy.ops.wm.open_mainfile(filepath=str(args.out / "Yamaha_R7_Detailed.blend"))
         camera = bpy.context.scene.camera
     else:
         build_model()
         if not args.draft:
-            export_model(args.out / "Yamaha_R7_Roblox.fbx")
+            export_models(args.out)
         camera = studio()
 
     points = asset_points()
