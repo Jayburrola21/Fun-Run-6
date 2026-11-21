@@ -46,7 +46,7 @@ def turned_cover(name, y, z, stations, material, collection, segments=48):
 def build_frame():
     rod("Steering head casting", (0, -.466, .779), (0, -.391, .951), .058, "frame", FRAME, bevel=.005)
     rod("Upper steering bearing race", (0, -.396, .934), (0, -.388, .952), .053, "steel", FRAME)
-    rod("Steering spindle", (0, -.470, .768), (0, -.376, .984), .017, "steel", FRAME)
+    rod("Steering spindle", (0, -.470, .768), (0, -.387, .959), .017, "steel", FRAME)
     rod("Lower steering bearing race", (0, -.470, .770), (0, -.460, .794), .052, "engine", FRAME)
     rod("Swingarm pivot cross tube", (-.148, .237, .489), (.148, .237, .489), .046, "frame", FRAME, bevel=.003)
     rod("Lower engine support crossbar", (-.117, -.106, .321), (.117, -.106, .321), .021, "frame", FRAME)
@@ -208,7 +208,7 @@ def build_swingarm():
         side_casting(label + " box-section swingarm", [(.223, .539), (.339, .495), (.432, .445),
                      (.683, .357), (.732, .336), (.736, .291), (.695, .276), (.549, .307),
                      (.386, .374), (.279, .411), (.221, .429), (.198, .489)],
-                     side*.090, side*.135, "frame", SWINGARM, .009)
+                     side*.095, side*.135, "frame", SWINGARM, .009)
         side_casting(label + " recessed swingarm reinforcement", [(.249, .513), (.439, .427),
                      (.677, .351), (.677, .332), (.547, .352), (.368, .415), (.244, .459)],
                      side*.134, side*.141, "engine", SWINGARM, .004)

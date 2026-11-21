@@ -8,8 +8,18 @@ from common import bolt, box, collection, mesh, rod, tube
 
 FRONT = (-0.6975, 0.300)
 REAR = (0.6975, 0.310)
+FORK_SPACING = .104
+FORK_SLOPE = .2865 / .687
+STEERING_OFFSET = .035
+BRAKE_DISTRIBUTOR = (0, -.513, .775)
+FRONT_DISC_X = .0645
+FRONT_DISC_OUTER = .1485
 BRAKES = "R7_Brakes"
 FORKS = "R7_FrontForks"
+
+
+def fork_center(side, height):
+    return side * FORK_SPACING, FRONT[0] + FORK_SLOPE * (height - FRONT[1]), height
 
 
 def axle_point(center, lateral, radius, angle):
@@ -44,31 +54,34 @@ def tire(name, center, half_width, radius, collection):
     # Each tuple describes the relaxed casing before the tread is cut. Rounded
     # sport sections roll continuously into the sidewalls and under the bead.
     profile_half = [
-        (0.00, .0000, 0.00), (.10, .0006, .25), (.20, .0019, 1.00),
-        (.30, .0040, 1.00), (.41, .0070, 1.00), (.52, .0109, 1.00),
-        (.63, .0159, 1.00), (.73, .0222, 1.00), (.83, .0300, .78),
-        (.92, .0400, .16), (.985, .0520, 0.00), (1.00, .0640, 0.00),
+        (0.00, .0000, 0.00), (.10, .0007, 0.00), (.20, .0021, .65),
+        (.30, .0043, 1.00), (.41, .0073, 1.00), (.52, .0113, 1.00),
+        (.63, .0164, 1.00), (.73, .0228, 1.00), (.83, .0306, .78),
+        (.92, .0405, .16), (.985, .0525, 0.00), (1.00, .0640, 0.00),
         (.92, .0760 + (radius - .300) * .7, 0.00), (.77, radius - .216, 0.00),
     ]
     profile = [(-x, r, d) for x, r, d in reversed(profile_half[1:])]
     profile += profile_half
     # One swept groove and one shorter shoulder groove per pitch. Their walls,
     # floors and shoulders are part of the tire mesh.
-    phases = (0.00, .115, .144, .195, .233, .475, .511, .555, .591)
+    phases = (0.00, .110, .141, .188, .228, .500, .532, .591, .632)
     pitches = 19
     steps = pitches * len(phases)
     vertices, faces, uv = [], [], []
     for fraction, drop, strength in profile:
         across = abs(fraction)
-        sweep = (0.73 * across + .36 * across * across) * (1 if fraction > 0 else -1)
+        # Paired grooves sweep toward the shoulder. Stagger the two sides
+        # and fade their phase offset into the smooth center strip.
+        stagger = .20 * min(across / .20, 1) * (1 if fraction > 0 else -1)
+        sweep = .23 * across + .53 * across**1.7 + stagger
         short_strength = max(0.0, 1.0 - abs(across - .65) / .36)
         for pitch in range(pitches):
             for sample, phase in enumerate(phases):
                 depth = 0.0
                 if sample in (2, 3):
-                    depth = .0026 * strength
+                    depth = .0023 * strength
                 if sample in (6, 7):
-                    depth = .0021 * strength * short_strength
+                    depth = .0015 * strength * short_strength
                 angle = (pitch + phase + sweep) * tau / pitches
                 vertices.append(axle_point(center, half_width * fraction, radius - drop - depth, angle))
     for row in range(len(profile)):
@@ -249,23 +262,28 @@ def brake_carrier(name, center, lateral, disc_inner, count, fixed):
              disc_inner + .001, angle + .065), (direction, 0, 0), .0052, "alloy", BRAKES, .003)
 
 
-def caliper(name, center, lateral, radial, angle, mount):
+def bleed_point(center, lateral, radial, angle):
+    direction = 1 if lateral > 0 else -1
+    return axle_point(center, lateral + direction * .016, radial + .010, angle + .12)
+
+
+def caliper(name, center, lateral, disc_outer, radial, angle, mount):
     direction = 1 if lateral > 0 else -1
     # A bridged caliper with a central rotor slot and radially aligned pad bodies.
-    dims = (.019, .039, .022)
+    dims = (.019, .054, .030)
     for offset in (-.014, .014):
         x = lateral + offset
-        loc = axle_point(center, x, radial - .006, angle)
+        loc = axle_point(center, x, radial - .002, angle)
         box(name + " cast piston housing", loc, dims, "engine", BRAKES, .007, (angle - pi / 2, 0, 0))
-    for delta in (-.18, .18):
+    for delta in (-.15, .15):
         a = angle + delta
-        loc = axle_point(center, lateral, radial + .010, a)
+        loc = axle_point(center, lateral, disc_outer + .0115, a)
         box(name + " bridge", loc, (.046, .016, .018), "alloy", BRAKES, .004, (angle - pi / 2, 0, 0))
         bolt(name + " split case hardware", axle_point(center, lateral + direction * .024, radial + .003, a),
              (direction, 0, 0), .0047, "steel", BRAKES, .004)
-        rod(name + " radial mount lug", axle_point(center, lateral + direction * .012, radial - .011, a),
-            mount, .0095, "alloy", BRAKES, 16, .0015)
-    bleeder = axle_point(center, lateral + direction * .016, radial + .010, angle + .12)
+        rod(name + " radial mount lug", axle_point(center, lateral + direction * .019, radial - .011, a),
+            mount, .0075, "alloy", BRAKES, 16, .0015)
+    bleeder = bleed_point(center, lateral, radial, angle)
     rod(name + " bleeder", bleeder, (bleeder[0], bleeder[1], bleeder[2] + .010),
         .003, "steel", BRAKES, 10, .0006)
 
@@ -273,23 +291,21 @@ def caliper(name, center, lateral, radial, angle, mount):
 def fork():
     for side, label in ((1, "Left"), (-1, "Right")):
         def line(z):
-            amount = (z - .300) / (.987 - .300)
-            return side * (.105 - .003 * amount), -.6975 + .2865 * amount, z
+            return fork_center(side, z)
 
-        rod(label + " fork hard-chromed stanchion", line(.360), line(.645), .0195, "chrome", FORKS, 32, .001)
+        rod(label + " fork hard-chromed stanchion", line(.465), line(.580), .0195, "chrome", FORKS, 32, .001)
         rod(label + " fork outer cartridge", line(.565), line(.983), .0256, "satin", FORKS, 32, .0015)
         for lo, hi, radius, material in (
             (.552, .571, .024, "alloy"), (.571, .582, .027, "rubber"),
             (.719, .825, .0276, "alloy"), (.895, .983, .028, "alloy"),
-            (.982, .994, .021, "steel"), (.993, .998, .010, "alloy"),
+            (.982, .994, .021, "steel"),
         ):
             rod(label + " fork seal, sleeve or cap", line(lo), line(hi), radius, material, FORKS, 32, .001)
-        rod(label + " fork cast axle foot", line(.302), line(.432), .024, "frame", FORKS, 24, .004)
+        rod(label + " fork cast axle foot", line(.300), line(.472), .024, "frame", FORKS, 24, .004)
         rod(label + " fork radial brake mount", line(.425), (side * .102, -.611, .413),
             .015, "frame", FORKS, 20, .003)
-        loc = line(.302)
-        rod(label + " front axle boss", (side * .086, loc[1], .300),
-            (side * .132, loc[1], .300), .026, "alloy", FORKS, 24, .003)
+        rod(label + " front axle boss", (side * .086, *FRONT),
+            (side * .132, *FRONT), .026, "alloy", FORKS, 24, .003)
         bolt(label + " front axle nut", (side * .132, *FRONT),
              (side, 0, 0), .018, "steel", FORKS, .007)
         for z in (.318, .344):
@@ -304,22 +320,31 @@ def fork():
         for delta in (-.006, 0, .006):
             rod(label + " reflector prism", (side * .1345, ry - .010, rz + delta),
                 (side * .1345, ry + .010, rz + delta), .00045, "gold", FORKS, 6)
+        x, y, z = bleed_point(FRONT, side * FRONT_DISC_X, .145, .70)
+        _, distributor_y, distributor_z = BRAKE_DISTRIBUTOR
         tube(label + " front brake hose",
-             [(side * .077, -.598, .444), (side * .095, -.632, .503), (side * .102, -.564, .643),
-              (side * .083, -.514, .754), (side * .061, -.466, .867),
-              (side * .129, -.439, .940)], .0031, "rubber", FORKS)
+             [(x, y, z + .009), (x, y + .004, z + .029), (side * .126, -.587, .497),
+              (side * .127, -.534, .620), (side * .100, -.508, .663), (side * .066, -.497, .720),
+              (side * .034, -.534, .772), (side * .010, distributor_y, distributor_z)], .0028, "rubber", FORKS)
 
-    clamp_outline = [(-.132, -.508), (-.118, -.536), (-.085, -.540), (-.047, -.510),
-                     (.047, -.510), (.085, -.540), (.118, -.536), (.132, -.508),
-                     (.114, -.476), (.068, -.459), (.032, -.434), (-.032, -.434),
-                     (-.068, -.459), (-.114, -.476)]
-    vertices = [(x, y, z) for z in (.753, .780) for x, y in clamp_outline]
+    clamp_outline = [(-.136, -.006), (-.123, -.030), (-.088, -.031), (-.047, -.008),
+                     (.047, -.008), (.088, -.031), (.123, -.030), (.136, -.006),
+                     (.119, .028), (.068, .036), (.032, .067), (-.032, .067),
+                     (-.068, .036), (-.119, .028)]
+    center = Vector(fork_center(0, .767))
+    axis = Vector((0, FORK_SLOPE, 1)).normalized()
+    across_plane = Vector((0, axis.z, -axis.y))
+    vertices = [center + Vector((x, 0, 0)) + across_plane * y + axis * thickness
+                for thickness in (-.013, .013) for x, y in clamp_outline]
     size = len(clamp_outline)
     faces = [tuple(reversed(range(size))), tuple(range(size, size * 2))]
     faces += [(i, (i + 1) % size, (i + 1) % size + size, i + size) for i in range(size)]
     mesh("Lower triple clamp • tapered forging", vertices, faces, "frame", FORKS, bevel=.005)
-    rod("Lower steering stem bearing seat", (0, -.474, .754), (0, -.460, .791), .030,
-        "alloy", FORKS, 32, .002)
+    stem = Vector((0, STEERING_OFFSET, 0))
+    rod("Lower steering stem bearing seat", Vector(fork_center(0, .747)) + stem,
+        Vector(fork_center(0, .794)) + stem, .030, "alloy", FORKS, 32, .002)
+    box("Front brake hose distributor", BRAKE_DISTRIBUTOR, (.024, .013, .013),
+        "alloy", FORKS, .003)
 
 
 def build_wheels():
@@ -327,13 +352,13 @@ def build_wheels():
     wheel("Front", FRONT, .300, .060, .041, front_wheel)
     wheel("Rear", REAR, .310, .090, .0615, rear_wheel)
     for side, label in ((1, "Left"), (-1, "Right")):
-        x = side * .0645
-        drilled_band(label + " front brake rotor • drilled stainless", FRONT, x, .104, .1485, .0045, 22, .0026)
+        x = side * FRONT_DISC_X
+        drilled_band(label + " front brake rotor • drilled stainless", FRONT, x, .104, FRONT_DISC_OUTER, .0045, 22, .0026)
         brake_carrier(label + " front", FRONT, x, .104, 6, False)
-        caliper(label + " front fixed caliper", FRONT, x, .145, .70, (side * .103, -.614, .410))
+        caliper(label + " front fixed caliper", FRONT, x, FRONT_DISC_OUTER, .145, .70, (side * .103, -.614, .410))
     drilled_band("Rear brake rotor • drilled stainless", REAR, -.108, .078, .1225, .0043, 16, .0024)
     brake_carrier("Rear", REAR, -.108, .078, 5, True)
-    caliper("Rear floating caliper", REAR, -.108, .114, 2.05, (-.119, .620, .337))
+    caliper("Rear floating caliper", REAR, -.108, .1225, .114, 2.05, (-.133, .620, .337))
     for side in (-1, 1):
         rod("Rear axle wheel spacer", (side * .058, *REAR), (side * .144, *REAR), .025,
             "steel", rear_wheel, 24, .002)

@@ -1,9 +1,10 @@
 """Editable steering controls, lamps, mirrors, instruments and badges."""
 from math import cos, pi, sin, tau
 
-from mathutils import Vector
+from mathutils import Vector, geometry
 
 from common import bolt, box, ellipsoid, mesh, rod, tube
+from wheels import BRAKE_DISTRIBUTOR, FORK_SLOPE, STEERING_OFFSET, fork_center
 
 BARS = "R7_Handlebars"
 COCKPIT = "R7_Cockpit"
@@ -76,101 +77,209 @@ def strip(name, points, widths, normal, depth, material, collection=LIGHTS):
     return mesh(name, verts, faces, material, collection, bevel=.0005)
 
 
-def steering():
-    x_axis = (1, 0, 0)
-    clamp_v = (0, .939, -.344)
-    fork_axis = Vector((0, .385, .923)).normalized()
-    outline = [
-        (-.143, -.011), (-.128, -.036), (-.086, -.039), (-.053, -.028),
-        (.053, -.028), (.086, -.039), (.128, -.036), (.143, -.011),
-        (.131, .022), (.101, .033), (.063, .039), (.042, .055),
-        (-.042, .055), (-.063, .039), (-.101, .033), (-.131, .022),
+FORK_AXIS = Vector((0, FORK_SLOPE, 1)).normalized()
+FORK_U = Vector((1, 0, 0))
+FORK_V = FORK_AXIS.cross(FORK_U)
+
+
+def fork_position(side, z):
+    return Vector(fork_center(side, z))
+
+
+def perforated_clamp(name, center, outline, holes, depth):
+    """Cut fork and stem bores into the caps of a continuous forging."""
+    loops = [[Vector((x, y, 0)) for x, y in outline]]
+    for x, y, radius in holes:
+        loops.append([
+            Vector((x + radius * cos(-tau*i/32), y + radius * sin(-tau*i/32), 0))
+            for i in range(32)
+        ])
+    points = [point for loop in loops for point in loop]
+    count = len(points)
+    triangles = []
+    for triangle in geometry.tessellate_polygon(loops):
+        a, b, c = triangle
+        if (points[b] - points[a]).cross(points[c] - points[a]).z < 0:
+            b, c = c, b
+        triangles.append((a, b, c))
+    faces = [tuple(reversed(tri)) for tri in triangles]
+    faces.extend(tuple(k + count for k in tri) for tri in triangles)
+    offset = 0
+    for loop in loops:
+        for i in range(len(loop)):
+            a = offset + i
+            b = offset + (i + 1) % len(loop)
+            faces.append((a, b, b + count, a + count))
+        offset += len(loop)
+    vertices = [
+        center + FORK_U * point.x + FORK_V * point.y + FORK_AXIS * h
+        for h in (-depth / 2, depth / 2) for point in points
     ]
-    plaque("Upper triple clamp • forged bridge", (0, -.432, .945), x_axis, clamp_v,
-           outline, .018, "frame", COCKPIT, .004)
+    mesh(name, vertices, faces, "frame", COCKPIT, bevel=.0018)
+
+
+def steering():
+    clamp_center = fork_position(0, .958)
+    stem_offset = STEERING_OFFSET * FORK_V.y
+    outline = [
+        (-.140, -.009), (-.134, -.024), (-.120, -.037), (-.101, -.041),
+        (-.080, -.038), (-.061, -.027), (-.040, -.019), (.040, -.019),
+        (.061, -.027), (.080, -.038), (.101, -.041), (.120, -.037),
+        (.134, -.024), (.140, -.009), (.138, .015), (.128, .032),
+        (.111, .039), (.093, .038), (.076, .033), (.055, .037),
+        (.035, .047), (.020, .054), (-.020, .054), (-.035, .047),
+        (-.055, .037), (-.076, .033), (-.093, .038), (-.111, .039),
+        (-.128, .032), (-.138, .015),
+    ]
+    fork_width = fork_position(1, .958).x
+    holes = [(-fork_width, 0, .02815), (fork_width, 0, .02815), (0, stem_offset, .0176)]
+    perforated_clamp("Upper triple clamp • bored forging", clamp_center, outline, holes, .018)
+
     for s in (-1, 1):
         tag = "L" if s == 1 else "R"
-        top = Vector((s * .102, -.411, .987))
-        ring("Fork preload collar " + tag, top - fork_axis * .015, fork_axis,
-             .030, .025, .010, "satin", COCKPIT, 32)
-        bolt("Hex preload adjuster " + tag, top + fork_axis * .003,
-             fork_axis, .014, "steel", COCKPIT, .008)
-        rod("Rebound adjustment head " + tag, top + fork_axis * .004,
-            top + fork_axis * .012, .0065, "alloy", COCKPIT, 16, .0009)
-        plaque("Rebound screwdriver slot " + tag, top + fork_axis * .0125,
-               x_axis, clamp_v, [(-.004, -.00065), (.004, -.00065), (.004, .00065), (-.004, .00065)],
-               .0007, "black", COCKPIT)
-        bolt("Tripletree pinch bolt " + tag, (s * .128, -.400, .935), (s, 0, 0),
-             .006, "alloy", COCKPIT, .006)
+        top = fork_position(s, .994)
+        ring("Fork preload collar " + tag, top - FORK_AXIS * .003, FORK_AXIS,
+             .0200, .0145, .0038, "satin", COCKPIT, 32)
+        bolt("Hex preload adjuster " + tag, top, FORK_AXIS, .0135, "steel", COCKPIT, .0055)
+        rod("Rebound adjustment head " + tag, top + FORK_AXIS * .002,
+            top + FORK_AXIS * .008, .0064, "alloy", COCKPIT, 16, .0008)
+        plaque("Rebound screwdriver slot " + tag, top + FORK_AXIS * .0082,
+               FORK_U, FORK_V, [(-.004, -.00065), (.004, -.00065), (.004, .00065), (-.004, .00065)],
+               .0006, "black", COCKPIT)
+        bolt("Tripletree pinch bolt " + tag, clamp_center + Vector((s * .138, -.010, .001)),
+             (s, 0, 0), .0042, "alloy", COCKPIT, .0041)
 
-    stem = Vector((0, -.376, .985))
-    ring("Steering stem lock ring", stem - fork_axis * .009, fork_axis, .019, .012,
-         .012, "steel", COCKPIT)
-    bolt("Hollow steering stem top nut", stem, fork_axis, .013, "alloy", COCKPIT, .007)
-    ignition = Vector((0, -.408, .975))
-    rod("Ignition cylinder", ignition - fork_axis * .018, ignition, .018, "matte", COCKPIT, 32, .002)
-    ring("Ignition key escutcheon", ignition, fork_axis, .014, .010, .003, "alloy", COCKPIT)
-    plaque("Ignition machined key slot", ignition + fork_axis * .001, x_axis, clamp_v,
-           [(-.005, -.0015), (.005, -.0015), (.005, .0015), (-.005, .0015)],
-           .001, "black", COCKPIT)
+    stem = clamp_center + FORK_V * stem_offset
+    ring("Steering stem lock ring", stem + FORK_AXIS * .010, FORK_AXIS, .022, .0167,
+         .0036, "steel", COCKPIT)
+    ring("Hollow steering stem top nut", stem + FORK_AXIS * .014, FORK_AXIS, .0186, .0085,
+         .0062, "alloy", COCKPIT, 12)
+    ignition = Vector((0, -.447, .975))
+    rod("Ignition stalk mounting sleeve", (0, -.438, .912), ignition - FORK_AXIS * .020,
+        .0128, "frame", COCKPIT, 24, .0016)
+    rod("Ignition cylinder", ignition - FORK_AXIS * .022, ignition, .0168, "matte", COCKPIT, 32, .002)
+    ring("Ignition key escutcheon", ignition, FORK_AXIS, .0139, .0098, .003, "alloy", COCKPIT)
+    plaque("Ignition machined key slot", ignition + FORK_AXIS * .0013, FORK_U, FORK_V,
+           [(-.005, -.0014), (.005, -.0014), (.005, .0014), (-.005, .0014)],
+           .0008, "black", COCKPIT)
 
 
 def clip_ons():
     for s in (-1, 1):
         tag = "L" if s == 1 else "R"
-        root = Vector((s * .109, -.425, .944))
-        grip_start = Vector((s * .188, -.393, .952))
-        grip_end = Vector((s * .327, -.331, .924))
-        axis, u, v = axis_basis(grip_end - grip_start)
-        ring("Clip-on steering tube clamp " + tag, root, (0, .385, .923),
-             .033, .026, .017, "satin", BARS, 32)
-        rod("Clip-on aluminum handle " + tag, root, grip_end, .0105, "alloy", BARS, 20, .001)
-        rod("Textured rubber grip " + tag, grip_start, grip_end, .0165, "rubber", BARS, 32, .002)
+        root = fork_position(s, .922)
+        grip_start = Vector((s * .186, -.384, .918))
+        grip_end = Vector((s * .315, -.350, .889))
+        axis = (grip_end - grip_start).normalized()
+        u = Vector((0, 0, 1))
+        u = (u - axis * u.dot(axis)).normalized()
+        v = u.cross(axis)
+        if v.y < 0:
+            v = -v
+        ring("Clip-on steering tube clamp " + tag, root, FORK_AXIS,
+             .0335, .0281, .018, "satin", BARS, 32)
+        bolt("Clip-on clamp tangential fastener " + tag, root + Vector((s * .030, -.012, 0)),
+             (0, -1, 0), .0045, "alloy", BARS, .004)
+        shoulder = grip_start - axis * .051
+        rod("Clip-on forged root " + tag, root + Vector((s * .024, .003, 0)), shoulder + axis * .008,
+            .0121, "satin", BARS, 20, .0029)
+        rod("Clip-on aluminum handle " + tag, shoulder, grip_end, .0105, "alloy", BARS, 20, .001)
+        rod("Textured rubber grip " + tag, grip_start, grip_end, .0157, "rubber", BARS, 32, .0014)
         for i in range(1, 13):
             ring("Grip traction rib " + tag, grip_start.lerp(grip_end, i / 14), axis,
-                 .0175, .0161, .0020, "rubber", BARS, 20)
-        rod("Handlebar end weight " + tag, grip_end - axis * .003, grip_end + axis * .012,
-            .016, "satin", BARS, 24, .0027)
-        bolt("Handlebar end socket screw " + tag, grip_end + axis * .012, axis,
+                 .01645, .0154, .0017, "rubber", BARS, 20)
+        ring("Rubber grip inboard lip " + tag, grip_start + axis * .003, axis,
+             .018, .0152, .0052, "rubber", BARS, 32)
+        rod("Handlebar end weight " + tag, grip_end - axis * .002, grip_end + axis * .013,
+            .0157, "satin", BARS, 24, .0027)
+        bolt("Handlebar end socket screw " + tag, grip_end + axis * .013, axis,
              .0045, "alloy", BARS, .002)
-        housing_center = grip_start - axis * .013
+
+        housing_center = grip_start - axis * .015
         rod("Throttle housing" if s == -1 else "Clutch switch housing",
-            grip_start - axis * .030, grip_start + axis * .009, .023, "satin", BARS, 20, .003)
-        box("Engine cutoff rocker" if s == -1 else "High beam rocker",
-            housing_center + Vector((0, .007, .023)), (.016, .014, .005),
-            "red_lens" if s == -1 else "matte", BARS, .0017)
-        box("Start button" if s == -1 else "Horn / indicator switch",
-            housing_center + Vector((0, .020, .006)), (.012, .006, .010), "matte", BARS, .0015)
-        box("Master cylinder" if s == -1 else "Clutch lever bracket",
-            (s * .183, -.425, .952), (.045, .043, .033), "matte", BARS, .005)
-        pivot = (s * .194, -.449, .954)
-        bolt("Lever hinge pin " + tag, pivot, (0, 0, 1), .006, "alloy", BARS, .006)
-        lever = [(s * .190, -.447, .950), (s * .219, -.449, .949),
-                 (s * .251, -.431, .945), (s * .292, -.408, .936), (s * .314, -.403, .932)]
+            grip_start - axis * .031, grip_start - axis * .002, .0202, "satin", BARS, 24, .0028)
+        pod = housing_center + u * .019 + v * .006
+        switch_outline = [(-.009, -.007), (.009, -.007), (.009, .007), (-.009, .007)]
+        plaque("Engine cutoff rocker" if s == -1 else "High beam rocker",
+               pod, axis, v, switch_outline,
+               .006, "red_lens" if s == -1 else "matte", BARS, .0018)
+        pod = housing_center + v * .019 + u * .006
+        ellipsoid("Start button" if s == -1 else "Horn / indicator switch", pod,
+                  (.007, .004, .005), "matte", BARS, 16, 10)
+
+        hinge = Vector((s * .178, -.426, .920))
+        rod("Master cylinder" if s == -1 else "Clutch perch", housing_center - v * .012, hinge,
+            .011, "matte", BARS, 20, .0028)
+        bolt("Lever hinge pin " + tag, hinge + u * .008, u, .0053, "alloy", BARS, .004)
+        lever = [hinge - u * .001, (s * .199, -.437, .920),
+                 (s * .222, -.430, .916), (s * .260, -.412, .907),
+                 (s * .288, -.397, .902), (s * .303, -.391, .901)]
         strip("Front brake lever" if s == -1 else "Clutch lever", lever,
-              [.009, .013, .010, .008, .009], (0, 0, 1), .009, "steel", BARS)
-        ellipsoid("Safety ball tip " + tag, lever[-1], (.008, .008, .006), "steel", BARS)
-        tube("Brake hydraulic line" if s == -1 else "Clutch cable", [
-            (s * .181, -.438, .951), (s * .165, -.47, .941),
-            (s * .138, -.480, .897), (s * .091, -.467, .846),
-            (s * .081, -.492, .779)], .0033, "rubber", BARS)
-    box("Front brake hydraulic reservoir", (-.165, -.443, .989), (.041, .035, .032),
-        "satin", BARS, .006)
-    box("Brake reservoir top lid", (-.165, -.443, 1.007), (.041, .035, .006),
-        "frame", BARS, .002)
-    for x in (-.177, -.153):
-        bolt("Reservoir cap screw", (x, -.443, 1.010), (0, 0, 1), .0024, "alloy", BARS, .0013)
+              [.012, .0126, .0094, .0078, .007, .0085], (0, -.22, 1), .007, "steel", BARS)
+        ellipsoid("Safety ball tip " + tag, lever[-1], (.007, .007, .005), "steel", BARS, 20, 12)
+
+        if s == -1:
+            reservoir = Vector((-.143, -.424, .970))
+            tube("Brake reservoir mounting tab", [hinge, (-.159, -.430, .941), reservoir + Vector((0, 0, -.011))],
+                 .004, "frame", BARS)
+            box("Front brake hydraulic reservoir", reservoir, (.034, .032, .028),
+                "satin", BARS, .004)
+            box("Brake reservoir top lid", reservoir + Vector((0, 0, .0155)), (.035, .033, .0036),
+                "frame", BARS, .0012)
+            for x in (-.153, -.133):
+                bolt("Reservoir cap screw", (x, -.424, .987), (0, 0, 1), .0023, "alloy", BARS, .0012)
+            tube("Brake master-cylinder feed hose", [
+                reservoir + Vector((0, 0, -.009)), (-.147, -.435, .943), (-.164, -.434, .922),
+            ], .0032, "rubber", BARS)
+            cable_end = [(-.112, -.453, .859), BRAKE_DISTRIBUTOR]
+        else:
+            cable_end = [(.129, -.480, .841), (.095, -.440, .807)]
+        tube("Brake hydraulic line" if s == -1 else "Clutch cable",
+             [hinge - v * .009, (s * .162, -.445, .926), (s * .141, -.461, .901), *cable_end],
+             .0029, "rubber", BARS)
 
 
 def mirrors():
+    from body import nose_point
+
+    def surface(u, v, side):
+        point = Vector(nose_point(u, v))
+        along = Vector(nose_point(u + .001, v)) - Vector(nose_point(u - .001, v))
+        rise = Vector(nose_point(u, v + .001)) - Vector(nose_point(u, v - .001))
+        normal = along.cross(rise).normalized()
+        point.x *= side
+        normal.x *= side
+        return point, normal
+
+    foot = [(-1, -.68), (-.65, -1), (.57, -1), (.91, -.69),
+            (1, .64), (.54, .86), (-.61, .89), (-1, .63)]
     for s in (-1, 1):
         tag = "L" if s == 1 else "R"
-        root = (s * .139, -.668, .994)
-        elbow = (s * .203, -.621, 1.045)
-        tip = (s * .264, -.589, 1.070)
-        ellipsoid("Mirror base gasket " + tag, root, (.021, .028, .011), "matte", DETAILS)
-        tube("Angled mirror support " + tag, [root, elbow, tip], .009, "satin", DETAILS)
-        ellipsoid("Mirror articulation cover " + tag, tip, (.019, .013, .015), "matte", DETAILS)
+        root, normal = surface(.770, .925, s)
+
+        def foot_loop(scale, depth):
+            loop = []
+            for x, y in foot:
+                point, axis = surface(.770 + .058 * scale * x, .925 + .074 * scale * y, s)
+                loop.append(point + axis * depth)
+            return loop if s == 1 else list(reversed(loop))
+
+        layered("Mirror base conformal gasket " + tag, [foot_loop(1, -.0012), foot_loop(1, .0016)],
+                "matte", DETAILS, .00045)
+        layered("Mirror stalk bolt-on foot " + tag,
+                [foot_loop(.92, .00145), foot_loop(.89, .0041), foot_loop(.78, .0053)],
+                "satin", DETAILS, .0006)
+        for along in (-1, 1):
+            screw, axis = surface(.770, .925 + along * .045, s)
+            bolt("Mirror base fixing " + tag, screw + axis * .0052,
+                 axis, .0028, "alloy", DETAILS, .00125)
+        ball = root + normal * .012
+        elbow = (s * .209, -.644, 1.027)
+        tip = (s * .266, -.594, 1.074)
+        rod("Mirror root swivel " + tag, root + normal * .0044, ball + normal * .003,
+            .009, "satin", DETAILS, 24, .0018)
+        tube("Angled mirror support " + tag, [ball, elbow, tip], .0075, "satin", DETAILS)
+        ellipsoid("Mirror articulation cover " + tag, tip, (.016, .012, .013), "matte", DETAILS)
         points = [
             (.246, -.589, 1.072), (.258, -.582, 1.047), (.288, -.578, 1.048),
             (.332, -.573, 1.067), (.3525, -.571, 1.093), (.344, -.571, 1.112),
@@ -190,22 +299,68 @@ def mirrors():
                 "chrome", DETAILS, .0008)
 
 
+def inner_cowling():
+    """Stationary inner meter trims close the shoulder seams with steering clearance."""
+    from body import cheek_surface, nose_point, sample, shell
+
+    inner = [
+        (.168, -.679, .976),
+        (.121, -.640, .962),
+        (.102, -.594, .946),
+        (.105, -.558, .924),
+        (.135, -.523, .903),
+        (.185, -.500, .889),
+    ]
+    for s in (-1, 1):
+        tag = "L" if s == 1 else "R"
+
+        def fill(u, v):
+            x, y, z = cheek_surface(u * .37, 0)
+            outer = Vector((x - .0014, y - .0009, z - .0017))
+            inside = Vector(sample(inner, u))
+            across = inside.lerp(outer, v)
+            across.z += .0016 * sin(pi * v) * sin(pi * u)
+            if u < .18:
+                # The front edge follows the underside of the nose return.
+                start = Vector(nose_point(.73 + .27*v, 1))
+                start.y += .0012
+                start.z -= .0021
+                taper = (1 - u / .18)**2
+                nominal = Vector(inner[0]).lerp(Vector((.2236, -.6699, .9273)), v)
+                across += (start - nominal) * taper
+            across.x *= s
+            return across
+
+        shell("Inner meter trim " + tag, fill, 18, 9, "matte", COCKPIT,
+              (0, 0, -.0024), 2, 1)
+        for u, v in ((.23, .79), (.79, .81)):
+            seat = fill(u, v)
+            bolt("Inner meter trim fixing " + tag, seat - Vector((0, 0, .0002)),
+                 (0, .16, 1), .003, "alloy", COCKPIT, .0011)
+
+
 def dashboard():
-    center = Vector((0, -.543, .962))
-    u, v = Vector((-1, 0, 0)), Vector((0, -.75, .66)).normalized()
+    center = Vector((0, -.548, .966))
+    u, v = Vector((-1, 0, 0)), Vector((0, -.71, .704)).normalized()
     n = u.cross(v)
     outline = [(-.083, -.028), (-.069, -.043), (.069, -.043), (.083, -.028),
                (.077, .027), (.062, .035), (-.062, .035), (-.077, .027)]
-    tube("Instrument harness", [(0, -.538, .948), (0, -.513, .916), (.021, -.485, .893)],
-         .007, "rubber", COCKPIT)
+    stay = Vector((0, -.524, .921))
+    tube("Instrument harness", [(0, -.547, .948), stay, (.015, -.491, .889), (.021, -.452, .874)],
+         .0047, "rubber", COCKPIT)
     for s in (-1, 1):
-        rod("Instrument cluster bracket", (s * .051, -.501, .922), (s * .056, -.545, .962),
-            .007, "frame", COCKPIT)
+        tube("Instrument stay from head casting", [
+            (s * .031, -.467, .896), (s * .042, -.499, .902), (s * .055, -.531, .919),
+            (s * .055, -.548, .946),
+        ], .0047, "frame", COCKPIT)
+        pickup = center + u * (s * .057) - n * .018
+        rod("Instrument anti-vibration isolator", pickup - n * .005, pickup + n * .005,
+            .0084, "rubber", COCKPIT, 24, .001)
     plaque("Digital instrument cluster housing", center, u, v, outline, .033, "satin", COCKPIT, .004)
     plaque("Instrument surrounding glass bezel", center + n * .017, u, v,
            [(x * .91, y * .90) for x, y in outline], .004, "alloy", COCKPIT, .001)
     plaque("Instrument polarized display glass", center + n * .020, u, v,
-           [(x * .85, y * .79) for x, y in outline], .0025, "black", COCKPIT, .0014)
+           [(x * .85, y * .79) for x, y in outline], .0026, "black", COCKPIT, .00065)
 
     def pixel(name, x, y, width, height, material):
         outline = [(-width / 2, -height / 2), (width / 2, -height / 2),
@@ -224,10 +379,10 @@ def dashboard():
     for x, length in ((-.039, .026), (.038, .023)):
         for y in (-.017, -.024):
             pixel("LCD trip / status graduation", x, y, length, .0014, "alloy")
-    pixel("Neutral indicator stem", .048, -.003, .0025, .013, "green")
-    pixel("Neutral indicator stem", .057, -.003, .0025, .013, "green")
+    pixel("Neutral indicator stem", .0475, -.003, .0021, .013, "green")
+    pixel("Neutral indicator stem", .0575, -.003, .0021, .013, "green")
     normal = center + n * .0218
-    strip("Neutral indicator diagonal", [normal + u * .048 + v * .003, normal + u * .057 - v * .009],
+    strip("Neutral indicator diagonal", [normal + u * .0482 + v * .0028, normal + u * .0568 - v * .0088],
           [.002, .002], n, .0005, "green", COCKPIT)
     for s in (-1, 1):
         for a, b in ((.075, -.021), (.064, .025)):
@@ -238,51 +393,60 @@ def dashboard():
 def fuel_cap():
     from body import tank_surface
 
-    axis = (0, 0, 1)
-    center = Vector((0, -.205, tank_surface(0, -.205) + .004))
-    rod("Fuel cap inset gasket", center - Vector((0, 0, .006)), center, .041, "black", COCKPIT, 48, .002)
-    ring("Fuel cap brushed mounting ring", center, axis, .038, .027, .006, "steel", COCKPIT, 64)
-    rod("Fuel filler hinged door", center - Vector((0, 0, .003)), center + Vector((0, 0, .004)),
-        .027, "satin", COCKPIT, 48, .0013)
-    box("Fuel flap locking cylinder surround", center + Vector((0, .005, .005)),
-        (.028, .019, .003), "alloy", COCKPIT, .003)
-    box("Keyway", center + Vector((0, .006, .007)), (.015, .0027, .001), "black", COCKPIT, .001)
+    y = -.205
+    axis = Vector((0, 0, 1))
+    surface = Vector((0, y, tank_surface(0, y)))
+    rod("Fuel cap inset gasket", surface - axis * .0045, surface + axis * .0008,
+        .0402, "black", COCKPIT, 48, .0005)
+    ring("Fuel cap brushed mounting ring", surface + axis * .0007, axis, .0385, .0274,
+         .0031, "steel", COCKPIT, 64)
+    rod("Fuel filler hinged door", surface - axis * .0027, surface + axis * .0017,
+        .0267, "satin", COCKPIT, 48, .00065)
+    box("Fuel flap locking cylinder surround", surface + Vector((0, .0055, .0018)),
+        (.026, .017, .0013), "alloy", COCKPIT, .00042)
+    box("Keyway", surface + Vector((0, .006, .0026)),
+        (.0135, .0023, .0005), "black", COCKPIT, .00016)
     for i in range(7):
         a = pi / 2 + tau * i / 7
-        point = center + Vector((.033 * cos(a), .033 * sin(a), .003))
-        bolt("Fuel cap recessed anchor", point, axis, .0027, "satin", COCKPIT, .0013)
+        point = surface + Vector((.033 * cos(a), .033 * sin(a), .0020))
+        bolt("Fuel cap recessed anchor", point, axis, .0025, "satin", COCKPIT, .0007)
+
+
+def running_lights():
+    from body import drl_channel, projector_center, shell
+
+    for s in (-1, 1):
+        tag = "L" if s == 1 else "R"
+
+        def glazing(u, v, outset=0, trim=0):
+            u = trim + u * (1 - 2 * trim)
+            v = trim + v * (1 - 2 * trim)
+            x, y, z = drl_channel(u, v)
+            return s * x, y + outset, z
+
+        shell("Running-light recessed seal " + tag, lambda u, v: glazing(u, v, .0042),
+              28, 6, "black", LIGHTS, (0, .0048, 0), 1, -1)
+        shell("Pearl white LED signature " + tag, lambda u, v: glazing(u, v, .0021, .115),
+              28, 6, "white", LIGHTS, (0, .003, 0), 1, -1)
+
+    face = Vector((0, -1, .05)).normalized()
+    projector = Vector(projector_center()) - face * .0042
+    rod("Projector headlight body", projector - face * .025, projector, .0175,
+        "matte", LIGHTS, 40, .0017)
+    ring("Projector fluted surround", projector + face * .0013, face, .0172, .0135,
+         .0031, "satin", LIGHTS, 48)
+    ring("Projector reflector edge", projector + face * .0016, face, .0132, .0112,
+         .0023, "chrome", LIGHTS)
+    ellipsoid("Projector convex cover glass", projector + face * .0004,
+              (.0118, .0038, .0118), "glass", LIGHTS, 36, 20)
+    ellipsoid("Projector interior LED optic", projector - face * .0007,
+              (.0090, .0023, .0090), "chrome", LIGHTS, 24, 16)
+    ellipsoid("Projector optic center", projector + face * .0013,
+              (.0040, .0017, .0040), "white", LIGHTS)
 
 
 def lights():
-    for s in (-1, 1):
-        tag = "L" if s == 1 else "R"
-        drl = [
-            (s * .062, -.925, .785), (s * .088, -.897, .815),
-            (s * .119, -.869, .830), (s * .151, -.840, .842), (s * .179, -.806, .856),
-        ]
-        normal = Vector((s * .50, -.81, .18)).normalized()
-        strip("Inset running light black surround " + tag, drl,
-              [.008, .021, .019, .018, .005], normal, .016, "black")
-        inset = [Vector(p) + normal * .0012 for p in drl]
-        strip("Pearl white LED signature " + tag, inset,
-              [.0025, .011, .010, .009, .0015], normal, .004, "white")
-        glint = [p + normal * .0004 + Vector((0, 0, .001)) for p in inset]
-        strip("Running light inner diffuser facet " + tag, glint,
-              [.0008, .0035, .003, .002, .0007], normal, .001, "white")
-
-    headlamp = Vector((0, -.936, .786))
-    face = Vector((0, -1, .05)).normalized()
-    rod("Projector headlight body", headlamp - face * .022, headlamp, .025,
-        "matte", LIGHTS, 40, .004)
-    ring("Projector fluted surround", headlamp, face, .0222, .016, .005, "satin", LIGHTS, 48)
-    ring("Projector reflector edge", headlamp + face * .001, face, .016, .0128, .003, "chrome", LIGHTS)
-    ellipsoid("Projector convex cover glass", headlamp + face * .001,
-              (.014, .0055, .014), "glass", LIGHTS, 36, 20)
-    ellipsoid("Projector interior LED optic", headlamp + face * .0007,
-              (.0102, .003, .0102), "chrome", LIGHTS, 24, 16)
-    ellipsoid("Projector optic center", headlamp + face * .0022,
-              (.0044, .002, .0044), "white", LIGHTS)
-
+    running_lights()
     for s in (-1, 1):
         tag = "L" if s == 1 else "R"
         tail = [(0, .960, .950), (s * .038, .956, .950), (s * .059, .944, .942),
@@ -335,7 +499,7 @@ def tank_emblems():
 
     for s in (-1, 1):
         tag = "L" if s == 1 else "R"
-        cx, cy = s * .151, -.205
+        cx, cy = s * .151, -.230
         z = tank_surface(cx, cy)
         slope_x = (tank_surface(cx + .0006, cy) - tank_surface(cx - .0006, cy)) / .0012
         slope_y = (tank_surface(cx, cy + .0006) - tank_surface(cx, cy - .0006)) / .0012
@@ -403,36 +567,36 @@ def fairing_decals():
 
 
 def screen_mounts():
-    from body import SCREEN_STATIONS, sample, windscreen
-
-    def screen_y(x, z):
-        lo, hi = 0.0, 1.0
-        for _ in range(22):
-            mid = (lo + hi) * .5
-            half_width = sample(SCREEN_STATIONS, mid)[0]
-            _, y, point_z = windscreen(mid, .5 + x / (2 * half_width))
-            if point_z < z:
-                lo = mid
-            else:
-                hi = mid
-        return y
+    from body import windscreen
 
     for s in (-1, 1):
         tag = "L" if s == 1 else "R"
-        for x, z in ((.129, 1.001), (.114, 1.054)):
-            y = screen_y(x, z)
-            center = (s * x, y - .0016, z)
-            axis = (s * .60, -.73, .32)
-            rod("Screen isolating washer " + tag, (s * x, y + .0009, z), center, .0055,
-                "matte", DETAILS, 16, .0007)
-            bolt("Screen mounting button fastener " + tag, center, axis,
-                 .0040, "steel", DETAILS, .0020)
+        for u, across in ((.070, .84), (.147, .91)):
+            v = .5 + s * across / 2
+            center = Vector(windscreen(u, v))
+            long = Vector(windscreen(u + .001, v)) - Vector(windscreen(u - .001, v))
+            cross = Vector(windscreen(u, v + .001)) - Vector(windscreen(u, v - .001))
+            axis = long.cross(cross).normalized()
+            if axis.y > 0:
+                axis = -axis
+            rod("Screen isolating well nut " + tag, center - axis * .006,
+                center + axis * .0008, .0047, "matte", DETAILS, 20, .0006)
+            bolt("Screen mounting button fastener " + tag, center + axis * .0007, axis,
+                 .0035, "steel", DETAILS, .00165)
+        # A stationary bridge runs behind the acrylic to the fairing shoulder.
+        outer = Vector(windscreen(.147, .5 + s * .455))
+        lower = Vector(windscreen(.070, .5 + s * .420))
+        anchor = Vector(windscreen(0, .5 + s * .455))
+        inset = Vector((0, .0057, -.0045))
+        tube("Windscreen retaining stay " + tag, [anchor + inset, lower + inset, outer + inset],
+             .0038, "matte", DETAILS)
 
 
 def build_cockpit():
     steering()
     clip_ons()
     mirrors()
+    inner_cowling()
     dashboard()
     fuel_cap()
     lights()

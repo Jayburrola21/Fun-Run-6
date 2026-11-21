@@ -11,10 +11,20 @@ from mathutils import Matrix, Vector
 VIEWS = {
     "three-quarter": ((3.35, -3.60, 1.45), (1200, 900)),
     "front": ((0, -4, .09), (900, 1040)),
+    "front-right": ((-3.35, -3.60, 1.45), (1200, 900)),
+    "rear-three-quarter": ((3.2, 3.6, 1.6), (1200, 900)),
+    "cockpit": ((-.66, .25, 1.24), (1200, 900)),
+    "front-low": ((.30, -3.8, -.61), (900, 950)),
     "rear": ((0, 4, .11), (900, 1040)),
     "left": ((4, 0, .04), (1200, 760)),
     "right": ((-4, 0, .04), (1200, 760)),
     "top": ((0, 0, 4), (1200, 720)),
+}
+
+
+DETAIL_VIEWS = {
+    "cockpit": (Vector((0, -.415, .955)), 1.17, 5),
+    "front-low": (Vector((0, -.69, .735)), .95, 1.8),
 }
 
 
@@ -25,12 +35,12 @@ def studio():
 
     world = bpy.data.worlds.new("Studio ambient")
     world.use_nodes = True
-    world.node_tree.nodes["Background"].inputs[0].default_value = (.31, .40, .53, 1)
-    world.node_tree.nodes["Background"].inputs[1].default_value = .27
+    world.node_tree.nodes["Background"].inputs[0].default_value = (.36, .39, .45, 1)
+    world.node_tree.nodes["Background"].inputs[1].default_value = .30
     scene.world = world
 
     from common import material, mesh
-    floor = material("Studio cyclorama", (.055, .067, .085), 0, .66)
+    floor = material("Studio cyclorama", (.053, .061, .074), 0, .66)
     mesh("Ground", [(-200, -200, -.003), (200, -200, -.003),
                     (200, 200, -.003), (-200, 200, -.003)],
          [(0, 1, 2, 3)], floor, group)
@@ -48,13 +58,13 @@ def studio():
         obj.location = location
         obj.rotation_euler = (Vector(target) - obj.location).to_track_quat('-Z', 'Y').to_euler()
 
-    softbox("Overhead strip", (0, -.15, 2.7), (0, 0, .46), 330, 3.6,
-            (.92, .96, 1), 1.03)
-    softbox("Left key", (-2.0, -.45, 1.75), (0, -.12, .45), 240, 2.6,
-            (.88, .94, 1), 1.36)
+    softbox("Overhead strip", (0, -.15, 2.7), (0, 0, .46), 225, 3.0,
+            (.96, .98, 1), .94)
+    softbox("Left key", (-2.0, -.45, 1.75), (0, -.12, .45), 185, 2.6,
+            (.93, .96, 1), 1.36)
     softbox("Right rim", (1.75, .52, 1.52), (0, 0, .66), 210, 2.9,
-            (.78, .88, 1), .64)
-    softbox("Warm front bounce", (.55, -2.6, 1.18), (0, -.30, .52), 100, 1.5,
+            (.87, .92, 1), .64)
+    softbox("Warm front bounce", (-1.1, -2.6, 1.18), (0, -.30, .52), 55, 1.5,
             (1, .90, .77), .85)
     softbox("Rear edge", (-.32, 2.5, 1.45), (0, .37, .59), 145, 1.5,
             (1, .89, .80), .56)
@@ -86,22 +96,30 @@ def aim(camera, name, bounds, percent=100):
     approx_up = Vector((1, 0, 0) if name == "top" else (0, 0, 1))
     right = approx_up.cross(backward).normalized()
     up = backward.cross(right)
-    local_x = [right.dot(point) for point in bounds]
-    local_y = [up.dot(point) for point in bounds]
-    center = (right * ((max(local_x) + min(local_x)) / 2)
-              + up * ((max(local_y) + min(local_y)) / 2))
-    camera.location = center + backward * 78
+    if name in DETAIL_VIEWS:
+        center, scale, distance = DETAIL_VIEWS[name]
+    else:
+        center, scale = fit_asset(bounds, right, up, width / height)
+        distance = 78
+    camera.location = center + backward * distance
     camera.rotation_euler = Matrix((right, up, backward)).transposed().to_euler()
-    aspect = width / height
-    span_x = max(local_x) - min(local_x)
-    span_y = max(local_y) - min(local_y)
-    # Blender's orthographic scale is the span of the larger image axis.
-    span = max(span_x, span_y * aspect) if aspect >= 1 else max(span_x / aspect, span_y)
-    camera.data.ortho_scale = 1.21 * span
+    camera.data.ortho_scale = scale
     scene = bpy.context.scene
     scene.render.resolution_x = width
     scene.render.resolution_y = height
     scene.render.resolution_percentage = percent
+
+
+def fit_asset(bounds, right, up, aspect):
+    local_x = [right.dot(point) for point in bounds]
+    local_y = [up.dot(point) for point in bounds]
+    center = (right * ((max(local_x) + min(local_x)) / 2)
+              + up * ((max(local_y) + min(local_y)) / 2))
+    span_x = max(local_x) - min(local_x)
+    span_y = max(local_y) - min(local_y)
+    # Blender's orthographic scale is the span of the larger image axis.
+    span = max(span_x, span_y * aspect) if aspect >= 1 else max(span_x / aspect, span_y)
+    return center, 1.21 * span
 
 
 def denoised_render(scene, destination, executable):

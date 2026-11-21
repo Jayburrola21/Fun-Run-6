@@ -1,4 +1,4 @@
-"""Create the editable motorcycle, FBX and textured GLB exports, and six orthographic previews."""
+"""Create the editable motorcycle, FBX and textured GLB exports, and orthographic previews."""
 
 import argparse
 from collections import defaultdict
@@ -18,14 +18,16 @@ sys.dont_write_bytecode = True
 from common import COLLECTIONS, build_materials, collection, project_uv
 from glb_materials import write_material_glb
 from studio import VIEWS, aim, render_views, studio
+from wheels import FRONT, REAR, STEERING_OFFSET, fork_center
 
 MAX_PART_TRIANGLES = 9_500
 MIN_TRIANGLE_AREA = 1e-11  # Square metres. Exclude collapsed bevel slivers.
+STEERING_PIVOT = Vector(fork_center(0, .85)) + Vector((0, STEERING_OFFSET, 0))
 PIVOTS = {
-    "FrontWheel": Vector((0, -.6975, .300)),
-    "RearWheel": Vector((0, .6975, .310)),
-    "FrontForks": Vector((0, -.455, .85)),
-    "Handlebars": Vector((0, -.455, .85)),
+    "FrontWheel": Vector((0, *FRONT)),
+    "RearWheel": Vector((0, *REAR)),
+    "FrontForks": STEERING_PIVOT,
+    "Handlebars": STEERING_PIVOT,
     "Swingarm": Vector((0, .237, .489)),
 }
 
@@ -96,14 +98,21 @@ def staged_meshes():
     for group, source in asset_objects():
         evaluated = source.evaluated_get(graph)
         data = bpy.data.meshes.new_from_object(evaluated, preserve_all_data_layers=True, depsgraph=graph)
-        matrices.append((mechanical_group(group, source), data, evaluated.matrix_world.copy()))
+        matrices.append((mechanical_group(group, source), data, evaluated.matrix_world.copy(),
+                         source.type == 'CURVE'))
     temp = bpy.data.collections.new("Mesh export staging")
     bpy.context.scene.collection.children.link(temp)
     staged = []
     batches = defaultdict(list)
     try:
-        for group, data, matrix in matrices:
+        for group, data, matrix, is_curve in matrices:
             data.transform(matrix)
+            if is_curve:
+                # Blender converts filled curve ends with their own perimeter
+                # vertices. Weld those to the tube in the export, keeping loop normals.
+                vertex_keys = [tuple(round(value, 6) for value in vertex.co) for vertex in data.vertices]
+            else:
+                vertex_keys = range(len(data.vertices))
             if not data.uv_layers:
                 project_uv(data)
             data.calc_loop_triangles()
@@ -117,7 +126,7 @@ def staged_meshes():
                 records = batches[(group, shader)]
                 for triangle in faces:
                     records.append(tuple((data.vertices[index].co.copy(), loop_uv[loop].vector.copy(),
-                                          data.corner_normals[loop].vector.copy(), (data, index))
+                                          data.corner_normals[loop].vector.copy(), (data, vertex_keys[index]))
                                          for index, loop in zip(triangle.vertices, triangle.loops)))
         for (group, shader), records in sorted(batches.items(), key=lambda item: (item[0][0], item[0][1].name)):
             for n, start in enumerate(range(0, len(records), MAX_PART_TRIANGLES), 1):
@@ -168,7 +177,7 @@ def staged_meshes():
             bpy.data.objects.remove(obj, do_unlink=True)
             bpy.data.meshes.remove(data)
         bpy.data.collections.remove(temp)
-        for _, data, _ in matrices:
+        for _, data, _, _ in matrices:
             bpy.data.meshes.remove(data)
 
 

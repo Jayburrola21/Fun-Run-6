@@ -1,5 +1,7 @@
 """Sculpted fairing skins, fuel tank, seats, and exterior trim for the R7."""
-from math import cos, sin
+from math import cos, exp, sin
+
+from mathutils import Vector
 
 from common import bolt, box, mesh, tube
 
@@ -24,12 +26,14 @@ def sample(values, t):
     )
 
 def shell(name, fn, nu, nv, material, collection, step, normal_axis=0, normal_sign=1,
-          omit=None):
+          omit=None, triangulate=False):
     """Give a sampled panel finite thickness, with a closed welded perimeter."""
-    front = [fn(i / nu, j / nv) for i in range(nu + 1) for j in range(nv + 1)]
+    samples = [(i / nu, j / nv) for i in range(nu + 1) for j in range(nv + 1)]
+    front = [fn(u, v) for u, v in samples]
     width = nv + 1
     count = len(front)
-    back = [tuple(c + d for c, d in zip(p, step)) for p in front]
+    offsets = [step(u, v) for u, v in samples] if callable(step) else [step] * count
+    back = [tuple(c + d for c, d in zip(point, offset)) for point, offset in zip(front, offsets)]
     faces = [(i * width + j, (i + 1) * width + j, (i + 1) * width + j + 1, i * width + j + 1)
              for i in range(nu) for j in range(nv) if omit is None or not omit(i, j)]
     ia, ib, ic, _ = faces[len(faces) // 2]
@@ -39,6 +43,8 @@ def shell(name, fn, nu, nv, material, collection, step, normal_axis=0, normal_si
     ax1, ax2 = (normal_axis + 1) % 3, (normal_axis + 2) % 3
     if (p[ax1] * q[ax2] - p[ax2] * q[ax1]) * normal_sign < 0:
         faces = [tuple(reversed(f)) for f in faces]
+    if triangulate:
+        faces = [triangle for a, b, c, d in faces for triangle in ((a, b, c), (a, c, d))]
     edges = {}
     for face in faces:
         for a, b in zip(face, face[1:] + face[:1]):
@@ -68,25 +74,28 @@ def patch(name, rows, material, collection, side, nu=20, nv=10, thickness=.005, 
     offset = (-thickness * side, 0, 0) if axis == 0 else (0, 0, -thickness)
     return shell(name, point, nu, nv, material, collection, offset, axis, side if axis == 0 else 1)
 
-# Sections hold the fore-aft station, half width, spine, shoulder, and lower contour.
+# Tank stations define Y, maximum half-width, crown, shoulder, lower hem, and knee width ratio.
 TANK_SECTIONS = [
-    (-.455, .036, .907, .897, .844),
-    (-.397, .087, 1.010, .971, .810),
-    (-.325, .155, 1.073, 1.031, .786),
-    (-.236, .183, 1.095, 1.052, .778),
-    (-.163, .187, 1.097, 1.046, .775),
-    (-.074, .164, 1.070, 1.016, .774),
-    (.008, .128, 1.020, .958, .781),
-    (.078, .110, .947, .897, .793),
-    (.144, .087, .861, .841, .802),
-    (.161, .069, .829, .822, .806),
+    (-.439, .045, .905, .893, .847, .91),
+    (-.400, .102, .982, .946, .812, .89),
+    (-.350, .144, 1.030, .983, .794, .85),
+    (-.289, .169, 1.064, 1.006, .786, .80),
+    (-.254, .176, 1.067, 1.003, .784, .77),
+    (-.205, .175, 1.067, .997, .784, .71),
+    (-.157, .168, 1.0665, .979, .782, .66),
+    (-.110, .156, 1.049, .952, .783, .65),
+    (-.055, .138, 1.014, .912, .785, .67),
+    (.013, .115, .951, .866, .787, .74),
+    (.076, .088, .882, .832, .785, .86),
+    (.115, .071, .840, .826, .788, .94),
+    (.129, .066, .828, .820, .792, .96),
 ]
 
 RIDER_SECTIONS = [
-    (.109, .074, .831, .830, .799),
-    (.165, .090, .829, .825, .788),
-    (.237, .114, .825, .816, .783),
-    (.334, .140, .829, .820, .785),
+    (.126, .067, .828, .825, .794),
+    (.164, .085, .826, .823, .786),
+    (.237, .111, .824, .815, .783),
+    (.334, .139, .829, .819, .785),
     (.421, .147, .842, .834, .796),
     (.505, .135, .869, .861, .823),
     (.559, .106, .899, .882, .848),
@@ -114,12 +123,15 @@ TAIL_SECTIONS = [
 ]
 
 def cross_section(station, tank=False):
-    y, width, top, shoulder, low = station
+    y, width, top, shoulder, low = station[:5]
     span = top - low
     if tank:
-        positive = [(0, top), (.33, top-.002), (.64, top-.012), (.86, shoulder),
-                    (.992, shoulder-.12*span), (1, low+.42*span),
-                    (.84, low+.12*span), (.62, low+.02*span), (0, low)]
+        knee = station[5]
+        positive = [(0, top), (.30, top-.001), (.58, top-.009),
+                    (.83, top - .51*(top-shoulder)), (.97, shoulder+.003),
+                    (1, shoulder-.058*span), (.96, shoulder-.15*span),
+                    (.82*knee+.18, low+.44*span), (knee, low+.18*span),
+                    (.91*knee, low+.047*span), (.44, low+.003), (0, low)]
     else:
         positive = [(0, top), (.36, top-.001), (.68, top-.003), (.91, shoulder),
                     (1, shoulder-.15*span), (.96, low+.22*span),
@@ -127,6 +139,15 @@ def cross_section(station, tank=False):
     points = [(x * width, y, z) for x, z in positive]
     points.extend([(-x * width, y, z) for x, z in reversed(positive[1:-1])])
     return points
+
+def tank_steering_relief(point):
+    """Recess the tank's nose around the steering head and upper bridge."""
+    x, y, z = point
+    width_fade = min(max((.142 - abs(x)) / .105, 0), 1)
+    height_fade = min(max((1.042-z)/.065, 0), 1)
+    forward_fade = max((-.286-y)/.153, 0)
+    return x, y + .088*width_fade*height_fade*forward_fade, z
+
 
 def loft(name, controls, material, collection, tank=False):
     intervals = 4 * (len(controls) - 1)
@@ -137,6 +158,8 @@ def loft(name, controls, material, collection, tank=False):
         surround = ring[-1:] + ring + ring[:2]
         span = len(ring) + 2
         vertices.extend([sample(surround, (1 + j * .5) / span) for j in range(2 * len(ring))])
+    if tank:
+        vertices = [tank_steering_relief(point) for point in vertices]
     width = 2 * len(rings[0])
     faces = [(i * width + j, i * width + (j + 1) % width,
               (i + 1) * width + (j + 1) % width, (i + 1) * width + j)
@@ -144,18 +167,34 @@ def loft(name, controls, material, collection, tank=False):
     faces += [tuple(reversed(range(width))), tuple(intervals * width + j for j in range(width))]
     return mesh(name, vertices, faces, material, collection, smooth=True)
 
-def tank_surface(x, y):
-    """Fuel tank upper surface for the cap, inlays, and Yamaha emblems."""
+def row_at_y(row, y):
+    """Evaluate a longitudinal control curve at a given Y."""
     lo, hi = 0., 1.
-    for _ in range(16):
+    for _ in range(20):
+        mid = (lo + hi) / 2
+        if sample(row, mid)[1] < y:
+            lo = mid
+        else:
+            hi = mid
+    return sample(row, (lo + hi) / 2)
+
+
+def tank_ring(y):
+    lo, hi = 0., 1.
+    for _ in range(20):
         mid = (lo + hi) / 2
         if sample(TANK_SECTIONS, mid)[0] < y:
             lo = mid
         else:
             hi = mid
-    ring = cross_section(sample(TANK_SECTIONS, (lo + hi) / 2), True)
-    lo, hi = 0., .31
-    for _ in range(16):
+    return cross_section(sample(TANK_SECTIONS, (lo + hi) / 2), True)
+
+
+def tank_surface(x, y):
+    """Upper tank surface for centered cap and shoulder fixtures."""
+    ring = tank_ring(y)
+    lo, hi = 0., 5/21
+    for _ in range(18):
         mid = (lo + hi) / 2
         if sample(ring, mid)[0] < abs(x):
             lo = mid
@@ -163,133 +202,321 @@ def tank_surface(x, y):
             hi = mid
     return sample(ring, (lo + hi) / 2)[2]
 
+
+def tank_side_surface(y, z):
+    """Outboard tank position between the shoulder and lower hem."""
+    ring = tank_ring(y)
+    lo, hi = 2/21, 11/21
+    for _ in range(18):
+        mid = (lo + hi) / 2
+        if sample(ring, mid)[2] > z:
+            lo = mid
+        else:
+            hi = mid
+    return sample(ring, (lo + hi) / 2)[0]
+
+
 # The upper cheek flows backward and downward between the nose and tank.
 CHEEK = [
-    [(.109,-.939,.765), (.191,-.807,.815), (.224,-.637,.868), (.193,-.444,.868), (.142,-.302,.827), (.127,-.215,.785)],
-    [(.132,-.896,.730), (.216,-.791,.775), (.240,-.616,.814), (.233,-.432,.799), (.225,-.280,.771), (.151,-.208,.747)],
-    [(.159,-.854,.705), (.210,-.750,.738), (.237,-.595,.775), (.252,-.419,.748), (.240,-.274,.729), (.174,-.196,.718)],
+    [(.225,-.669,.929), (.210,-.576,.920), (.199,-.485,.884), (.180,-.411,.854), (.149,-.300,.819), (.127,-.215,.785)],
+    [(.225,-.675,.850), (.229,-.579,.847), (.228,-.487,.827), (.229,-.411,.805), (.211,-.280,.771), (.151,-.208,.747)],
+    [(.225,-.651,.773), (.236,-.570,.770), (.247,-.489,.758), (.252,-.419,.748), (.240,-.274,.729), (.174,-.196,.718)],
 ]
-# Each row is (outboard width, longitudinal position, height) from nose to engine.
+# Rows are (half-width, Y, Z) stations from the nose toward the engine.
 SIDE = [
-    [(.159,-.840,.702), (.210,-.731,.742), (.235,-.592,.771), (.247,-.425,.746), (.234,-.267,.724), (.187,-.111,.699)],
-    [(.171,-.812,.680), (.223,-.699,.714), (.245,-.551,.738), (.253,-.409,.711), (.241,-.274,.690), (.183,-.098,.663)],
-    [(.169,-.761,.622), (.217,-.662,.650), (.239,-.535,.658), (.249,-.402,.658), (.239,-.280,.644), (.178,-.121,.611)],
-    [(.159,-.693,.525), (.209,-.598,.557), (.218,-.496,.556), (.218,-.385,.559), (.198,-.306,.539), (.145,-.191,.515)],
+    [(.161,-.851,.704), (.208,-.748,.739), (.228,-.651,.763), (.249,-.455,.748),
+     (.244,-.315,.733), (.217,-.222,.716), (.180,-.115,.684)],
+    [(.173,-.814,.676), (.219,-.711,.702), (.241,-.611,.730), (.253,-.446,.724),
+     (.247,-.329,.705), (.225,-.228,.678), (.186,-.103,.642)],
+    [(.166,-.770,.611), (.213,-.661,.648), (.234,-.568,.661), (.238,-.419,.656),
+     (.233,-.318,.639), (.214,-.223,.612), (.176,-.115,.579)],
+    [(.156,-.703,.526), (.201,-.614,.545), (.216,-.511,.554), (.222,-.406,.546),
+     (.210,-.311,.532), (.196,-.240,.503), (.201,-.150,.477)],
 ]
+
+
+def side_top_row():
+    """Index the row to the neighboring upper shell with a backed seam."""
+    row = []
+    rail = CHEEK[-1]
+    for x, y, z in SIDE[0]:
+        if y < rail[0][1] - .004:
+            x, _, z = nose_lower_edge(y)
+            row.append((x - .0015, y, z - .003))
+        elif y <= rail[-1][1]:
+            x, _, z = row_at_y(rail, y)
+            row.append((x - .0015, y, z - .003))
+        else:
+            row.append((x, y, z))
+    return row
+
 
 def fairing_surface(rows, u, v):
     return sample([sample(row, u) for row in rows], v)
 
-def side_surface(y, z):
-    """Outboard fairing skin, used for the painted graphics and shell badges."""
-    if z >= sample(SIDE[0], .64)[2]:
-        rows = CHEEK
-    else:
-        rows = SIDE
-    def get(u, v):
-        return fairing_surface(rows, u, v)
-    # Solve the ruled grid locally, where both station axes are monotonic.
+def cheek_surface(u, v):
+    base = fairing_surface(CHEEK, u, v)
+    lead = fairing_surface(CHEEK, 0, v)
+    interface = nose_point(1, 1-v)
+    blend = max(0., 1-u*5)**2
+    return tuple(a + (c-b)*blend for a, b, c in zip(base, lead, interface))
+
+def width_at_y_z(rows, y, z):
     lo, hi = 0., 1.
-    offset = 0.
-    for _ in range(14):
+    for _ in range(17):
         v = (lo + hi) / 2
-        a, b = 0., 1.
-        for _ in range(14):
-            offset = (a + b) / 2
-            if get(offset, v)[1] < y:
-                a = offset
-            else:
-                b = offset
-        if get(offset, v)[2] > z:
+        result = row_at_y([sample([row[i] for row in rows], v) for i in range(len(rows[0]))], y)
+        if result[2] > z:
             lo = v
         else:
             hi = v
-    return get(offset, (lo + hi) / 2)[0]
+    return result[0]
+
+
+def side_surface(y, z):
+    """Outboard fairing skin, used for the painted graphics and shell badges."""
+    return width_at_y_z([side_top_row(), *SIDE[1:]], y, z)
+
+
+def normal_thickness(point, side, thickness):
+    """Offset a deeply sculpted side surface by its local inward normal."""
+    def offset(u, v):
+        epsilon = .0005
+        du = Vector(point(min(1, u + epsilon), v)) - Vector(point(max(0, u - epsilon), v))
+        dv = Vector(point(u, min(1, v + epsilon))) - Vector(point(u, max(0, v - epsilon)))
+        return du.cross(dv).normalized() * (side * thickness)
+    return offset
+
 
 def main_fairing(side, label):
+    rows = [side_top_row(), *SIDE[1:]]
+
     def aperture(u):
-        progress = max(0., min((u - 10/24) / (9/24), 1.))
-        return .46 + .19*progress, .56 + .31*progress
+        progress = max(0., min((u - 10/32) / (15/32), 1.))
+        return .53 + .12*progress, .63 + .24*progress
 
     def facepoint(u, v):
         upper, lower = aperture(u)
-        a = min(int(v * 3), 2)
-        vs = (0, upper, lower, 1)
-        raw_v = vs[a] + (v * 3 - a) * (vs[a+1] - vs[a])
-        x, y, z = fairing_surface(SIDE, u, raw_v)
+        band = min(int(v * 3), 2)
+        limits = (0, upper, lower, 1)
+        raw_v = limits[band] + (v * 3 - band) * (limits[band+1] - limits[band])
+        x, y, z = fairing_surface(rows, u, raw_v)
         return side * x, y, z
 
-    shell(f"{label} main fairing • convex pierced skin", facepoint, 24, 12,
-          "paint", BODY, (-side*.006, 0, 0), 0, side,
-          omit=lambda i, j: 10 <= i < 19 and 4 <= j < 8)
+    shell(f"{label} main fairing • convex pierced skin", facepoint, 32, 18,
+          "paint_alt", BODY, (-side*.004, 0, 0), 0, side,
+          omit=lambda i, j: 10 <= i < 25 and 6 <= j < 12)
 
     def duct(u, v):
-        raw_u = (10 + 9*u) / 24
-        raw_v = (1 + v) / 3
-        x, y, z = facepoint(raw_u, raw_v)
-        # Retain a crisp aperture and roll down into a physically recessed duct.
-        distance = min(u*3, v*4, (1-u)*3, (1-v)*4, 1)
-        return x - side * (.005 + .026*distance), y, z
+        station = (10 + 15*u) / 32
+        upper = facepoint(station, 1/3)
+        lower = facepoint(station, 2/3)
+        x, y, z = (a + (b-a)*v for a, b in zip(upper, lower))
+        def ramp(value):
+            value = min(4*value, 1)
+            return value**2 * (3 - 2*value)
+        inset = ramp(u) * ramp(1-u) * ramp(v) * ramp(1-v)
+        return x - side * (.0035 + .023*inset), y, z
 
-    shell(f"{label} side vent • molded duct interior", duct, 18, 10,
-          "black", BODY, (-side*.0025, 0, 0), 0, side)
-    for u in (.58, .79):
-        endpoints = [duct(u, v) for v in (.08, .38, .64, .92)]
-        points = [(x + side*.0055, y, z) for x, y, z in endpoints]
-        tube(f"{label} side vent • recessed air guide", points, .0015, "satin", BODY)
+    shell(f"{label} side vent • molded duct interior", duct, 15, 12,
+          "black", BODY, (-side*.002, 0, 0), 0, side, triangulate=True)
+    for u in (.68, .84):
+        points = [duct(u, v) for v in (.10, .32, .59, .83)]
+        tube(f"{label} side vent • recessed air guide",
+             [(x + side*.0017, y, z) for x, y, z in points], .0018, "satin", BODY)
 
-BROW = [
-    [(.016,-.980,.838), (.039,-.950,.866), (.081,-.907,.905), (.121,-.829,.949), (.146,-.736,.989), (.154,-.690,.987)],
-    [(.035,-.968,.824), (.079,-.935,.851), (.123,-.880,.886), (.159,-.809,.923), (.182,-.736,.950), (.175,-.680,.950)],
-    [(.056,-.941,.795), (.098,-.889,.838), (.151,-.841,.850), (.182,-.791,.868), (.200,-.722,.894), (.186,-.674,.911)],
-]
-DRL_LIP = [
-    [(.045,-.948,.780), (.073,-.920,.782), (.111,-.878,.805), (.156,-.827,.824), (.190,-.781,.843), (.208,-.720,.875)],
-    [(.047,-.954,.754), (.089,-.933,.749), (.136,-.884,.753), (.179,-.816,.775), (.209,-.759,.796), (.223,-.701,.832)],
-    [(.047,-.937,.736), (.082,-.918,.731), (.133,-.852,.732), (.180,-.789,.756), (.214,-.731,.779), (.227,-.672,.809)],
-]
+    def joint(u, v):
+        x, y, z = sample(rows[0], u)
+        return side*(x - .0045), y, z + .012*v - .004
+
+    shell(f"{label} upper fairing • internal seam return", joint, 30, 2,
+          "matte", BODY, (-side*.002, 0, 0), 0, side)
+
+
 BELLY = [
-    [(.160,-.696,.528), (.202,-.572,.553), (.208,-.480,.535), (.199,-.348,.514), (.166,-.217,.482), (.149,-.113,.460)],
-    [(.141,-.641,.459), (.189,-.562,.449), (.206,-.465,.418), (.214,-.310,.391), (.212,-.144,.367), (.166,.083,.358)],
-    [(.127,-.584,.348), (.161,-.518,.329), (.185,-.445,.320), (.193,-.291,.303), (.193,-.102,.301), (.151,.116,.323)],
-    [(.111,-.548,.295), (.147,-.488,.278), (.162,-.387,.270), (.172,-.261,.268), (.166,-.082,.272), (.126,.083,.288)],
+    [(x - .0015, y + .0015, z - .0035) for x, y, z in SIDE[-1]],
+    [(.143,-.666,.457), (.191,-.589,.476), (.207,-.493,.470), (.219,-.375,.444),
+     (.216,-.233,.402), (.201,-.068,.342), (.196,.090,.326)],
+    [(.139,-.629,.413), (.179,-.550,.428), (.199,-.459,.407), (.211,-.357,.381),
+     (.209,-.208,.359), (.194,-.074,.320), (.176,.114,.307)],
+    [(.112,-.564,.300), (.153,-.504,.285), (.177,-.413,.276), (.191,-.304,.274),
+     (.199,-.191,.281), (.183,-.035,.287), (.142,.114,.293)],
+    [(.099,-.543,.294), (.140,-.480,.276), (.164,-.404,.264), (.176,-.305,.260),
+     (.181,-.190,.269), (.161,-.051,.277), (.132,.102,.289)],
 ]
+
 WING = [
-    [(.173,-.320,.775), (.190,-.226,.791), (.160,-.106,.798), (.141,.027,.812), (.108,.110,.809)],
-    [(.177,-.312,.753), (.185,-.207,.756), (.162,-.099,.764), (.145,.027,.766), (.112,.115,.777)],
-    [(.157,-.301,.729), (.155,-.198,.721), (.146,-.089,.729), (.128,.025,.723), (.110,.108,.753)],
+    [(.144,-.315,.812), (.143,-.231,.813), (.113,-.119,.801), (.091,.015,.801), (.071,.136,.807)],
+    [(.170,-.308,.765), (.160,-.202,.770), (.134,-.109,.764), (.113,.022,.763), (.094,.139,.779)],
+    [(.163,-.300,.724), (.151,-.196,.721), (.131,-.099,.729), (.112,.028,.730), (.102,.134,.748)],
 ]
+
 SEAT_SIDE = [
-    [(.084,.100,.814), (.100,.199,.813), (.137,.311,.807), (.148,.425,.820), (.144,.501,.861)],
-    [(.112,.095,.783), (.128,.186,.779), (.143,.306,.785), (.146,.407,.795), (.140,.482,.822)],
-    [(.095,.088,.737), (.106,.170,.718), (.129,.292,.731), (.129,.391,.744), (.123,.452,.773)],
+    [(.071,.136,.805), (.094,.201,.804), (.135,.316,.803), (.147,.425,.816), (.143,.501,.857)],
+    [(.094,.139,.777), (.118,.192,.777), (.137,.310,.783), (.146,.404,.792), (.140,.482,.820)],
+    [(.102,.135,.747), (.115,.174,.724), (.129,.289,.729), (.129,.391,.742), (.123,.452,.771)],
 ]
+
+TANK_MOUNTS = [
+    (-.327, .090, .783, .778, .744),
+    (-.210, .107, .780, .776, .760),
+    (-.102, .095, .778, .774, .750),
+    (.032, .079, .781, .775, .742),
+    (.132, .064, .786, .782, .754),
+]
+
 TAIL_SCALLOP = [
     [(.140,.495,.857), (.150,.588,.922), (.138,.684,.950), (.112,.791,.973), (.063,.925,.973)],
     [(.156,.515,.835), (.161,.602,.879), (.138,.703,.911), (.101,.804,.939), (.072,.929,.958)],
     [(.151,.553,.815), (.146,.625,.837), (.125,.726,.881), (.086,.826,.918), (.064,.930,.949)],
 ]
+# Lateral stations on one side of the molded nose. Both sides share the same
+# control surface, so the projector web and lamp edges are exactly symmetric.
+NOSE_STATIONS = (0, .125, .1875, .25, .375, .50, .625, .75, .84375, 1)
+NOSE_WIDTHS = (0, .027, .041, .057, .086, .116, .146, .173, .191, .225)
+NOSE_RAILS = (
+    # Lower return above the fender.
+    ((-.943,.723), (-.944,.718), (-.946,.722), (-.939,.718), (-.914,.721),
+     (-.876,.728), (-.829,.744), (-.785,.763), (-.740,.781), (-.651,.773)),
+    # Lower lip of the projector mouth and DRL channels.
+    ((-.955,.747), (-.954,.748), (-.951,.759), (-.936,.775), (-.906,.798),
+     (-.872,.808), (-.837,.820), (-.801,.836), (-.769,.857), (-.665,.807)),
+    # Upper lip; the projector is recessed behind the V-shaped opening.
+    ((-.968,.817), (-.966,.816), (-.959,.807), (-.937,.782), (-.908,.812),
+     (-.873,.822), (-.838,.834), (-.803,.848), (-.770,.863), (-.675,.850)),
+    # Crown of the headlight brow rolls into the windshield and mirror shoulder.
+    ((-.959,.846), (-.949,.853), (-.935,.859), (-.916,.865), (-.875,.884),
+     (-.831,.906), (-.783,.927), (-.740,.939), (-.714,.934), (-.677,.898)),
+)
+
 SCREEN_STATIONS = [
-    # (half-width, center Y, center Z, rearward sweep, edge height delta)
-    (.144, -.855, .894, .132, .084),
-    (.150, -.805, .953, .115, .043),
-    (.150, -.742, 1.027, .072, .010),
-    (.143, -.661, 1.103, .043, -.023),
-    (.135, -.601, 1.160, .046, -.073),
+    # Half-width, fore/aft center, center height, lateral sweep and edge rise.
+    (.146, -.858, .902, .154, .075),
+    (.147, -.813, .959, .124, .044),
+    (.144, -.752, 1.024, .099, .016),
+    (.133, -.677, 1.094, .075, -.015),
+    (.118, -.604, 1.156, .056, -.052),
 ]
 
+def screen_form(u, v):
+    width, y, z, sweep, rise = sample(SCREEN_STATIONS, u)
+    cross = 2 * v - 1
+    distance = abs(cross)
+    return cross * width, y + sweep * distance**2, z + rise * distance**2.2
+
 def windscreen(u, v):
-    w, y, z, sweep, drop = sample(SCREEN_STATIONS, u)
-    p = v * 2 - 1
-    return p*w, y + sweep * abs(p)**1.85, z + drop * abs(p)**1.7
+    # Leave a narrow tolerance for a real lower gasket at the paint seam.
+    return screen_form(.021 + .979*u, v)
+
+def nose_station(rail, distance):
+    for i, right in enumerate(NOSE_STATIONS[1:]):
+        if distance <= right:
+            left = NOSE_STATIONS[i]
+            interval = (distance - left) / (right - left)
+            return sample(rail, (i + interval) / (len(NOSE_STATIONS) - 1))
+    return rail[-1]
+
+def nose_upper_edge(distance, width):
+    # Precisely follow the windshield base before rolling into the mirror wing.
+    screen_end = .625
+    if distance <= screen_end:
+        return screen_form(0, .5 + .5 * width / SCREEN_STATIONS[0][0])[1:]
+    return sample(((-.704,.977), (-.681,.983), (-.669,.956), (-.669,.929)),
+                  (distance - screen_end) / (1 - screen_end))
+
+def section_height(values, height):
+    # Shape-preserving cubic avoids foldback at narrow lamp slots.
+    section = height * (len(values) - 1)
+    i = min(int(section), len(values) - 2)
+    t = section - i
+    spans = [b-a for a, b in zip(values, values[1:])]
+    d0 = spans[i]
+    before = spans[max(0, i-1)]
+    after = spans[min(len(spans)-1, i+1)]
+    slope_in = 2 * d0 * before / (d0 + before) if d0 * before > 0 else 0.
+    slope_out = 2 * d0 * after / (d0 + after) if d0 * after > 0 else 0.
+    return values[i] + t*(slope_in + t*(3*d0 - 2*slope_in - slope_out +
+                                      t*(slope_in+slope_out-2*d0)))
+
+def nose_point(across, height):
+    distance = abs(across)
+    width, = nose_station([(width,) for width in NOSE_WIDTHS], distance)
+    rails = [nose_station(rail, distance) for rail in NOSE_RAILS]
+    rails.append(nose_upper_edge(distance, width))
+    y, z = [section_height(column, height) for column in zip(*rails)]
+    return (-width if across < 0 else width), y, z
+
+def drl_channel(u, v):
+    """Positive-side lamp opening, indexed inner→outer and bottom→top."""
+    return nose_point((8 + 19*u) / 32, .25 + .25*v)
+
+def projector_center():
+    return (0, -.931, .783)
+
+def mirror_mount():
+    """Positive-side mirror shoulder and its outward surface normal."""
+    return nose_point(.77, .953), (.42, -.22, .88)
+
+def nose_lower_edge(y):
+    """Nominal lower nose return for the side fairing joint."""
+    lo, hi = .25, 1.
+    for _ in range(18):
+        mid = (lo + hi) / 2
+        if nose_point(mid, 0)[1] < y:
+            lo = mid
+        else:
+            hi = mid
+    return nose_point((lo + hi) / 2, 0)
+
+def build_nose():
+    def remove_openings(i, j):
+        if not 6 <= j < 12:
+            return False
+        return 5 <= i < 24 or 26 <= i < 38 or 40 <= i < 59
+
+    shell("Front nose • unified molded fairing", lambda u, v: nose_point(2*u-1, v),
+          64, 24, "paint_alt", FRONT, (0, .0032, -.001), 1, -1, omit=remove_openings)
+    # The cylinder sits behind a shaped, tapered intake rather than in front of
+    # the lip. Match the outer loop to the inner wall of the aperture.
+    left, right, low, high = 26, 38, 6, 12
+    edge = [(i, low) for i in range(left, right)]
+    edge += [(right, j) for j in range(low, high)]
+    edge += [(i, high) for i in range(right, left, -1)]
+    edge += [(left, j) for j in range(high, low, -1)]
+    contour = [nose_point(i/32 - 1, j/24) for i, j in edge]
+    _, _, center_z = projector_center()
+    loops = [
+        [(x*.995, y+.0038, z-.001) for x, y, z in contour],
+        [(x*.68, -.930, center_z + (z-center_z)*.69) for x, _, z in contour],
+        [(x*.66, -.907, center_z + (z-center_z)*.67) for x, _, z in contour],
+        [(x*1.01, y+.0067, z-.001) for x, y, z in contour],
+    ]
+    count = len(contour)
+    faces = [(i*count+j, i*count+(j+1)%count, (i+1)%4*count+(j+1)%count, (i+1)%4*count+j)
+             for i in range(4) for j in range(count)]
+    mesh("Central headlight • molded recess liner", [p for row in loops for p in row], faces,
+         "black", FRONT, smooth=True)
+
+    shell("Windscreen • fitted smoked polycarbonate", windscreen, 26, 32, "smoke",
+          FRONT, (0, .0021, -.0018), 1, -1)
+    seam = [screen_form(.0105, i / 24) for i in range(25)]
+    tube("Windscreen • seated lower gasket", [(x, y+.0006, z-.00035) for x, y, z in seam],
+         .00165, "matte", FRONT)
 
 def front_fender(u, v):
-    angle = -1.04 + 2.16 * u
     cross = v * 2 - 1
-    # A narrowed tail clears the fork sliders and inner brake lines.
-    width = sample([(.047,), (.071,), (.076,), (.079,), (.063,), (.065,)], u)[0]
-    radius = .329 - .029 * cross**2 - .006 * abs(2*u-1)**2
+    # The nose corners sweep back into a close, axle-concentric crown.
+    angle = -1.03 + 2.075 * u + cross**2 * (.16 * (1-u)**3 - .075 * u**3)
+    width = sample([(.053,), (.064,), (.072,), (.074,), (.073,), (.068,), (.060,)], u)[0]
+    radius = .321 - .002 * abs(2*u-1)**2 - (.017 * cross**2 + .006 * cross**4)
     return cross * width, -.6975 + radius * sin(angle), .300 + radius * cos(angle)
+
+def mudguard_mount(u, v, side):
+    x, y, z = front_fender(.46 + .29 * u, .985)
+    # At each fore-aft station the cheek descends directly from the crown.
+    # The single tapered lobe reaches the cast axle foot under the stanchion.
+    foot = exp(-((y + .634) / .029)**2)
+    return side * (x + v * (.004 + .0083 * foot)), y, z - v * (.022 + .122 * foot)
 
 def hugger(u, v):
     angle = -1.31 + 1.74 * u
@@ -297,102 +524,82 @@ def hugger(u, v):
     radius = .328 - .024 * cross**2
     return cross*(.082 - .008*u), .6975 + radius*sin(angle), .310 + radius*cos(angle)
 
+def undertray(u, v):
+    # One uninterrupted underside with constant longitudinal sections.
+    y, width, floor, lip = sample([
+        (.422,.093,.752,.779), (.554,.112,.782,.806),
+        (.688,.095,.841,.864), (.821,.070,.890,.906),
+        (.948,.058,.941,.948),
+    ], u)
+    cross = 2*v - 1
+    return width*cross, y, floor + (lip-floor)*cross**2
+
 def build_body():
     loft("Fuel tank • formed steel shell", TANK_SECTIONS, "paint", TANK, True)
+    loft("Fuel tank • contoured mounting tray", TANK_MOUNTS, "satin", TANK)
     loft("Tail cowl • upswept seat unit", TAIL_SECTIONS, "paint", BODY)
     loft("Rider saddle • contoured grained vinyl", RIDER_SECTIONS, "seat", SEATS)
     loft("Pillion pad • tapered grained vinyl", PASSENGER_SECTIONS, "seat", SEATS)
-    def nose_spine(u, v):
-        cross = v * 2 - 1
-        y, z, width = sample([(-.983,.835,.018),(-.948,.854,.045),
-                              (-.906,.877,.077),(-.848,.902,.102)], u)
-        return width*cross, y + .009*cross**2, z - .0045*cross**2
-
-    shell("Nose spine • sculpted center bridge", nose_spine, 16, 14, "paint",
-          FRONT, (0, 0, -.0045), 2)
-    shell("Windscreen • curved smoked polycarbonate", windscreen, 26, 32, "smoke",
-          FRONT, (0, .0023, -.0018), 1, -1)
-    tube("Windscreen • polished upper edge", [windscreen(1, i / 12) for i in range(13)],
-         .0009, "smoke", FRONT)
+    build_nose()
     shell("Front mudguard • curved tire crown", front_fender, 36, 16, "paint",
-          FRONT, (0, 0, -.005), 2)
+          FRONT, (0, 0, -.003), 2)
     shell("Rear hugger • close-fitting tire shield", hugger, 22, 14, "satin",
           BODY, (0, 0, -.004), 2)
+    shell("Undertray • closed pillion silhouette", undertray, 20, 16, "matte",
+          BODY, (0, 0, .0035), 2, -1, triangulate=True)
 
     for side, side_name in ((1, "Left"), (-1, "Right")):
         def fairing(name, rows, surface="paint", collection=BODY, **options):
             return patch(f"{side_name} {name}", rows, surface, collection, side, **options)
 
-        fairing("nose brow • swept upper surfacing", BROW, collection=FRONT, axis=2)
-        fairing("DRL lower lip • sharp intake contour", DRL_LIP, collection=FRONT)
-        fairing("upper cheek • aerodynamic crease", CHEEK, collection=FRONT)
+        def cheek(u, v):
+            x, y, z = cheek_surface(u, v)
+            return side*x, y+.0015, z
+        shell(f"{side_name} upper cheek • joined side return", cheek, 24, 24,
+              "paint_alt", FRONT, (-side*.004, 0, 0), 0, side)
         main_fairing(side, side_name)
-        fairing("lower cowl • sculpted belly shield", BELLY, "paint")
-        fairing("lower cowl • tapered diagonal ridge", [
-            [(.198,-.592,.489), (.211,-.528,.467), (.216,-.458,.434), (.219,-.371,.404), (.215,-.287,.392)],
-            [(.200,-.568,.460), (.213,-.503,.430), (.221,-.443,.404), (.220,-.371,.381), (.211,-.315,.380)],
-            [(.176,-.536,.402), (.193,-.480,.390), (.201,-.426,.373), (.207,-.367,.368), (.204,-.316,.367)],
-        ], "paint_alt", nu=16, nv=6)
+        def belly_skin(u, v):
+            x, y, z = fairing_surface(BELLY, u, v)
+            return side*x, y, z
+
+        shell(f"{side_name} lower cowl • single formed belly shield", belly_skin, 32, 16,
+              "paint_alt", BODY, normal_thickness(belly_skin, side, .0038), 0, side)
+
+        def belly_return(u, v):
+            x, y, z = sample(SIDE[-1], u)
+            return side*(x - .004), y + .001*v, z - .009*v + .002
+
+        shell(f"{side_name} lower cowl • internal seam return", belly_return, 32, 2,
+              "matte", BODY, (-side*.0025, 0, 0), 0, side)
         fairing("upper tank-side infil", WING, "satin")
         fairing("saddle side cover", SEAT_SIDE, "satin")
         fairing("tail side panel • scalloped shoulder", TAIL_SCALLOP, "paint_alt")
-        fairing("chin spoiler • curved intake edge", [
-            [(.036,-.952,.742), (.096,-.936,.736), (.147,-.877,.728), (.185,-.816,.720), (.211,-.719,.742)],
-            [(.037,-.940,.720), (.094,-.922,.715), (.145,-.860,.704), (.180,-.786,.696), (.204,-.713,.723)],
-            [(.044,-.913,.710), (.094,-.893,.705), (.142,-.843,.693), (.175,-.767,.683), (.196,-.694,.707)],
-        ], "satin", FRONT)
-        fairing("forward body intake • recessed duct", [
-            [(.018,-.935,.820), (.057,-.919,.813), (.096,-.889,.838), (.144,-.831,.862), (.190,-.770,.905)],
-            [(.019,-.929,.781), (.058,-.907,.778), (.093,-.868,.790), (.148,-.809,.815), (.195,-.752,.861)],
-            [(.019,-.914,.748), (.062,-.895,.749), (.097,-.853,.758), (.147,-.784,.779), (.193,-.725,.827)],
-        ], "black", FRONT, nu=14, nv=6)
-        fairing("side air exit • inside of open blade", [
-            [(.218,-.274,.670), (.195,-.190,.697), (.157,-.087,.700), (.148,-.038,.667)],
-            [(.215,-.278,.646), (.181,-.192,.643), (.154,-.109,.640), (.148,-.057,.612)],
-            [(.202,-.313,.552), (.170,-.213,.560), (.142,-.150,.568), (.132,-.112,.558)],
-        ], "black")
-        fairing("side air exit • leading slash", [
-            [(.232,-.307,.719), (.246,-.275,.718), (.240,-.232,.699), (.217,-.196,.682)],
-            [(.231,-.286,.686), (.240,-.249,.682), (.232,-.211,.667), (.207,-.179,.656)],
-            [(.219,-.251,.628), (.220,-.225,.625), (.215,-.186,.615), (.196,-.162,.610)],
-            [(.206,-.233,.586), (.209,-.215,.584), (.194,-.186,.582), (.183,-.168,.575)],
-        ], "paint_alt")
-        fairing("lower air exit • recessed fin", [
-            [(.176,-.528,.468), (.202,-.424,.490), (.202,-.350,.484), (.172,-.268,.464)],
-            [(.172,-.510,.444), (.193,-.430,.431), (.192,-.347,.427), (.165,-.269,.438)],
-        ], "matte")
-        fairing("belly splitter • raised lower edge", [
-            [(.146,-.553,.328), (.176,-.461,.313), (.199,-.339,.325), (.209,-.207,.330), (.200,-.037,.319), (.155,.123,.336)],
-            [(.136,-.553,.306), (.165,-.470,.288), (.190,-.347,.286), (.199,-.208,.293), (.188,-.033,.290), (.140,.122,.320)],
-        ], "paint_alt")
-        fairing("mudguard mount • tapered fork shoulder", [
-            [(.060,-.753,.588), (.074,-.693,.601), (.078,-.619,.590), (.064,-.536,.563)],
-            [(.063,-.743,.559), (.079,-.676,.545), (.088,-.612,.487), (.068,-.555,.533)],
-            [(.059,-.716,.562), (.076,-.663,.511), (.093,-.610,.429), (.076,-.565,.506)],
-        ], "satin", FRONT, nu=18)
-        fairing("undertray • closed pillion silhouette", [
-            [(.093,.422,.779), (.113,.564,.806), (.095,.693,.864), (.069,.830,.906), (.058,.950,.949)],
-            [(.070,.430,.751), (.078,.555,.783), (.062,.687,.844), (.050,.813,.890), (.053,.942,.944)],
-            [(.002,.430,.752), (.002,.553,.780), (.002,.687,.840), (.002,.813,.887), (.002,.942,.940)],
-        ], "matte", BODY, axis=2)
+        shell(f"{side_name} mudguard mount • tapered fork shoulder", lambda u, v: mudguard_mount(u, v, side),
+              24, 6, "satin", FRONT, (-side*.005, 0, 0), 0, side)
         fairing("rear eliminator arm • tapered structural web", [
             [(.044,.764,.895), (.056,.834,.867), (.058,.902,.813), (.052,.962,.758), (.041,1.002,.706)],
             [(.018,.788,.870), (.028,.850,.833), (.038,.917,.776), (.027,.964,.723), (.026,1.007,.692)],
         ], "satin", BODY, nu=15, nv=4)
-        tube(f"{side_name} tank lower hem", [(side*x, y, z) for x, y, z in [
-             (.051,-.437,.843),(.112,-.345,.803),(.163,-.232,.796),
-             (.159,-.104,.791),(.124,.001,.793),(.103,.082,.804)]], .0017, "satin", TANK)
+        hem_points = []
+        for y in (-.405, -.360, -.279, -.210, -.149, -.078, .009, .075, .109):
+            ring = tank_ring(y)
+            x, _, z = ring[9]
+            hem_points.append(tank_steering_relief((side*(x - .002), y, z)))
+        tube(f"{side_name} tank lower hem", hem_points, .0015, "satin", TANK)
         tube(f"{side_name} rider seat micro piping", [(side*x, y, z) for x, y, z in [
-             (.071,.118,.814),(.086,.160,.810),(.113,.238,.804),(.141,.339,.809),
+             (.068,.135,.814),(.085,.166,.810),(.113,.238,.804),(.141,.339,.809),
              (.149,.425,.822),(.134,.501,.851),(.106,.549,.874)]], .0011, "matte", SEATS)
         for index, (x, y, z) in enumerate([
-             (.190,-.688,.906), (.243,-.597,.777), (.241,-.294,.726), (.218,-.315,.396),
-             (.200,-.135,.335), (.146,.426,.800), (.148,.571,.848),
+             (side_surface(-.595,.699) - .001, -.595, .699),
+             (side_surface(-.235,.685) - .001, -.235, .685),
+             (width_at_y_z(BELLY,-.354,.417) - .001, -.354, .417),
+             (width_at_y_z(BELLY,-.139,.326) - .001, -.139, .326),
+             (width_at_y_z(SEAT_SIDE,.426,.800) - .001, .426, .800), (.148,.571,.848),
         ]):
             bolt(f"{side_name} recessed body screw {index + 1:02}", (side*x, y, z),
                  (side, 0, .12), .0042, "engine", DETAIL, depth=.0024)
-        bolt(f"{side_name} mudguard retaining bolt", (side*.090, -.615, .472),
-             (side, 0, .12), .0042, "engine", DETAIL, depth=.0024)
+        bolt(f"{side_name} mudguard retaining bolt", (side*.117, -.645, .466),
+             (side, 0, .09), .0042, "steel", DETAIL, depth=.005)
     box("Rear eliminator • transverse signal support", (0, .984, .724), (.172, .036, .025),
         "matte", BODY, bevel=.005)
     box("Rear eliminator • plate mounting saddle", (0, 1.004, .706), (.098, .093, .024),

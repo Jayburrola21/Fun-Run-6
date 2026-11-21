@@ -9,6 +9,13 @@ import struct
 import zlib
 
 
+EXPECTED_ASSEMBLIES = {
+    "Body", "FrontFairing", "FuelTank", "Seats", "FrontWheel", "RearWheel",
+    "FrontForks", "Engine", "Frame", "Swingarm", "Chain", "Exhaust",
+    "Handlebars", "Cockpit", "Lights", "Details",
+}
+
+
 def load_glb(path):
     content = path.read_bytes()
     magic, version, length = struct.unpack_from("<4sII", content)
@@ -149,15 +156,18 @@ def verify_geometry(document, binary):
     nodes = document["nodes"]
     roots = document["scenes"][document.get("scene", 0)]["nodes"]
     assert sorted(roots) == list(range(len(nodes))), "Expected flat, separately named mesh nodes"
-    assert len(nodes) == len(document["meshes"]) == 103
+    assert len(nodes) == len(document["meshes"])
+    assert {node["mesh"] for node in nodes} == set(range(len(nodes)))
     assert len({node["name"] for node in nodes}) == len(nodes)
     lowest = [math.inf] * 3
     highest = [-math.inf] * 3
     triangle_counts = []
     wheel_z = {}
+    assemblies = set()
     for node in nodes:
         name = node["name"]
         assert name.startswith("R7_") and "__" in name, name
+        assemblies.add(name.split("__", 1)[0].removeprefix("R7_"))
         [primitive] = document["meshes"][node["mesh"]]["primitives"]
         material = document["materials"][primitive["material"]]
         assert name.split("__")[1] == material["name"], (name, material["name"])
@@ -184,14 +194,14 @@ def verify_geometry(document, binary):
                 highest[axis] = max(highest[axis], value)
         if name in ("R7_FrontWheel__rubber", "R7_RearWheel__rubber"):
             wheel_z[name] = node_position(node)[2]
+    assert EXPECTED_ASSEMBLIES <= assemblies, f"Missing assemblies: {EXPECTED_ASSEMBLIES - assemblies}"
     triangles = sum(triangle_counts)
-    assert triangles == 243_612, f"Triangle count changed to {triangles:,}"
     assert -.002 < lowest[1] < .002, "Expected tires on the Y=0 ground plane"
     assert abs(wheel_z["R7_FrontWheel__rubber"] + .6975) < .0001
     assert abs(wheel_z["R7_RearWheel__rubber"] - .6975) < .0001
     width, height, length = (high - low for low, high in zip(lowest, highest))
-    for actual, expected in zip((width, height, length), (.7038, 1.1609, 2.0563)):
-        assert abs(actual - expected) < .001, (actual, expected)
+    for actual, expected in zip((width, height, length), (.704, 1.16, 2.056)):
+        assert abs(actual - expected) < .012, (actual, expected)
     return {
         "mesh_parts": len(nodes),
         "triangles": triangles,

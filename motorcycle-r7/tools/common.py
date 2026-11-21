@@ -22,7 +22,8 @@ def collection(name):
     return existing
 
 
-def material(name, color, metallic=0, roughness=.4, *, coat=0, alpha=1, emission=0):
+def material(name, color, metallic=0, roughness=.4, *, coat=0, coat_roughness=.19,
+             specular=.5, alpha=1, emission=0):
     result = bpy.data.materials.get(name)
     if result is not None:
         return result
@@ -35,8 +36,9 @@ def material(name, color, metallic=0, roughness=.4, *, coat=0, alpha=1, emission
     shader.inputs["Base Color"].default_value = (*color[:3], 1)
     shader.inputs["Metallic"].default_value = metallic
     shader.inputs["Roughness"].default_value = roughness
+    shader.inputs["Specular IOR Level"].default_value = specular
     shader.inputs["Coat Weight"].default_value = coat
-    shader.inputs["Coat Roughness"].default_value = .19
+    shader.inputs["Coat Roughness"].default_value = coat_roughness
     shader.inputs["Alpha"].default_value = alpha
     if emission:
         shader.inputs["Emission Color"].default_value = (*color[:3], 1)
@@ -61,20 +63,20 @@ def add_grain(result, scale, strength, distance):
 
 
 def build_materials():
-    material("paint", (.009, .0105, .0135), .23, .24, coat=.36)
-    material("paint_alt", (.021, .024, .029), .29, .28, coat=.32)
+    material("paint", (.010, .011, .014), .12, .32, coat=.22, coat_roughness=.28, specular=.36)
+    material("paint_alt", (.013, .014, .017), .085, .44, coat=.07, coat_roughness=.36, specular=.18)
     material("satin", (.020, .023, .028), .14, .42)
     material("matte", (.019, .022, .027), .10, .54)
-    material("frame", (.058, .066, .076), .67, .35)
+    material("frame", (.052, .059, .067), .60, .43)
     material("engine", (.073, .078, .081), .73, .36)
-    material("alloy", (.025, .029, .034), .66, .28, coat=.28)
-    material("steel", (.36, .40, .46), .83, .30)
-    rotor = material("rotor", (.52, .55, .58), .81, .34)
+    material("alloy", (.025, .029, .034), .66, .32, coat=.20)
+    material("steel", (.36, .39, .43), .81, .33)
+    rotor = material("rotor", (.52, .55, .58), .81, .41)
     rotor.node_tree.nodes.get("Principled BSDF").inputs["Anisotropic"].default_value = .5
     material("exhaust", (.27, .25, .22), .80, .34)
     add_grain(material("rubber", (.015, .016, .017), 0, .62), 750, .19, .0002)
     add_grain(material("seat", (.019, .021, .024), 0, .69), 1250, .32, .00045)
-    material("smoke", (.030, .043, .060), .06, .19, alpha=.40, coat=.58)
+    material("smoke", (.027, .033, .043), .03, .23, alpha=.40, coat=.06, coat_roughness=.27, specular=.16)
     material("glass", (.068, .10, .14), .20, .16, alpha=.55, coat=.48)
     material("white", (.53, .79, 1), .08, .19, emission=2.1)
     material("red", (.92, .009, .012), .1, .22, emission=1.4)
