@@ -150,6 +150,13 @@ def tank_steering_relief(point):
     return x, y + .088*width_fade*height_fade*forward_fade, z
 
 
+def tank_crown_height(z):
+    """Lower the crown while easing back to the unchanged tank base."""
+    seat_height = .828
+    fade = min(max((z - .850) / .050, 0), 1)
+    return z - .18 * (z - seat_height) * fade**2 * (3 - 2*fade)
+
+
 def loft(name, controls, material, collection, tank=False):
     intervals = 4 * (len(controls) - 1)
     rings = [cross_section(sample(controls, i / intervals), tank) for i in range(intervals + 1)]
@@ -160,7 +167,8 @@ def loft(name, controls, material, collection, tank=False):
         span = len(ring) + 2
         vertices.extend([sample(surround, (1 + j * .5) / span) for j in range(2 * len(ring))])
     if tank:
-        vertices = [tank_steering_relief(point) for point in vertices]
+        relieved = map(tank_steering_relief, vertices)
+        vertices = [(x, y, tank_crown_height(z)) for x, y, z in relieved]
     width = 2 * len(rings[0])
     faces = [(i * width + j, i * width + (j + 1) % width,
               (i + 1) * width + (j + 1) % width, (i + 1) * width + j)
@@ -201,7 +209,7 @@ def tank_surface(x, y):
             lo = mid
         else:
             hi = mid
-    return sample(ring, (lo + hi) / 2)[2]
+    return tank_crown_height(sample(ring, (lo + hi) / 2)[2])
 
 
 def tank_hem(y):

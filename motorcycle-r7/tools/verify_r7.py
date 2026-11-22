@@ -66,7 +66,7 @@ def verify(folder):
     tank = authored_parts["Fuel tank • formed steel shell"]
     assert tank.data.materials[0].name == "paint"
     tank_bounds = bounds(tank.matrix_world @ vertex.co for vertex in tank.data.vertices)
-    assert 1.010 <= tank_bounds[2][1] <= 1.025, "Tank crown height changed"
+    assert .980 <= tank_bounds[2][1] <= .987, "Unexpected tank crown height"
     assert .295 <= tank_bounds[0][1] - tank_bounds[0][0] <= .315, "Unexpected tank shoulder width"
     front_verification = verify_front(authored)
     source, triangles, slivers = inspect(obj for _, obj in authored)

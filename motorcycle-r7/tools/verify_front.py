@@ -22,7 +22,11 @@ METER_PANELS = (
     "Inner meter deck • molded wraparound cowling",
     "Instrument nacelle • molded deck mount",
 )
-CLOSED_PANELS = ("Front nose • unified molded fairing", *FRONT_LINERS, *METER_PANELS)
+STEERING_INFILL = (
+    "Tank shoulder • molded inner bridge R",
+    "Tank shoulder • molded inner bridge L",
+)
+CLOSED_PANELS = ("Front nose • unified molded fairing", *FRONT_LINERS, *METER_PANELS, *STEERING_INFILL)
 STEERING_GROUPS = {"FrontForks", "FrontWheel", "Handlebars"}
 TRANSPARENT_MATERIALS = {"smoke", "glass", "clear"}
 
@@ -123,6 +127,13 @@ def verify_sightlines(stationary):
         for x in (-.08, -.04, 0, .04, .08):
             origin = Vector((x, y, .98)) - cockpit * .30
             check(origin, cockpit, cockpit_surfaces, "Cockpit", .43)
+
+    # Sightlines outboard of the stem previously reached the wheel or background.
+    for side, panel in zip((-1, 1), STEERING_INFILL):
+        for direction in (Vector((0, 0, -1)), Vector((0, -.30, -1)).normalized()):
+            for x, y in ((.16, -.48), (.16, -.44)):
+                origin = Vector((side*x, y, .88)) - direction * .55
+                check(origin, direction, panel, "Steering infill", .65)
 
 
 def verify_steering(surfaces):

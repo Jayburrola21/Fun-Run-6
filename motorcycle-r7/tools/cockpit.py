@@ -341,6 +341,49 @@ def inner_cowling():
                  (0, .16, 1), .003, "alloy", COCKPIT, .0011)
 
 
+def tank_shoulder_panels():
+    """Bridge each upper cheek to the tank hem below the controls."""
+    from body import cheek_surface, sample, shell, tank_hem
+
+    cheek_stations = (.310, .400, .500, .600, .700, .810, .910)
+    inner_stations = [
+        (.160, -.540, .890),
+        (.150, -.489, .844),
+        (.149, -.438, .799),
+    ]
+    for y in (-.387, -.347, -.300, -.253):
+        x, fitted_y, z = tank_hem(y)
+        inner_stations.append((x - .002, fitted_y, z - .001))
+
+    upper_band = .6
+    for side, tag in ((1, "L"), (-1, "R")):
+        def bridge(u, v):
+            seam = Vector(sample(inner_stations, u))
+            if v <= upper_band:
+                across = v / upper_band
+                cheek_u, = sample([(station,) for station in cheek_stations], u)
+                flange = Vector(cheek_surface(cheek_u, .040))
+                flange.x -= .0026
+                point = flange.lerp(seam, across)
+                point.z += .009*sin(pi*u)*sin(pi*across) - .004*across*(1-across)
+            else:
+                # The return tucks behind the turning fork instead of projecting
+                # the full upper surface into the steering envelope.
+                t = (v - upper_band) / (1 - upper_band)
+                reach = max(0., 1 - ((u - .29)/.17)**2)**2
+                point = seam + Vector((-.023*reach*t**1.8, .020*reach*t,
+                                       -(.004 + .070*reach)*t))
+            point.x *= side
+            return point
+
+        def thickness(u, v):
+            t = max(0., (v - upper_band) / (1 - upper_band))
+            return side*.0024*t, 0, -.003*(1-t)
+
+        shell("Tank shoulder • molded inner bridge " + tag, bridge, 24, 20, "paint",
+              COCKPIT, thickness, 2, 1)
+
+
 def front_air_guides():
     """Back the fairing mouth with a molded upper return and radiator guides."""
     from body import main_fairing_surface, nose_lower_edge, nose_point, sample, shell
@@ -642,6 +685,7 @@ def build_cockpit():
     clip_ons()
     mirrors()
     inner_cowling()
+    tank_shoulder_panels()
     front_air_guides()
     dashboard()
     fuel_cap()
