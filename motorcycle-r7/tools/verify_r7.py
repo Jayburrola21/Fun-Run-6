@@ -55,6 +55,14 @@ def verify(folder):
     for name in COLLECTIONS:
         assert bpy.data.collections[name].objects, name
     authored = list(asset_objects())
+    authored_parts = {obj.name: obj for _, obj in authored}
+    nose = authored_parts["Front nose • unified molded fairing"]
+    nose_points = {tuple(round(value, 6) for value in vertex.co) for vertex in nose.data.vertices}
+    assert all((-x, y, z) in nose_points for x, y, z in nose_points), "Asymmetric front cowl"
+    assert not any("plate holder" in name.lower() or "eliminator" in name.lower() for name in authored_parts)
+    assert "Pillion pad • tapered grained vinyl" in authored_parts
+    assert "Tail tidy • recessed indicator carrier" in authored_parts
+    assert authored_parts["Fuel tank • formed steel shell"].data.materials[0].name == "tank_silver"
     source, triangles, slivers = inspect(obj for _, obj in authored)
     source_groups = {mechanical_group(group, obj) for group, obj in authored}
 
@@ -65,7 +73,7 @@ def verify(folder):
     assert parts and all(part.type == 'MESH' for part in parts)
 
     dimensions = [round((hi - lo) * 1000, 1) for lo, hi in bounds(source)]
-    assert all(abs(actual - target) < 45 for actual, target in zip(dimensions, (705, 2070, 1160)))
+    assert all(abs(actual - target) < 45 for actual, target in zip(dimensions, (705, 2005, 1160)))
     assert abs(bounds(source)[2][0]) < .012, "Tires do not sit near ground"
     wheel_pivot_error = 0
     max_triangles = 0
@@ -89,7 +97,7 @@ def verify(folder):
             wheel_pivot_error = max(wheel_pivot_error, (part.matrix_world.translation - PIVOTS[sign]).length)
         assert any(face.area > 1e-9 for face in mesh.polygons), part.name
     assert import_groups == source_groups
-    assert {"paint", "rubber", "seat", "smoke", "white", "red", "rotor"} <= material_names
+    assert {"paint", "tank_silver", "rubber", "seat", "smoke", "white", "red", "rotor"} <= material_names
     assert wheel_pivot_error < .000025, wheel_pivot_error
     smoked = bpy.data.materials["smoke"].node_tree.nodes.get("Principled BSDF")
     assert abs(smoked.inputs["Alpha"].default_value - .4) < 1e-5

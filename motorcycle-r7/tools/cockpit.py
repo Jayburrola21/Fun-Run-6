@@ -426,7 +426,7 @@ def running_lights():
 
         shell("Running-light recessed seal " + tag, lambda u, v: glazing(u, v, .0042),
               28, 6, "black", LIGHTS, (0, .0048, 0), 1, -1)
-        shell("Pearl white LED signature " + tag, lambda u, v: glazing(u, v, .0021, .115),
+        shell("Pearl white LED signature " + tag, lambda u, v: glazing(u, v, .0021, .17),
               28, 6, "white", LIGHTS, (0, .003, 0), 1, -1)
 
     face = Vector((0, -1, .05)).normalized()
@@ -459,21 +459,8 @@ def lights():
         line = [(x + s * .0011, y + .003, z + .003) for x, y, z in tail]
         strip("Rear LED upper light guide " + tag, line, [.005, .005, .0045, .002],
               (s * .3, 1, -.10), .002, "red")
-        signal(s, "Rear " + tag, (s * .041, .976, .718), (s * .111, .989, .722), rear=True)
+        signal(s, "Rear " + tag, (s * .050, .861, .892), (s * .087, .874, .892), rear=True)
         signal(s, "Front " + tag, (s * .183, -.577, .743), (s * .236, -.581, .742), rear=False)
-
-    plate_up = Vector((0, .3894, .9211))
-    plate_axis = Vector((0, .9211, -.3894))
-    plate_face = Vector((0, 1.032, .627))
-    outline = [(-.037, -.009), (.037, -.009), (.040, -.004), (.040, .006), (.034, .010),
-               (-.034, .010), (-.040, .006), (-.040, -.004)]
-    plaque("Plate bracket red reflector gasket", plate_face, (-1, 0, 0), plate_up,
-           outline, .008, "satin", LIGHTS, .0018)
-    plaque("Plate bracket red reflector", plate_face + plate_axis * .0045, (-1, 0, 0), plate_up,
-           [(x * .93, y * .8) for x, y in outline], .004, "red_lens", LIGHTS, .0010)
-    for x in (-.036, .036):
-        bolt("Rear reflector housing screw", plate_face + Vector((x, 0, 0)) + plate_axis * .005, plate_axis, .0024,
-             "steel", LIGHTS, .001)
 
 
 def signal(s, label, root, lens_center, rear):

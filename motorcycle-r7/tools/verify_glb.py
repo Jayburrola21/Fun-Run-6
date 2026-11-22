@@ -106,11 +106,18 @@ def verify_materials(document, binary):
         finish = map_pixels(pbr["metallicRoughnessTexture"])
         materials[material["name"]] = (material, base, finish)
 
-    assert len(materials) == len(document["materials"]) == 24
+    assert len(materials) == len(document["materials"]) == 25
     _, paint, paint_finish = materials["paint"]
+    _, paint_alt, paint_alt_finish = materials["paint_alt"]
+    _, tank, tank_finish = materials["tank_silver"]
     _, rotor, rotor_finish = materials["rotor"]
     smoke_material, smoke, _ = materials["smoke"]
-    assert max(max(pixel[:3]) for pixel in paint) < 65, "Paint image is not black"
+    for color, finish in ((paint, paint_finish), (paint_alt, paint_alt_finish)):
+        assert all(8 <= min(pixel[:3]) <= max(pixel[:3]) <= 22 for pixel in color), "Expected deep black paint"
+        assert all(45 <= pixel[1] <= 70 and 60 <= pixel[2] <= 90 for pixel in finish), "Expected glossy metallic paint"
+    assert all(min(pixel[:3]) >= 165 for pixel in tank), "Expected a silver tank"
+    assert all(pixel[2] > paint_finish[0][2] for pixel in tank_finish), "Expected more metallic tank finish"
+    assert any(node["name"] == "R7_FuelTank__tank_silver" for node in document["nodes"])
     assert min(min(pixel[:3]) for pixel in rotor) > 145, "Rotor image is not silver"
     assert rotor_finish[0][2] > paint_finish[0][2], "Expected more metallic rotor finish"
     assert smoke_material["alphaMode"] == "BLEND"
@@ -200,7 +207,7 @@ def verify_geometry(document, binary):
     assert abs(wheel_z["R7_FrontWheel__rubber"] + .6975) < .0001
     assert abs(wheel_z["R7_RearWheel__rubber"] - .6975) < .0001
     width, height, length = (high - low for low, high in zip(lowest, highest))
-    for actual, expected in zip((width, height, length), (.704, 1.16, 2.056)):
+    for actual, expected in zip((width, height, length), (.704, 1.16, 2.005)):
         assert abs(actual - expected) < .012, (actual, expected)
     return {
         "mesh_parts": len(nodes),

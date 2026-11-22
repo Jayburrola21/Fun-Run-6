@@ -378,12 +378,12 @@ NOSE_RAILS = (
     # Lower return above the fender.
     ((-.943,.723), (-.944,.718), (-.946,.722), (-.939,.718), (-.914,.721),
      (-.876,.728), (-.829,.744), (-.785,.763), (-.740,.781), (-.651,.773)),
-    # Lower lip of the projector mouth and DRL channels.
-    ((-.955,.747), (-.954,.748), (-.951,.759), (-.936,.775), (-.906,.798),
-     (-.872,.808), (-.837,.820), (-.801,.836), (-.769,.857), (-.665,.807)),
-    # Upper lip; the projector is recessed behind the V-shaped opening.
-    ((-.968,.817), (-.966,.816), (-.959,.807), (-.937,.782), (-.908,.812),
-     (-.873,.822), (-.838,.834), (-.803,.848), (-.770,.863), (-.675,.850)),
+    # A tight lower lip pulls in toward the projector below the wider brow.
+    ((-.956,.750), (-.955,.750), (-.951,.755), (-.937,.771), (-.910,.790),
+     (-.875,.804), (-.839,.820), (-.803,.839), (-.770,.859), (-.665,.807)),
+    # The lamp channels rise outboard and close to points at the shoulders.
+    ((-.970,.819), (-.968,.825), (-.960,.832), (-.938,.775), (-.912,.801),
+     (-.877,.816), (-.841,.831), (-.804,.846), (-.770,.863), (-.675,.850)),
     # Crown of the headlight brow rolls into the windshield and mirror shoulder.
     ((-.959,.846), (-.949,.853), (-.935,.859), (-.916,.865), (-.875,.884),
      (-.831,.906), (-.783,.927), (-.740,.939), (-.714,.934), (-.677,.898)),
@@ -444,6 +444,10 @@ def nose_point(across, height):
     rails = [nose_station(rail, distance) for rail in NOSE_RAILS]
     rails.append(nose_upper_edge(distance, width))
     y, z = [section_height(column, height) for column in zip(*rails)]
+    # Narrow the center opening at the lower lip while keeping the outer lamp fit.
+    taper = max(0., 1 - (distance / .25)**4)
+    lower_lip = max(0., 1 - abs(height - .25) / .25)
+    width *= 1 - .31 * taper * lower_lip
     return (-width if across < 0 else width), y, z
 
 def drl_channel(u, v):
@@ -451,7 +455,7 @@ def drl_channel(u, v):
     return nose_point((8 + 19*u) / 32, .25 + .25*v)
 
 def projector_center():
-    return (0, -.931, .783)
+    return (0, -.938, .784)
 
 def mirror_mount():
     """Positive-side mirror shoulder and its outward surface normal."""
@@ -535,7 +539,7 @@ def undertray(u, v):
     return width*cross, y, floor + (lip-floor)*cross**2
 
 def build_body():
-    loft("Fuel tank • formed steel shell", TANK_SECTIONS, "paint", TANK, True)
+    loft("Fuel tank • formed steel shell", TANK_SECTIONS, "tank_silver", TANK, True)
     loft("Fuel tank • contoured mounting tray", TANK_MOUNTS, "satin", TANK)
     loft("Tail cowl • upswept seat unit", TAIL_SECTIONS, "paint", BODY)
     loft("Rider saddle • contoured grained vinyl", RIDER_SECTIONS, "seat", SEATS)
@@ -576,10 +580,6 @@ def build_body():
         fairing("tail side panel • scalloped shoulder", TAIL_SCALLOP, "paint_alt")
         shell(f"{side_name} mudguard mount • tapered fork shoulder", lambda u, v: mudguard_mount(u, v, side),
               24, 6, "satin", FRONT, (-side*.005, 0, 0), 0, side)
-        fairing("rear eliminator arm • tapered structural web", [
-            [(.044,.764,.895), (.056,.834,.867), (.058,.902,.813), (.052,.962,.758), (.041,1.002,.706)],
-            [(.018,.788,.870), (.028,.850,.833), (.038,.917,.776), (.027,.964,.723), (.026,1.007,.692)],
-        ], "satin", BODY, nu=15, nv=4)
         hem_points = []
         for y in (-.405, -.360, -.279, -.210, -.149, -.078, .009, .075, .109):
             ring = tank_ring(y)
@@ -600,14 +600,5 @@ def build_body():
                  (side, 0, .12), .0042, "engine", DETAIL, depth=.0024)
         bolt(f"{side_name} mudguard retaining bolt", (side*.117, -.645, .466),
              (side, 0, .09), .0042, "steel", DETAIL, depth=.005)
-    box("Rear eliminator • transverse signal support", (0, .984, .724), (.172, .036, .025),
-        "matte", BODY, bevel=.005)
-    box("Rear eliminator • plate mounting saddle", (0, 1.004, .706), (.098, .093, .024),
-        "satin", BODY, bevel=.005, rotation=(-.23, 0, 0))
-    box("Tail plate holder • polymer base", (0, 1.022, .658), (.104, .027, .137),
-        "satin", BODY, bevel=.006, rotation=(-.40, 0, 0))
-    box("License plate • charcoal blank", (0, 1.038, .652), (.103, .008, .071),
-        "matte", DETAIL, bevel=.003, rotation=(-.40, 0, 0))
-    for side in (-1, 1):
-        bolt(f"Plate holder retaining screw {side:+}", (side*.041, 1.049, .678),
-             (0, 1, -.33), .0035, "steel", DETAIL, depth=.0025)
+    box("Tail tidy • recessed indicator carrier", (0, .860, .894), (.126, .052, .024),
+        "matte", BODY, bevel=.005, rotation=(.23, 0, 0))

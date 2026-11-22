@@ -20,8 +20,9 @@ end
 
 local M = Enum.Material
 local finishes = {
-    paint = finish(23, 26, 32, M.SmoothPlastic, .10),
-    paintalt = finish(38, 43, 51, M.SmoothPlastic, .07),
+    paint = finish(12, 12, 16, M.SmoothPlastic, .12),
+    paintalt = finish(12, 12, 16, M.SmoothPlastic, .12),
+    tanksilver = finish(184, 190, 200, M.Metal, .09),
     satin = finish(33, 37, 43, M.SmoothPlastic, .03),
     matte = finish(27, 30, 35, M.Plastic),
     frame = finish(61, 68, 77, M.Metal, .08),
