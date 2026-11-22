@@ -65,7 +65,6 @@ def add_grain(result, scale, strength, distance):
 def build_materials():
     material("paint", (.0040, .0040, .0055), .29, .25, coat=.27, coat_roughness=.22, specular=.32)
     material("paint_alt", (.0042, .0042, .0057), .29, .26, coat=.26, coat_roughness=.23, specular=.32)
-    material("tank_silver", (.48, .50, .54), .61, .29, coat=.32, coat_roughness=.22)
     material("satin", (.020, .023, .028), .14, .42)
     material("matte", (.019, .022, .027), .10, .54)
     material("frame", (.052, .059, .067), .60, .43)

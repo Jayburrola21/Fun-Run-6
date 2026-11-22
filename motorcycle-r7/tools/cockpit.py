@@ -1,5 +1,5 @@
 """Editable steering controls, lamps, mirrors, instruments and badges."""
-from math import cos, pi, sin, tau
+from math import atan, cos, pi, sin, tau
 
 from mathutils import Vector, geometry
 
@@ -300,62 +300,116 @@ def mirrors():
 
 
 def inner_cowling():
-    """Stationary inner meter trims close the shoulder seams with steering clearance."""
+    """Form the stationary dashboard deck against the actual cowl edges."""
     from body import cheek_surface, nose_point, sample, shell
 
-    inner = [
-        (.168, -.679, .976),
-        (.121, -.640, .962),
-        (.102, -.594, .946),
-        (.105, -.558, .924),
-        (.135, -.523, .903),
-        (.185, -.500, .889),
+    outer_front = Vector(cheek_surface(0, 0))
+    center_profile = [
+        (-.858, .898), (-.753, .918), (-.653, .933),
+        (-.571, .921), (-.518, .891),
     ]
-    for s in (-1, 1):
-        tag = "L" if s == 1 else "R"
 
-        def fill(u, v):
-            x, y, z = cheek_surface(u * .37, 0)
-            outer = Vector((x - .0014, y - .0009, z - .0017))
-            inside = Vector(sample(inner, u))
-            across = inside.lerp(outer, v)
-            across.z += .0016 * sin(pi * v) * sin(pi * u)
-            if u < .18:
-                # The front edge follows the underside of the nose return.
-                start = Vector(nose_point(.73 + .27*v, 1))
-                start.y += .0012
-                start.z -= .0021
-                taper = (1 - u / .18)**2
-                nominal = Vector(inner[0]).lerp(Vector((.2236, -.6699, .9273)), v)
-                across += (start - nominal) * taper
-            across.x *= s
-            return across
+    def deck(u, v):
+        cross = 2*v - 1
+        q = abs(cross)
+        nose = Vector(nose_point(q, 1))
+        rim = Vector(cheek_surface(.325*u, 0))
+        y, z = sample(center_profile, u)
+        point = Vector((0, y, z)).lerp(rim, q*q)
+        point.x = q*rim.x
+        front = Vector((q*outer_front.x,
+                        -.858 + (outer_front.y + .858)*q*q,
+                        .898 + (outer_front.z - .898)*q*q))
+        point += (nose - front) * (1-u)**4
+        # Raise the instrument shoulder ahead of the display and scallop the
+        # wings into the side cowls. The rolled hem makes room at the steering head.
+        center_crown = max(0., 1 - (q/.55)**2)**2
+        wing_scallop = max(0., 1 - ((q-.72)/.28)**2)**2
+        brow = sin(pi*min(u/.62, 1))**2
+        point.z += .025*brow*center_crown - .016*sin(pi*u)*wing_scallop
+        point.y -= .014*u**6*center_crown
+        point.z -= u**7*(.008*(1-q*q) + .010*wing_scallop)
+        point.x *= -1 if cross < 0 else 1
+        return point + Vector((0, .001, -.003))
 
-        shell("Inner meter trim " + tag, fill, 18, 9, "matte", COCKPIT,
-              (0, 0, -.0024), 2, 1)
-        for u, v in ((.23, .79), (.79, .81)):
-            seat = fill(u, v)
-            bolt("Inner meter trim fixing " + tag, seat - Vector((0, 0, .0002)),
+    shell("Inner meter deck • molded wraparound cowling", deck, 26, 40, "black",
+          COCKPIT, (0, 0, -.003), 2, 1)
+    for side in (-1, 1):
+        for u in (.30, .77):
+            seat = deck(u, .5 + side*.442)
+            bolt("Inner cowling fixing", seat - Vector((0, 0, .0001)),
                  (0, .16, 1), .003, "alloy", COCKPIT, .0011)
 
 
+def front_air_guides():
+    """Back the fairing mouth with a molded upper return and radiator guides."""
+    from body import main_fairing_surface, nose_lower_edge, nose_point, sample, shell
+
+    front_group = "R7_FrontFairing"
+
+    def ceiling(u, v):
+        cross = 2*v - 1
+        q = abs(cross)
+        lip = Vector(nose_point(q, 0))
+        rear = Vector((.219*q, -.628 + .024*q*q, .773 + .014*q*q - .047*sin(pi*q)))
+        point = lip.lerp(rear, u)
+        point.z += .020*sin(pi*u)*(1 - .30*q*q)
+        point.x *= -1 if cross < 0 else 1
+        # Tuck the flange into the nose return without showing through the paint.
+        return point + Vector((0, .002, .0006))
+
+    shell("Front intake • curved upper liner", ceiling, 16, 34, "black",
+          front_group, (0, 0, .003), 2, -1)
+
+    outer_lip = Vector(nose_point(.94, 0))
+    cheek_join = Vector(main_fairing_surface(.022, 0))
+    joint_shift = cheek_join - Vector(nose_lower_edge(cheek_join.y))
+    for side, tag in ((1, "L"), (-1, "R")):
+        def side_guide(u, v):
+            # The outer lip follows the lower nose and the leading fairing edge.
+            if u < .23:
+                t = u/.23
+                lip_y = outer_lip.y + (cheek_join.y - outer_lip.y)*t
+                lip = Vector(nose_lower_edge(lip_y)) + joint_shift*t
+            else:
+                lip = Vector(main_fairing_surface(.022, (u-.23)/.77))
+            lip.x -= .003
+            z = .747 - .190*u
+            middle = (.203 - .017*u, -.530 + .027*u, z + .008)
+            shoulder = (.179 - .010*u, -.440 + .027*u, z + .002)
+            seal = (.145, -.397 - .29*(z - .656), z)
+            x, y, z = sample((lip, middle, shoulder, seal), v)
+            return side*x, y, z
+
+        shell("Front intake • curved radiator guide " + tag, side_guide, 22, 16, "black",
+              front_group, (side*.003, 0, 0), 0, -side, triangulate=True)
+
+    def brow(u, v):
+        cross = 2*v - 1
+        q = abs(cross)
+        front = Vector((cross*.161, -.414 + .010*q*q, .758 + .018*(1-q*q)))
+        rear = Vector((cross*.156, -.389 + .005*q*q, .754 + .006*(1-q*q)))
+        point = front.lerp(rear, u)
+        point.z += .010*sin(pi*u)*(1-.35*q*q)
+        return point
+
+    shell("Radiator • arched upper closeout", brow, 8, 20, "black",
+          front_group, (0, 0, .003), 2, -1)
+
+
 def dashboard():
-    center = Vector((0, -.548, .966))
-    u, v = Vector((-1, 0, 0)), Vector((0, -.71, .704)).normalized()
+    center = Vector((0, -.622, .953))
+    u, v = Vector((-1, 0, 0)), Vector((0, -.57, .822)).normalized()
     n = u.cross(v)
     outline = [(-.083, -.028), (-.069, -.043), (.069, -.043), (.083, -.028),
                (.077, .027), (.062, .035), (-.062, .035), (-.077, .027)]
-    stay = Vector((0, -.524, .921))
-    tube("Instrument harness", [(0, -.547, .948), stay, (.015, -.491, .889), (.021, -.452, .874)],
-         .0047, "rubber", COCKPIT)
-    for s in (-1, 1):
-        tube("Instrument stay from head casting", [
-            (s * .031, -.467, .896), (s * .042, -.499, .902), (s * .055, -.531, .919),
-            (s * .055, -.548, .946),
-        ], .0047, "frame", COCKPIT)
-        pickup = center + u * (s * .057) - n * .018
-        rod("Instrument anti-vibration isolator", pickup - n * .005, pickup + n * .005,
-            .0084, "rubber", COCKPIT, 24, .001)
+    # The pod seats in a molded, widened base on the inner deck.
+    base = [(-x * 1.18, -.643 - y*.36, .917 + y*.17) for x, y in outline]
+    root = [center + u*x*1.13 + v*y*1.05 - n*.023 for x, y in outline]
+    rim = [center + u*x*1.045 + v*y*1.06 - n*.011 for x, y in outline]
+    layered("Instrument nacelle • molded deck mount", (base, root, rim), "matte", COCKPIT, .002)
+    tube("Instrument harness", [(0, -.619, .913), (0, -.563, .895), (.015, -.491, .859),
+                                (.021, -.452, .850)], .0047, "rubber", COCKPIT)
     plaque("Digital instrument cluster housing", center, u, v, outline, .033, "satin", COCKPIT, .004)
     plaque("Instrument surrounding glass bezel", center + n * .017, u, v,
            [(x * .91, y * .90) for x, y in outline], .004, "alloy", COCKPIT, .001)
@@ -393,22 +447,26 @@ def dashboard():
 def fuel_cap():
     from body import tank_surface
 
-    y = -.205
-    axis = Vector((0, 0, 1))
+    y = -.225
+    slope = (tank_surface(0, y + .001) - tank_surface(0, y - .001)) / .002
+    axis = Vector((0, -slope, 1)).normalized()
+    across = Vector((1, 0, 0))
+    along = axis.cross(across)
     surface = Vector((0, y, tank_surface(0, y)))
-    rod("Fuel cap inset gasket", surface - axis * .0045, surface + axis * .0008,
+    rod("Fuel cap inset gasket", surface - axis * .006, surface + axis * .0008,
         .0402, "black", COCKPIT, 48, .0005)
     ring("Fuel cap brushed mounting ring", surface + axis * .0007, axis, .0385, .0274,
          .0031, "steel", COCKPIT, 64)
     rod("Fuel filler hinged door", surface - axis * .0027, surface + axis * .0017,
         .0267, "satin", COCKPIT, 48, .00065)
-    box("Fuel flap locking cylinder surround", surface + Vector((0, .0055, .0018)),
-        (.026, .017, .0013), "alloy", COCKPIT, .00042)
-    box("Keyway", surface + Vector((0, .006, .0026)),
-        (.0135, .0023, .0005), "black", COCKPIT, .00016)
+    rotation = (atan(slope), 0, 0)
+    box("Fuel flap locking cylinder surround", surface + along * .0055 + axis * .0018,
+        (.026, .017, .0013), "alloy", COCKPIT, .00042, rotation=rotation)
+    box("Keyway", surface + along * .006 + axis * .0026,
+        (.0135, .0023, .0005), "black", COCKPIT, .00016, rotation=rotation)
     for i in range(7):
         a = pi / 2 + tau * i / 7
-        point = surface + Vector((.033 * cos(a), .033 * sin(a), .0020))
+        point = surface + .033 * (across * cos(a) + along * sin(a)) + axis * .002
         bolt("Fuel cap recessed anchor", point, axis, .0025, "satin", COCKPIT, .0007)
 
 
@@ -486,7 +544,7 @@ def tank_emblems():
 
     for s in (-1, 1):
         tag = "L" if s == 1 else "R"
-        cx, cy = s * .151, -.230
+        cx, cy = s * .128, -.246
         z = tank_surface(cx, cy)
         slope_x = (tank_surface(cx + .0006, cy) - tank_surface(cx - .0006, cy)) / .0012
         slope_y = (tank_surface(cx, cy + .0006) - tank_surface(cx, cy - .0006)) / .0012
@@ -584,6 +642,7 @@ def build_cockpit():
     clip_ons()
     mirrors()
     inner_cowling()
+    front_air_guides()
     dashboard()
     fuel_cap()
     lights()

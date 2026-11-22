@@ -14,6 +14,7 @@ sys.dont_write_bytecode = True
 
 from build_r7 import MAX_PART_TRIANGLES, MIN_TRIANGLE_AREA, PIVOTS, asset_objects, mechanical_group
 from common import COLLECTIONS
+from verify_front import verify_front
 
 
 def inspect(objects):
@@ -62,7 +63,12 @@ def verify(folder):
     assert not any("plate holder" in name.lower() or "eliminator" in name.lower() for name in authored_parts)
     assert "Pillion pad • tapered grained vinyl" in authored_parts
     assert "Tail tidy • recessed indicator carrier" in authored_parts
-    assert authored_parts["Fuel tank • formed steel shell"].data.materials[0].name == "tank_silver"
+    tank = authored_parts["Fuel tank • formed steel shell"]
+    assert tank.data.materials[0].name == "paint"
+    tank_bounds = bounds(tank.matrix_world @ vertex.co for vertex in tank.data.vertices)
+    assert 1.010 <= tank_bounds[2][1] <= 1.025, "Tank crown height changed"
+    assert .295 <= tank_bounds[0][1] - tank_bounds[0][0] <= .315, "Unexpected tank shoulder width"
+    front_verification = verify_front(authored)
     source, triangles, slivers = inspect(obj for _, obj in authored)
     source_groups = {mechanical_group(group, obj) for group, obj in authored}
 
@@ -97,7 +103,7 @@ def verify(folder):
             wheel_pivot_error = max(wheel_pivot_error, (part.matrix_world.translation - PIVOTS[sign]).length)
         assert any(face.area > 1e-9 for face in mesh.polygons), part.name
     assert import_groups == source_groups
-    assert {"paint", "tank_silver", "rubber", "seat", "smoke", "white", "red", "rotor"} <= material_names
+    assert {"paint", "rubber", "seat", "smoke", "white", "red", "rotor"} <= material_names
     assert wheel_pivot_error < .000025, wheel_pivot_error
     smoked = bpy.data.materials["smoke"].node_tree.nodes.get("Principled BSDF")
     assert abs(smoked.inputs["Alpha"].default_value - .4) < 1e-5
@@ -124,6 +130,7 @@ def verify(folder):
         "surface_position_error_mm": round(max_error * 1000, 5),
         "collapsed_bevel_triangles_omitted": slivers,
         "all_imported_meshes_have_uvs": True,
+        "front_geometry": front_verification,
         "roblox_studio_import": "unverified",
     }
     print(json.dumps(verification, indent=2))
